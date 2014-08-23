@@ -1,28 +1,15 @@
 package gama
 
-trait IODirection
-object INPUT  extends IODirection
-object OUTPUT extends IODirection
-
-// Node Descriptors - These are immutable by design
+// Node Descriptors - These are slightly mutable by design
+//  immutable except node: that can only be assigned once
+//  and direction, which is unaccessible 
 abstract class Data {
-  def regenerate(spell: Node[NodeStore]=>Node[NodeStore]): this.type
-    // NOTE: Scala workaround: Type signature should be Node[NS]=>Node[NS] with NS<:NodeStore, casts used later under this assumption
+  protected[gama] def bind(spell: Element[NodeStore]=>Node[NodeStore])
+    //   Spell should almost always use Element.generateStorage to return a new Node[NS<:NodeStore]
+    // NOTE: Scala workaround: Type signature should really be Element[NS]=>Node[NS] with NS<:NodeStore
     //   Runtime errors will result if a bad spell is supplied
-    
-  def asInput:  this.type = regenerate((n: Node[NodeStore]) => (new Port(n.storage, INPUT)))
-  def asOutput: this.type = regenerate((n: Node[NodeStore]) => (new Port(n.storage, OUTPUT)))
+  def asInput: this.type
+  def asOutput: this.type
+  def flip: this.type
 }
 
-abstract class Element[NS<:NodeStore](val node: Node[NS]) extends Data {
-  final def regenerate(spell: Node[NodeStore]=>Node[NodeStore]) = regenerate(spell(node).asInstanceOf[Node[NS]])
-    // asInstanceOf typecast necessary due to Note on declaration of prototype
-  def regenerate(newtarget: Node[NS]): this.type
-}
-
-abstract class Bits(node: Node[RawBits]) extends Element(node) {
-}
-
-class UInt(node: Node[RawBits]) extends Bits(node) {
-  def regenerate(newtarget: Node[RawBits]) = (new UInt(newtarget)).asInstanceOf[this.type]
-}
