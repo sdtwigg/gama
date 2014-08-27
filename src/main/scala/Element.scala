@@ -1,9 +1,14 @@
 package gama
 
 abstract class Element[+NS<:NodeStore] extends Data {
+  // Current list of mutable state and copy status:
+  //  -> node (not copied)
+  //  -> direction (copy via copyDirection)
+
   def generateStorage: NS
- 
+
   private[this] var node: Option[Node[NS]] = None
+  final protected[gama] def isBound: Boolean = node.isDefined
   final def getNode: Node[NS] = node.getOrElse(throw new Exception("Attempted to getNode on unbound Element"))
   // !!!NOTE: Type Safety Workaround: NodeStore so that NS can be covariant
   final protected[gama] def bind(spell: Element[NodeStore]=>Node[NodeStore]) = {
@@ -13,7 +18,8 @@ abstract class Element[+NS<:NodeStore] extends Data {
       // Sanity-check that the binding happened and of the right Node type
   }
   
-  private[this] var direction: Option[IODirection] = None
+  private var direction: Option[IODirection] = None
+  protected def copyDirection(target: Element[_]): Unit = {direction = target.direction}
   final protected[gama] def getDirection: Option[IODirection] = node.map(_ match {
       case port: Port[_] => (Some(port.direction))
       case _ => None // !!!CONSIDER: Throw exception?
@@ -32,7 +38,6 @@ abstract class Element[+NS<:NodeStore] extends Data {
     this
   }
   // !!!CONSIDER: Throw exception if node is not None for these 3 (as they will do nothing)?
-
 }
 
 abstract class Bits(initial_width: Option[Int]) extends Element[RawBits] {

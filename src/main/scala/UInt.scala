@@ -8,4 +8,13 @@ object UInt {
 }
 
 class UInt(initial_width: Option[Int]) extends Bits(initial_width) {
+  def copy = {
+    val mycopy = new UInt(initial_width)
+    mycopy.copyDirection(this)
+    mycopy.asInstanceOf[this.type]
+  }
+
+  override def toString = {
+    s"<UInt:w=${initial_width},d=${getDirection},bound=${isBound}>"
+  }
 }

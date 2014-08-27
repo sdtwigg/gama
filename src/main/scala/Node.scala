@@ -4,7 +4,6 @@ abstract class NodeStore // These are immutable by design
 case class RawBits(val width: Option[Int]) extends NodeStore
 object Floaty extends NodeStore
 
-
 // Nodes are highly mutable
 abstract class Node[+NS<:NodeStore](initial_storage: NS){
   private[this] var updated_storage: NS = initial_storage
