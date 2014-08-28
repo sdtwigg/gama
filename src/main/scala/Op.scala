@@ -18,6 +18,3 @@ class BinaryOp[NSR<:NodeStore,NSP<:NodeStore](result_storage: NSR, op1: Node[NSP
   def inputs = Vector(op1, op2)
 }
 
-class Mux[NS<:NodeStore](result_storage: NS, tc: Node[NS], fc: Node[NS], cond: Node[RawBits]) extends Op(result_storage) {
-  def inputs = Vector(tc, fc, cond)
-}

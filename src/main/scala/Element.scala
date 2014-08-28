@@ -7,6 +7,9 @@ abstract class Element[+NS<:NodeStore] extends Data {
 
   protected[gama] def generateStorage: NS
 
+
+  protected[gama] def flatten = Vector(this)
+
   private[this] var node: Option[Node[NS]] = None
   final protected[gama] def isBound: Boolean = node.isDefined
   final def getNode: Node[NS] = node.getOrElse(throw new Exception("Attempted to getNode on unbound Element"))
@@ -14,7 +17,8 @@ abstract class Element[+NS<:NodeStore] extends Data {
   final protected[gama] def bind(spell: Element[NodeStore]=>Node[NodeStore]) = {
     if(node == None) { node = Some(spell(this).asInstanceOf[Node[NS]]) }
     else {throw new Exception("Attempted to bind already-bound Element")}
-    assert(generateStorage == getNode.storage, "Element must be bound to Node using Element's generated NodeStore")
+    assert(getNode.storage == generateStorage || getNode.storage == generateStorage.default,
+      "Element must be bound to Node using Element's generated NodeStore (or assoc. default)")
       // Sanity-check that the binding happened and of the right Node type
   }
   

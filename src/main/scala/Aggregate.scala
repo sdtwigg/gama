@@ -2,6 +2,9 @@ package gama
 
 abstract class Aggregate extends Data {
   def getSubdata: IndexedSeq[Data]
+    // This ordering MUST be consistent across calls and instances
+
+  protected[gama] def flatten = getSubdata.map(_.flatten).reduce(_++_)
 
   protected[gama] def bind(spell: Element[NodeStore]=>Node[NodeStore]) = {
     getSubdata.foreach(_.bind(spell))

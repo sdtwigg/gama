@@ -24,6 +24,15 @@ object top {
     
     val test6 = Wire(UInt(width=16))
     val test7 = test5 + test6
+
+    val test8 = Mux(test3, test7, test6)
+
+    val myb1 = Wire(new MyBundle(32))
+    val myb2 = Wire(new MyBundle(8))
+    val myb3 = Mux(test8, myb1, myb2)
+
+    println(myb3.in)
+
   }
 
 }
