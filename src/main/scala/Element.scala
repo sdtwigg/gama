@@ -5,7 +5,7 @@ abstract class Element[+NS<:NodeStore] extends Data {
   //  -> node (not copied)
   //  -> direction (copy via copyDirection)
 
-  def generateStorage: NS
+  protected[gama] def generateStorage: NS
 
   private[this] var node: Option[Node[NS]] = None
   final protected[gama] def isBound: Boolean = node.isDefined
@@ -38,6 +38,13 @@ abstract class Element[+NS<:NodeStore] extends Data {
     this
   }
   // !!!CONSIDER: Throw exception if node is not None for these 3 (as they will do nothing)?
+
+  protected[this] def handleAssign(target: Node[NS]) = {
+    getNode match {
+      case aNode: Assignable[NS] => (aNode.forceAssign(target))
+      case other => throw new Exception(s"Cannot assign to node of type ${other.getClass}")
+    }
+  }
 }
 
 abstract class Bits(initial_width: Option[Int]) extends Element[RawBits] {

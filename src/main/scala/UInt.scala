@@ -14,6 +14,13 @@ class UInt(initial_width: Option[Int]) extends Bits(initial_width) {
     mycopy.asInstanceOf[this.type]
   }
 
+  def :=(target: UInt): UInt = {
+    this.handleAssign(target.getNode)
+    this
+  }
+
+  def +(target: UInt): UInt = BinaryOp(UInt(), this, target, Opcodes.UPlus)
+
   override def toString = {
     s"<UInt:w=${initial_width},d=${getDirection},bound=${isBound}>"
   }
