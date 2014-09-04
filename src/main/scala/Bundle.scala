@@ -9,21 +9,17 @@ object Bundle {
 class Bundle extends Aggregate {
   private[this] lazy val subdata: IndexedSeq[Tuple2[String,Data]] = {
     import java.lang.reflect.Modifier._
+    // isAssignableFrom is from the java reflection API
+    // classOf is a scala reflection utility
+
     val myclass = getClass()
     val allmethods = myclass.getMethods.toVector
 
-    def isAncestorOf(possible_parent: Class[_], possible_child: Class[_]): Boolean = {
-      if(possible_parent == possible_child) true
-      else if(possible_child == null || possible_child == classOf[java.lang.Object]) false
-      else isAncestorOf(possible_parent, possible_child.getSuperclass)
-    }
-    val dataClass = classOf[Data]
-
     val filtered_methods = allmethods.filter(f =>   // Filter to methods that
-      isAncestorOf(dataClass, f.getReturnType) &&   //   return a subtype of Data
-      (f.getParameterTypes().size == 0) &&          //   take no arguments
-      !isStatic(f.getModifiers) &&                  //   are not static methods (rare issue)
-      !Bundle.reflect_blacklist.contains(f.getName) //   not on the blacklist
+      classOf[Data].isAssignableFrom(f.getReturnType) && // return a subtype of Data
+      (f.getParameterTypes().size == 0) &&               // take no arguments
+      !isStatic(f.getModifiers) &&                       // are not static methods (rare issue)
+      !Bundle.reflect_blacklist.contains(f.getName)      // not on the blacklist
     )
 
     // transform into (name: String, target: Data) tuples
