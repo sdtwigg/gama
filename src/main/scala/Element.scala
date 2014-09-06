@@ -3,12 +3,9 @@ package gama
 abstract class Element[+NS<:NodeStore] extends Data {
   // Current list of mutable state and copy status:
   //  -> node (not copied)
-  //  -> direction (copy via copyDirection)
+  //  -> direction (lost on copies)
 
   protected[gama] def generateStorage: NS
-
-
-  protected[gama] def flatten = Vector(this)
 
   private[this] var node: Option[Node[NS]] = None
   final protected[gama] def isBound: Boolean = node.isDefined
@@ -22,8 +19,7 @@ abstract class Element[+NS<:NodeStore] extends Data {
       // Sanity-check that the binding happened and of the right Node type
   }
   
-  private var direction: Option[IODirection] = None
-  protected def copyDirection(target: Element[_]): Unit = {direction = target.direction}
+  private[this] var direction: Option[IODirection] = None
   final protected[gama] def getDirection: Option[IODirection] = node.map(_ match {
       case port: Port[_] => (Some(port.direction))
       case _ => None // !!!CONSIDER: Throw exception?
@@ -43,12 +39,39 @@ abstract class Element[+NS<:NodeStore] extends Data {
   }
   // !!!CONSIDER: Throw exception if node is not None for these 3 (as they will do nothing)?
 
-  protected[this] def handleAssign(target: Node[NS]) = {
+
+  // These just exist to handle code common to the concrete subclasses but necessary to fulfill type contracts
+  protected[gama] def unsafeAssign(target: Data): this.type = {
+    // TODO: Consider adding more checks....
+    target match {
+      case e: Element[NodeStore] => {
+        assert(e.generateStorage.getClass == generateStorage.getClass,
+          s"Invalid assign: NodeStore-level: ${this.getClass.getName} (with ${generateStorage.getClass.getName}) and ${e.getClass.getName} (with ${e.generateStorage.getClass.getName})}")
+        }
+        handleAssign(e.asInstanceOf[Element[NS]].getNode)
+      case _ => throw new Exception(s"Invalid assign: Data-level: Element(${this.getClass.getName}) and ${target.getClass.getName}")
+    }
+    this
+  }
+  protected[gama] def unsafeMux(cond: Node[RawBits], tc: Data, fc: Data): Unit = {
+    // TODO: Consider Adding more checks...
+    // This check ensures fc and tc are subtypes of this
+    assert(getClass.isAssignableFrom(tc.getClass) && getClass.isAssignableFrom(fc.getClass),
+      s"Invalid Mux: ${this.getClass.getName} with ${tc.getClass.getName} (tc) and ${fc.getClass.getName} (fc)")
+    // Pass check so get 'typesafe' tc and fc
+    val ts_tc = tc.asInstanceOf[Element[NS]]
+    val ts_fc = fc.asInstanceOf[Element[NS]]
+    val opnode = new Mux[NS](generateStorage.default, cond, ts_tc.getNode, ts_fc.getNode)
+    bind(_=>opnode)
+  }
+
+  protected[this] def handleAssign(target: Node[NS]): Unit = {
     getNode match {
       case aNode: Assignable[NS] => (aNode.forceAssign(target))
       case other => throw new Exception(s"Cannot assign to node of type ${other.getClass}")
     }
   }
+
 }
 
 abstract class Bits(initial_width: Option[Int]) extends Element[RawBits] {

@@ -19,7 +19,7 @@ class Wire[NS<:NodeStore](storage: NS) extends Assignable(storage) {
   def inputs = input.map(Vector(_)).getOrElse(Vector())
 
   def forceAssign(source: Node[NS]) = {
-    input = Option(source)
+    input = Some(source)
     println("Work complete")
   }
 

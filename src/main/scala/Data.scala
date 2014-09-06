@@ -10,8 +10,6 @@ package gama
 abstract class Data {
   def copy: this.type
     // Should return an UNBOUND copy (and thus this is considered a shallow copy in other comments)
-  protected[gama] def flatten: IndexedSeq[Element[NodeStore]]
-    // Return ordered listing of constituent elements (all calls must return same ordering)
 
   protected[gama] def bind(spell: Element[NodeStore]=>Node[NodeStore])
     //   Spell should almost always use Element.generateStorage to return a new Node[NS<:NodeStore]
@@ -21,6 +19,9 @@ abstract class Data {
   def asInput: this.type
   def asOutput: this.type
   def flip: this.type
+
+  protected[gama] def unsafeAssign(target: Data): this.type
+  protected[gama] def unsafeMux(cond: Node[RawBits], tc: Data, fc: Data): Unit
 }
 
 object BindSpell {

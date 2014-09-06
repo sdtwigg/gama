@@ -47,6 +47,9 @@ class Bundle extends Aggregate {
   }
   
   def test = subdata
+  
+  protected[gama] def unsafeAssign(target: Data) = ???
+  protected[gama] def unsafeMux(cond: Node[RawBits], tc: Data, fc: Data): Unit = ???
 }
 
 class MyBundle(w: Int) extends Bundle {
