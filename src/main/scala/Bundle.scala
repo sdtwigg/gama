@@ -7,7 +7,7 @@ object Bundle {
 }
 
 class Bundle extends Aggregate {
-  private[this] lazy val subdata: IndexedSeq[Tuple2[String,Data]] = {
+  private lazy val subdata: Map[String,Data] = {
     import java.lang.reflect.Modifier._
     // isAssignableFrom is from the java reflection API
     // classOf is a scala reflection utility
@@ -34,10 +34,10 @@ class Bundle extends Aggregate {
     val unique_candidates = sorted_candidates.map(cd =>
       if(seen_data.contains(cd._2)) None else {seen_data += cd._2; Some(cd)}).filter(_.isDefined).map(_.get)
 
-    unique_candidates
+    unique_candidates.toMap
   }
 
-  def getSubdata = subdata.map(_._2)
+  def getSubdata = subdata.toVector.sortBy(_._1).map(_._2) // Map may lose sorting so sort again
   def copy: this.type = {
     // Use some type reflection to try and auto-create copy-method
     //   for user-created (possibly anonymous) bundles
@@ -48,8 +48,36 @@ class Bundle extends Aggregate {
   
   def test = subdata
   
-  protected[gama] def unsafeAssign(target: Data) = ???
-  protected[gama] def unsafeMux(cond: Node[RawBits], tc: Data, fc: Data): Unit = ???
+  protected[gama] def unsafeAssign(target: Data) = {
+    // TODO: better checks?
+    target match {
+      case b: Bundle => {
+        subdata.foreach({ case (fd_name, fd_ptr) =>
+          fd_ptr.unsafeAssign(b.subdata.getOrElse(fd_name, ???)) // TODO: ADD EXCEPTION
+        })
+      }
+      case _ => throw new Exception(s"Invalid assign: Data-level: Bundle(${this.getClass.getName}) and ${target.getClass.getName}")
+    }
+    this
+  }
+  protected[gama] def unsafeMux(cond: Node[RawBits], tc: Data, fc: Data): Unit = {
+    // TODO: better checks?
+    val ts_tc = tc match {
+      case b: Bundle => (b)
+      case _ => throw new Exception(s"Invalid Mux: ${this.getClass.getName} with ${tc.getClass.getName} (tc) and ${fc.getClass.getName} (fc)")
+    }
+    val ts_fc = fc match {
+      case b: Bundle => (b)
+      case _ => throw new Exception(s"Invalid Mux: ${this.getClass.getName} with ${tc.getClass.getName} (tc) and ${fc.getClass.getName} (fc)")
+    }
+
+    subdata.foreach({ case (fd_name, fd_ptr) => {
+      val fd_tc_ptr = ts_tc.subdata.getOrElse(fd_name, ???) // TODO: exception text
+      val fd_fc_ptr = ts_fc.subdata.getOrElse(fd_name, ???) // TODO: exception text
+      fd_ptr.unsafeMux(cond, fd_tc_ptr, fd_fc_ptr)
+    } })
+
+  }
 }
 
 class MyBundle(w: Int) extends Bundle {

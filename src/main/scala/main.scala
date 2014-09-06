@@ -4,6 +4,7 @@ import TypeSafe._
 
 object top {
   def main(args: Array[String]) {
+    println("1. general uint wire tests")
     val test = Wire(UInt(width=16))
 
     val test2 = UInt(OUTPUT, 8)
@@ -30,13 +31,14 @@ object top {
     val test7 = test5 + test6
     println(test7.getNode.inputs)
 
-    val test8 = Mux(test3, test7, test6)
-    println(test8.getNode.inputs)
-
+    println("2. bundle tests")
     val myb1 = Wire(new MyBundle(32))
     val myb2 = Wire(new MyBundle(8))
 
     println(myb1.test)
+    myb2 := myb1
+    println(myb1.in.getNode.inputs)
+    println(myb2.in.getNode.inputs)
 //    val myb3 = Mux(test8, myb1, myb2)
 
 //    println(myb3.in)
@@ -47,6 +49,7 @@ object top {
     
     println(aggam.a.getNode.inputs)
 */
+    println("3. uint mux tests")
     val myuint1 = Wire(UInt(width=1))
     val myuint2 = Wire(UInt(width=1))
     val mybool1 = Wire(new Bool)
@@ -57,6 +60,14 @@ object top {
 
     println(Mux(test3, myuint1, mybool1).getNode.inputs)
     println(Mux(UInt(), test3, mybool1, myuint1).getNode.inputs)
+
+    println("4. bundle mux tests")
+    val myb3 = Wire(new MyBundle(32))
+    val myb4 = Wire(new MyBundle(8))
+    val myb5 = Mux(test3, myb3, myb4)
+    println(myb5.test)
+    println(myb5.in.getNode.inputs)
+    println(myb5.out.getNode.inputs)
 /*
     val m1 = Mux(test3, myuint1, myuint2)
     val m2 = Mux(test3, myuint1, mybool2)
