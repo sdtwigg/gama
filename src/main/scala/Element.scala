@@ -3,6 +3,14 @@ package gama
 abstract class Element[+N <: Node[NS], +NS <: NodeStore](val node: N with Node[NS]) extends Data[N, NS]
 
 abstract class Bits[+N <: Node[NS], +NS <: RawBits](node: N with Node[NS]) extends Element(node)
+/*
+// Muxer for Bits (but tricky to use)
+object Bits {
+  implicit object muxer extends SelfMuxable[Bits,RawBits] {
+    def mux(left: Bits[_<:Node[_<:RawBits],_<:RawBits], right: Bits[_<:Node[_<:RawBits],_<:RawBits]) = new UInt(new Mux(RawUBits(None)))
+  }
+}
+*/
 
 class SInt[+N <: Node[NS], +NS <: RawSBits](node: N with Node[NS]) extends Bits(node)
 object SInt {
