@@ -12,4 +12,3 @@ trait NodeSpell[Out[X<:NodeStore]<:Node[X]] {
 
 class Aggregate[+N <: Node[NS], +NS <: NodeStore] extends Data[N, NS]
 
-
