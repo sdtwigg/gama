@@ -28,7 +28,11 @@ object top {
     println(getTypeT(myUVecMux))
     println(getTypeT(myUVecReg))
 
-    // val myBVec = new Vec(Vector(myUInt, myUInt, mySInt)) // doesn't compile as desired
+/*  // These do not compile, as desired
+    val myBMux = Mux(myUInt, mySInt)
+    println(getTypeT(myBMux))
+    val myBVec = new Vec(Vector(myUInt, myUInt, mySInt)) // doesn't compile as desired
+*/
   }
 }
 
