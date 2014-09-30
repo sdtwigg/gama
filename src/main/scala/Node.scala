@@ -7,8 +7,8 @@ abstract class RawBits extends NodeStore {
 case class RawUBits(width: Option[Int]) extends RawBits
 case class RawSBits(width: Option[Int]) extends RawBits
 
-class Node[+NS <: NodeStore](val storage: NS)
+class Node(val storage: NodeStore)
 
-class Wire[+NS <: NodeStore](storage: NS) extends Node(storage)
+class SPEC(storage: NodeStore) extends Node(storage) // used only as a placeholder until conversion to 
 
-class Op[+NS <: NodeStore](storage: NS) extends Node(storage)
+class Op(storage: NodeStore) extends Node(storage)

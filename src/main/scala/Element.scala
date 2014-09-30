@@ -1,34 +1,44 @@
 package gama
 
-abstract class Element[+N <: Node[NS], +NS <: NodeStore](val node: N with Node[NS]) extends Data[N, NS]
+abstract class Element(val node: Node) extends Data
 
-abstract class Bits[+N <: Node[NS], +NS <: RawBits](node: N with Node[NS]) extends Element(node)
+abstract class Bits(node: Node) extends Element(node)
 /*
-// Muxer for Bits (but tricky to use)
+// Making this available would allow muxing between UInt and SInt (and thus making a vector of them)
 object Bits {
-  implicit object muxer extends SelfMuxable[Bits,RawBits] {
-    def mux(left: Bits[_<:Node[_<:RawBits],_<:RawBits], right: Bits[_<:Node[_<:RawBits],_<:RawBits]) = new UInt(new Mux(RawUBits(None)))
+  implicit object selfmuxer extends SelfMuxable[Bits] {
+    def mux(tc: Bits, fc: Bits) = ???
   }
 }
 */
 
-class SInt[+N <: Node[NS], +NS <: RawSBits](node: N with Node[NS]) extends Bits(node)
-object SInt {
-  implicit object regenerator extends Regenerate[SInt,RawSBits] {
-    def regenerate[NS<:RawSBits, XN[X<:NodeStore]<:Node[X]](in: SInt[_<:Node[NS],NS], xform: NodeSpell[XN]) = new SInt(xform(in.node))
-  }
-  implicit object muxer extends SelfMuxable[SInt,RawSBits] {
-    def mux(left: SInt[_<:Node[_<:RawSBits],_<:RawSBits], right: SInt[_<:Node[_<:RawSBits],_<:RawSBits]) = new SInt(new Mux(RawSBits(None)))
-  }
-}
-
-class UInt[+N <: Node[NS], +NS <: RawUBits](node: N with Node[NS]) extends Bits(node)
 object UInt {
-  implicit object regenerator extends Regenerate[UInt,RawUBits] {
-    def regenerate[NS<:RawUBits, XN[X<:NodeStore]<:Node[X]](in: UInt[_<:Node[NS],NS], xform: NodeSpell[XN]) = new UInt(xform(in.node))
-  }
-  implicit object muxer extends SelfMuxable[UInt,RawUBits] {
-    def mux(left: UInt[_<:Node[_<:RawUBits],_<:RawUBits], right: UInt[_<:Node[_<:RawUBits],_<:RawUBits]) = new UInt(new Mux(RawUBits(None)))
+  def apply(): UInt           = apply(None)
+  def apply(width: Int): UInt = apply(Some(width))
+  def apply(width: Option[Int]) = new UInt(new SPEC(RawUBits(width)))
+
+  implicit object basicfunctionality extends Regenerate[UInt] with SelfMuxable[UInt] with SelfTransfer[UInt] {
+    def regenerate(in: UInt, xform: NodeSpell[_<:Node]) = new UInt(xform(in.node))
+    def mux(tc: UInt, fc: UInt) = new UInt(new Mux(RawUBits(None)))
+    def selfTransfer(source: UInt, sink: UInt) = sink
   }
 }
+// Placing object first lets the class find the implicits in the object
+class UInt private (node: Node) extends Bits(node) {
+  def :=(source: UInt) = implicitly[SelfTransfer[UInt]].selfTransfer(source, this)
+}
 
+object SInt {
+  def apply(): SInt           = apply(None)
+  def apply(width: Int): SInt = apply(Some(width))
+  def apply(width: Option[Int]) = new SInt(new SPEC(RawSBits(width)))
+
+  implicit object basicfunctionality extends Regenerate[SInt] with SelfMuxable[SInt] with SelfTransfer[SInt] {
+    def regenerate(in: SInt, xform: NodeSpell[_<:Node]) = new SInt(xform(in.node))
+    def mux(tc: SInt, fc: SInt) = new SInt(new Mux(RawSBits(None)))
+    def selfTransfer(source: SInt, sink: SInt) = sink
+  }
+}
+class SInt private (node: Node) extends Bits(node) {
+  def :=(source: SInt) = implicitly[SelfTransfer[SInt]].selfTransfer(source, this)
+}

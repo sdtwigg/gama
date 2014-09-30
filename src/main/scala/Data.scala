@@ -1,14 +1,16 @@
 package gama
 
-class Data[+N<:Node[NS], +NS<:NodeStore]
+class Data
 
-trait Regenerate[D[X<:Node[Y],Y<:NSrestrict] <: Data[X,Y], -NSrestrict <: NodeStore] {
-  def regenerate[NS<:NSrestrict, XN[X<:NodeStore]<:Node[X]](in: D[_<:Node[NS],NS], xform: NodeSpell[XN]): D[XN[NS],NS]
+trait Regenerate[D<:Data] {
+  def regenerate(in: D, xform: NodeSpell[_<:Node]): D
 }
 
-trait NodeSpell[Out[X<:NodeStore]<:Node[X]] {
-  def apply[NS<:NodeStore](in: Node[NS]): Out[NS]
+trait SelfTransfer[D<:Data] {
+  def selfTransfer(source: D, sink: D): D
 }
 
-class Aggregate[+N <: Node[NS], +NS <: NodeStore] extends Data[N, NS]
+trait NodeSpell[Out<:Node] {
+  def apply(in: Node): Out
+}
 

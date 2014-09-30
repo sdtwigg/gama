@@ -5,20 +5,30 @@ object top {
     import scala.reflect.runtime.universe._
     def getTypeT[A: TypeTag](in: A) = typeTag[A]
 
-    val myWire = new UInt(new Wire(RawUBits(None)))
-    val myReg = Reg.makeReg(myWire)
-    println(getTypeT(myWire).tpe)
-    println(getTypeT(myReg).tpe)
+    val myUInt = UInt()
+    val myUWire = Wire(myUInt)
+    val myUReg = Reg(myUInt)
+    val myUMux = Mux(myUWire, myUReg)
+
+    println(getTypeT(myUInt))
+    println(getTypeT(myUWire))
+    println(getTypeT(myUReg))
+    println(getTypeT(myUMux))
+    println(getTypeT(myUMux.node))
     
-    val mySWire = new SInt(new Wire(RawSBits(None)))
-    val mySReg = Reg.makeReg(mySWire)
-    println(getTypeT(mySWire).tpe)
-    println(getTypeT(mySReg).tpe)
+    val mySInt = SInt(32)
+    println(getTypeT(mySInt))
 
-    val myMux = Mux.makeMux(myReg,myWire)
-    println(getTypeT(myMux).tpe)
+    val myUVec = new Vec(Vector(myUInt, myUInt, myUInt))
+    println(getTypeT(myUVec))
 
+    myUVec := myUVec
+    val myUVecMux = Mux(myUVec, myUVec)
+    val myUVecReg = Reg(myUVec)
+    println(getTypeT(myUVecMux))
+    println(getTypeT(myUVecReg))
+
+    // val myBVec = new Vec(Vector(myUInt, myUInt, mySInt)) // doesn't compile as desired
   }
-
 }
 
