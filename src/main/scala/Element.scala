@@ -43,6 +43,9 @@ object Bool {
     def mux(tc: Bool, fc: Bool) = new Bool(new Mux(RawUBits(Some(1))))
     def selfTransfer(source: Bool, sink: Bool) = sink
   }
+
+  import scala.language.implicitConversions
+  implicit def bool2UInt(in: Bool): UInt = UInt(1) // TODO IMPLEMENT
 }
 class Bool private (node: Node) extends Bits(node) {
   def :=(source: Bool) = implicitly[SelfTransfer[Bool]].selfTransfer(source, this)

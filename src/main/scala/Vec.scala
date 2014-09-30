@@ -14,9 +14,12 @@ class Vec[D<:Data: Vectorizable](val elements: immutable.Seq[D])  extends Aggreg
   def :=(source: Vec[D])(implicit eltxfer: SelfTransfer[D]) = implicitly[SelfTransfer[Vec[D]]].selfTransfer(source, this)
 }
 object Vec {
+  def apply[D<:Data: SelfMuxable](elts: D*) = new Vec(elts.toVector)
   def apply[D<:Data: SelfMuxable](elts: immutable.Seq[D]) = new Vec(elts)
-  // Basically, Vec can only be regenerated, transfered, etc. if constituent elements are regeneratable or transferable
+  // mutable.Seq[D] can still be used but must be unpacked into the first construction e.g. Vec(Array(...):_*)
+  // Second constructor just prevents unnecessary unpacking and repacking for case of immutable.Seq[D]
 
+  // Basically, Vec can only be regenerated, transfered, etc. if constituent elements are regeneratable or transferable
   implicit def regenerater[D<:Data: Regenerate]: Regenerate[Vec[D]] = new Regenerate[Vec[D]] {
     def regenerate(in: Vec[D], xform: NodeSpell[_<:Node]): Vec[D] =
       new Vec(in.elements.map(implicitly[Regenerate[D]].regenerate(_,xform)))(Vectorizable.vectorizer[D](in.eltmuxer))

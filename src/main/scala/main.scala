@@ -19,7 +19,8 @@ object top {
     val mySInt = SInt(32)
     println(getTypeT(mySInt))
 
-    val myUVec = new Vec(Vector(myUInt, myUInt, myUInt))
+    val myUVec = Vec(myUInt, myUInt, myUInt)
+    val myUVec2 = Vec(Vector(myUInt, myUInt, myUInt))
     println(getTypeT(myUVec))
 
     myUVec := myUVec
@@ -27,6 +28,8 @@ object top {
     val myUVecReg = Reg(myUVec)
     println(getTypeT(myUVecMux))
     println(getTypeT(myUVecReg))
+
+    val myBool = Bool()
 
 /*  // These do not compile, as desired
     val myBMux = Mux(myUInt, mySInt)
