@@ -33,6 +33,8 @@ object top {
 
     val myBool = Bool()
 
+    val myTestModule = TestModule()(TOPMODULE)
+
 /*  // These do not compile, as desired
     val myBMux = Mux(myUInt, mySInt)
     println(getTypeT(myBMux))

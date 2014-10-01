@@ -20,9 +20,9 @@ object Bits {
 }
 
 object UInt {
-  def apply()(implicit em: EnclosingModule): UInt           = apply(None)
-  def apply(width: Int)(implicit em: EnclosingModule): UInt = apply(Some(width))
-  def apply(width: Option[Int])(implicit em: EnclosingModule) = new UInt(new SPEC(RawUBits(width)))
+  def apply(): UInt           = apply(None)
+  def apply(width: Int): UInt = apply(Some(width))
+  def apply(width: Option[Int]) = new UInt(new SPEC(RawUBits(width)))(DATASPEC)
 
   implicit object basicfunctionality extends Regenerate[UInt] with SelfMuxable[UInt] with SelfTransfer[UInt] {
     def regenerate(in: UInt, xform: NodeSpell[_<:Node])(implicit em: EnclosingModule) = new UInt(xform(in.node))
@@ -36,7 +36,7 @@ class UInt private (node: Node)(implicit em: EnclosingModule) extends Bits(node)
 }
 
 object Bool {
-  def apply()(implicit em: EnclosingModule) = new Bool(new SPEC(RawUBits(Some(1))))
+  def apply() = new Bool(new SPEC(RawUBits(Some(1))))(DATASPEC)
 
   implicit object basicfunctionality extends Regenerate[Bool] with SelfMuxable[Bool] with SelfTransfer[Bool] {
     def regenerate(in: Bool, xform: NodeSpell[_<:Node])(implicit em: EnclosingModule) = new Bool(xform(in.node))
@@ -52,9 +52,9 @@ class Bool private (node: Node)(implicit em: EnclosingModule) extends Bits(node)
 }
 
 object SInt {
-  def apply()(implicit em: EnclosingModule): SInt           = apply(None)
-  def apply(width: Int)(implicit em: EnclosingModule): SInt = apply(Some(width))
-  def apply(width: Option[Int])(implicit em: EnclosingModule) = new SInt(new SPEC(RawSBits(width)))
+  def apply(): SInt           = apply(None)
+  def apply(width: Int): SInt = apply(Some(width))
+  def apply(width: Option[Int]) = new SInt(new SPEC(RawSBits(width)))(DATASPEC)
 
   implicit object basicfunctionality extends Regenerate[SInt] with SelfMuxable[SInt] with SelfTransfer[SInt] {
     def regenerate(in: SInt, xform: NodeSpell[_<:Node])(implicit em: EnclosingModule) = new SInt(xform(in.node))
