@@ -6,7 +6,7 @@ object PortSpell extends NodeSpell[Port] {
 
 class Port(storage: NodeStore) extends Wire(storage)
 object Port {
-  protected[gama] def apply[D<: Data : Regenerate](model: D): D = {
+  protected[gama] def apply[D<: Data : Regenerate](model: D)(implicit em: EnclosingModule): D = {
     implicitly[Regenerate[D]].regenerate(model, PortSpell)
   }
 }

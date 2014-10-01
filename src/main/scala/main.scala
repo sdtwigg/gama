@@ -5,6 +5,8 @@ object top {
     import scala.reflect.runtime.universe._
     def getTypeT[A: TypeTag](in: A) = typeTag[A]
 
+    implicit val em = EnclosingModule(None)
+
     val myUInt = UInt()
     val myUWire = Wire(myUInt)
     val myUReg = Reg(myUInt)

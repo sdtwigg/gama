@@ -1,4 +1,4 @@
 package gama
 
-class Aggregate extends Data
+class Aggregate(implicit em: EnclosingModule) extends Data
 

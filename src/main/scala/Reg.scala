@@ -6,7 +6,7 @@ object RegSpell extends NodeSpell[Reg] {
 
 class Reg(storage: NodeStore) extends Synthesizable(storage)
 object Reg {
-  def apply[D<:Data : Regenerate](model: D): D = {
+  def apply[D<:Data : Regenerate](model: D)(implicit em: EnclosingModule): D = {
     implicitly[Regenerate[D]].regenerate(model, RegSpell)
   }
 }

@@ -1,9 +1,9 @@
 package gama
 
-class Data //(implicit val owner: EnclosingModule)
+class Data(implicit val owner: EnclosingModule)
 
 trait Regenerate[D<:Data] {
-  def regenerate(in: D, xform: NodeSpell[_<:Node]): D
+  def regenerate(in: D, xform: NodeSpell[_<:Node])(implicit em: EnclosingModule): D
 }
 
 trait SelfTransfer[D<:Data] {
