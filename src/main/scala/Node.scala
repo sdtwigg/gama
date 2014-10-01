@@ -11,4 +11,6 @@ class Node(val storage: NodeStore)
 
 class SPEC(storage: NodeStore) extends Node(storage) // used only as a placeholder until conversion to 
 
-class Op(storage: NodeStore) extends Node(storage)
+class Synthesizable(storage: NodeStore) extends Node(storage)
+
+class Op(storage: NodeStore) extends Synthesizable(storage)

@@ -1,6 +1,6 @@
 package gama
 
-class Data
+class Data //(implicit val owner: EnclosingModule)
 
 trait Regenerate[D<:Data] {
   def regenerate(in: D, xform: NodeSpell[_<:Node]): D
