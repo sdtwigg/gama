@@ -1,4 +1,5 @@
 package gama
+import internal._
 
 abstract class Element(val node: Node)(implicit em: EnclosingModule) extends Data
 

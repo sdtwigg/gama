@@ -1,4 +1,9 @@
 package gama
+import internal._
+
+trait NodeSpell[Out<:Node] {
+  def apply(in: Node): Out
+}
 
 class Data(implicit val owner: EnclosingModule)
 
@@ -8,9 +13,5 @@ trait Regenerate[D<:Data] {
 
 trait SelfTransfer[D<:Data] {
   def selfTransfer(source: D, sink: D): D
-}
-
-trait NodeSpell[Out<:Node] {
-  def apply(in: Node): Out
 }
 

@@ -1,4 +1,5 @@
 package gama
+import internal._
 
 abstract class NodeStore
 abstract class RawBits extends NodeStore {

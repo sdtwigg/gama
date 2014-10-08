@@ -1,4 +1,5 @@
 package gama
+import internal._
 
 object PortSpell extends NodeSpell[Port] {
   def apply(in: Node) = new Port(in.storage)

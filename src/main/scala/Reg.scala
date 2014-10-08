@@ -1,4 +1,5 @@
 package gama
+import internal._
 
 object RegSpell extends NodeSpell[Reg] {
   def apply(in: Node) = new Reg(in.storage)

@@ -1,4 +1,5 @@
 package gama
+import internal._
 import scala.collection.{immutable=>immutable}
 
 @annotation.implicitNotFound("""Cannot create Vec of elements with common type ${D}.

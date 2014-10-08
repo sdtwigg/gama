@@ -1,4 +1,5 @@
 package gama
+import internal._
 
 @annotation.implicitNotFound("Cannot create Mux for ${D}")
 trait SelfMuxable[D<:Data] {

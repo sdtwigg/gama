@@ -1,5 +1,7 @@
 package gama
 
+import internal._
+
 case class EnclosingModule(val em: Option[Module[_]])
 object EnclosingModule {
   import scala.language.implicitConversions
@@ -10,6 +12,12 @@ abstract class Module[IOT<:Data : Regenerate](makeIO: IOT)(val parent: Option[Mo
   implicit val __enclosingmodule = EnclosingModule(Some(this))
 
   final val io: IOT = Port(makeIO)
+
+  private val mainJournal = EmptyOpJournal()
+  private val subJournalStack = scala.collection.mutable.Stack.empty[OpJournal]
+    // sub-journals are used by when statements
+
+  def getActiveJournal: OpJournal = subJournalStack.headOption.getOrElse(mainJournal)
 }
 
 /*

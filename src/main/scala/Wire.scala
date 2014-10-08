@@ -1,4 +1,5 @@
 package gama
+import internal._
 
 object WireSpell extends NodeSpell[Wire] {
   def apply(in: Node) = new Wire(in.storage)
