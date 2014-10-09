@@ -10,7 +10,7 @@ object top {
     val myUInt = UInt()
     val myUWire = Wire(myUInt)
     val myUReg = Reg(myUInt)
-    val myUMux = Mux(myUWire, myUReg)
+    val myUMux = Mux(Bool(), myUWire, myUReg)
 
     println(getTypeT(myUInt))
     println(getTypeT(myUWire))
@@ -26,7 +26,7 @@ object top {
     println(getTypeT(myUVec))
 
     myUVec := myUVec
-    val myUVecMux = Mux(myUVec, myUVec)
+    val myUVecMux = Mux(Bool(), myUVec, myUVec)
     val myUVecReg = Reg(myUVec)
     println(getTypeT(myUVecMux))
     println(getTypeT(myUVecReg))
@@ -34,6 +34,8 @@ object top {
     val myBool = Bool()
 
     val myTestModule = TestModule()(TOPMODULE)
+
+    println(myTestModule.getActiveJournal)
 
 /*  // These do not compile, as desired
     val myBMux = Mux(myUInt, mySInt)
