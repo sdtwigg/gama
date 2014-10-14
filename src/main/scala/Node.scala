@@ -12,6 +12,12 @@ class Node(val storage: NodeStore)
 
 class SPEC(storage: NodeStore) extends Node(storage) // used only as a placeholder until conversion to 
 
-class Synthesizable(storage: NodeStore) extends Node(storage)
+class Synthesizable(storage: NodeStore, em: EnclosingModule) extends Node(storage) {
+  // TODO CONSIDER EnclosingModule versus Module
+  em.getOrElse(
+    throw new Exception("Synthesizable Nodes must be instantiated inside a (not-None) enclosing module")
+  ).getActiveJournal.append(CreateNode(this))
+}
 
-class Op(storage: NodeStore) extends Synthesizable(storage)
+class Op(storage: NodeStore, em: EnclosingModule) extends Synthesizable(storage, em)
+

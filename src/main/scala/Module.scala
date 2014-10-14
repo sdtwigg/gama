@@ -9,10 +9,10 @@ object EnclosingModule {
 }
 
 abstract class Module[IOT<:Data : Regenerate](makeIO: IOT)(val parent: Option[Module[_]]) {
+  // Capture operations on nodes inside this module
   implicit val __enclosingmodule = EnclosingModule(Some(this))
 
-  final val io: IOT = Port(makeIO)
-
+  // First, must setup journal so can use them
   private val mainJournal = EmptyOpJournal()
   private val subJournalStack = scala.collection.mutable.Stack.empty[OpJournal]
     // sub-journals are used by when statements
@@ -20,6 +20,9 @@ abstract class Module[IOT<:Data : Regenerate](makeIO: IOT)(val parent: Option[Mo
   def getActiveJournal: OpJournal = subJournalStack.headOption.getOrElse(mainJournal)
   protected[gama] def pushJournal(in: OpJournal): Unit = {subJournalStack.push(in)}
   protected[gama] def popJournal: OpJournal = {subJournalStack.pop}
+  
+  // Now, module enclosing and journal setup complete so can construct the IO
+  final val io: IOT = Port(makeIO)
 }
 
 /*
@@ -33,7 +36,7 @@ abstract class Module[IOT<:Data : Regenerate](makeIO: IOT)(val parent: Option[Mo
       def apply()(implicit parent: EnclosingModule) = new TestModule(parent.em)
     }
 */
-class TestModule protected (parent: Option[Module[_]]) extends Module(UInt())(parent) {
+class ExampleModule protected (parent: Option[Module[_]]) extends Module(UInt())(parent) {
   val uint1 = Wire(UInt())
   val uint2 = Wire(UInt())
   val select1 = Wire(Bool())
@@ -42,7 +45,9 @@ class TestModule protected (parent: Option[Module[_]]) extends Module(UInt())(pa
 
   val myMux = Mux(select1, uint1, uint2)
   val test = Wire(UInt())
-
+  
+  test := select1
+/*
   when(select1) {
     when(select2) {
       test := select1
@@ -53,7 +58,8 @@ class TestModule protected (parent: Option[Module[_]]) extends Module(UInt())(pa
   } otherwise {
     test := uint2
   }
+*/
 }
-object TestModule {
-  def apply()(implicit parent: EnclosingModule) = new TestModule(parent.em)
+object ExampleModule {
+  def apply()(implicit parent: EnclosingModule) = new ExampleModule(parent.em)
 }

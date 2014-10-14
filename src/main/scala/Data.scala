@@ -2,16 +2,16 @@ package gama
 import internal._
 
 trait NodeSpell[Out<:Node] {
-  def apply(in: Node): Out
+  def apply(in: Node, em: EnclosingModule): Out
 }
 
-class Data(implicit val owner: EnclosingModule)
+class Data
 
 trait Regenerate[D<:Data] {
   def regenerate(in: D, xform: NodeSpell[_<:Node])(implicit em: EnclosingModule): D
 }
 
 trait SelfTransfer[D<:Data] {
-  def selfTransfer(source: D, sink: D): D
+  def selfTransfer(source: D, sink: D)(implicit em: EnclosingModule): D
 }
 

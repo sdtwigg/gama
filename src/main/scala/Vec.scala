@@ -27,16 +27,16 @@ object Vec {
   }
   implicit def selfMuxer[D<:Data]: SelfMuxable[Vec[D]] = new SelfMuxable[Vec[D]] {
     // Don't need : SelfMuxable for D since all Vec[D] already will have one for use upon construction!
-    def mux(tc: Vec[D], fc: Vec[D])(implicit em: EnclosingModule) = {
+    def mux(cond: Bool, tc: Vec[D], fc: Vec[D])(implicit em: EnclosingModule) = {
       require(tc.elements.length==fc.elements.length, "Cannot mux together two vectors of different length")
       implicit val eltmuxer = tc.eltmuxer
 
       val muxpackage = tc.elements.zip(fc.elements)
-      new Vec( muxpackage.map({case (tci, fci) => eltmuxer.mux(tci, fci)}) )
+      new Vec( muxpackage.map({case (tci, fci) => eltmuxer.mux(cond, tci, fci)}) )
     }
   }
   implicit def selfTransfer[D<:Data: SelfTransfer]: SelfTransfer[Vec[D]] = new SelfTransfer[Vec[D]] {
-    def selfTransfer(source: Vec[D], sink: Vec[D]) = {
+    def selfTransfer(source: Vec[D], sink: Vec[D])(implicit em: EnclosingModule) = {
       require(source.elements.length==sink.elements.length, "Cannot assign to/from two vectors of different length")
       
       val xferpackage = source.elements.zip(sink.elements)
