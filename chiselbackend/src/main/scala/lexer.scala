@@ -3,7 +3,8 @@ import scala.util.parsing.combinator._
 
 sealed trait LexedTree {def pretty: String}
 sealed case class LexedLeaf(name: String) extends LexedTree {def pretty = name}
-sealed case class LexedNode(name: String, children: Vector[LexedTree]) extends LexedTree {
+sealed case class LexedNode(name: String, children: scala.collection.immutable.List[LexedTree]) extends LexedTree {
+  // Use List so can unapply with ::
   def pretty = { name + "(\n" +
       children.map(i => i.pretty.split("\n").map("  " + _ + "\n").reduce(_+_)).reduce(_+_) +
     ")"
@@ -11,11 +12,11 @@ sealed case class LexedNode(name: String, children: Vector[LexedTree]) extends L
 }
 
 object Lexer extends RegexParsers {
-  def token : Parser[String] = "[a-zA-Z0-9_.$]+".r
+  def token : Parser[String] = "[a-zA-Z0-9_.$-]+".r
 
   def ltSingle : Parser[LexedTree] = token <~ (not("(") | "()") ^^ {i => LexedLeaf(i)}
   def ltArgs   : Parser[LexedTree] = token ~ "(" ~ rep1sep(ltTree, ",") ~ ")" ^^ {
-    case id ~ "(" ~ args ~ ")" => LexedNode(id, args.toVector)
+    case id ~ "(" ~ args ~ ")" => LexedNode(id, args.toList)
   }
   def ltTree : Parser[LexedTree] = ltSingle | ltArgs
 
