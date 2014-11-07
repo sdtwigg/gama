@@ -1,7 +1,7 @@
 package gama.backend.lexer
 import scala.util.parsing.combinator._
 
-sealed trait LexedTree {def pretty: String}
+sealed trait LexedTree {def name: String; def pretty: String}
 sealed case class LexedLeaf(name: String) extends LexedTree {def pretty = name}
 sealed case class LexedNode(name: String, children: scala.collection.immutable.List[LexedTree]) extends LexedTree {
   // Use List so can unapply with ::
@@ -10,6 +10,14 @@ sealed case class LexedNode(name: String, children: scala.collection.immutable.L
     ")"
   }
 }
+object LexedTree {
+  def unapply(x: LexedTree) = x match {
+    case LexedLeaf(name)           => Some((name, Nil))
+    case LexedNode(name, children) => Some((name, children))
+    case _ => None
+  }
+}
+
 
 object Lexer extends RegexParsers {
   def token : Parser[String] = "[a-zA-Z0-9_.$-]+".r
