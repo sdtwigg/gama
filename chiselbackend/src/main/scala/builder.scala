@@ -69,6 +69,8 @@ object HWCommandBuilder {
     case LexedNode("DefAccessor", name :: src :: dir :: idx :: Nil) =>
       DefAccessor(buildString(name), buildString(src), buildIODirection(dir), buildString(idx))
 
+    case LexedNode("Connect", loc :: exp :: Nil) =>
+      Connect(buildString(loc),buildString(exp))
     case LexedNode("ConnectMany", idx :: loc :: exps) =>
       ConnectMany(buildString(idx), buildString(loc), exps.map(buildString(_)))
     case LexedNode("ManyConnect", idx :: args) =>
