@@ -66,6 +66,13 @@ object HWCommandBuilder {
       DefMemory(buildString(name), buildHWType(hwtype), buildInt(size))
     case LexedNode("DefVector", name :: hwtype :: args) =>
       DefVector(buildString(name), buildHWType(hwtype), args.map(buildString(_)))
+    case LexedNode("DefAccessor", name :: src :: dir :: idx :: Nil) =>
+      DefAccessor(buildString(name), buildString(src), buildIODirection(dir), buildString(idx))
+
+    case LexedNode("ConnectMany", idx :: loc :: exps) =>
+      ConnectMany(buildString(idx), buildString(loc), exps.map(buildString(_)))
+    case LexedNode("ManyConnect", idx :: args) =>
+      ManyConnect(buildString(idx), args.init.map(buildString(_)), buildString(args.last))
 
     case LexedNode("Begin", cmds)
       => Begin(cmds.map(buildAnyStatement(_)))

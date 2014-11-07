@@ -31,6 +31,9 @@ case class  DefRegister(ref: String, hwtype: HWType)                  extends HW
 case class  DefInstance(ref: String, modulename: String)              extends HWCommand
 case class  DefMemory(ref: String, hwtype: HWType, size: Int)         extends HWCommand
 case class  DefVector(ref: String, hwtype: HWType, args: Seq[String]) extends HWCommand
+case class  DefAccessor(ref: String, src: String, dir: IODirection, idx: String) extends HWCommand
+case class  ConnectMany(idx: String, loc: String, exps: Seq[String])  extends HWCommand
+case class  ManyConnect(idx: String, locs: Seq[String], exp: String)  extends HWCommand
 case class  Begin(body: Seq[HWCommand])                               extends HWCommand
 case class  DoHWOp(ref: String, op: HWOp, args: Seq[String])          extends HWCommand
 case class  Conditionally(pred: String, tc: HWCommand, fc: HWCommand) extends HWCommand
