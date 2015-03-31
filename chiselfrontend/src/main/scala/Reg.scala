@@ -9,11 +9,7 @@ class Reg(storage: NodeStore, em: EnclosingModule) extends Synthesizable(storage
 object Reg {
   def apply[D<:Data](model: D)(implicit em: EnclosingModule): D = {
     val created = model.copy.rebind(RegSpell)
-
-    em.getOrElse(
-      throw UnenclosedSynthesizableException
-    ).getActiveJournal.append(CreateReg(created))
-
+    em.getActiveJournal.append(CreateReg(created))
     created
   }
 }

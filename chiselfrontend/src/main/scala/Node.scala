@@ -16,21 +16,9 @@ trait NodeSpell[Out<:Synthesizable] {
   def apply(in: Node, em: EnclosingModule): Out
 }
 
-case object UnenclosedSynthesizableException extends ChiselException("Synthesizable Node cannot be instantiated without an EnclosingModule")
-class Synthesizable(storage: NodeStore, em: EnclosingModule) extends Node(storage) {
-  // TODO CONSIDER EnclosingModule versus Module
-/*
-  def createSelf() = {
-    em.getOrElse(
-      throw UnenclosedSynthesizableException
-    ).getActiveJournal.append(CreateNode(this))
-  }
-*/
-}
+class Synthesizable(storage: NodeStore, em: EnclosingModule) extends Node(storage)
 
 class Op(storage: NodeStore, em: EnclosingModule) extends Synthesizable(storage, em) {
-  em.getOrElse(
-    throw UnenclosedSynthesizableException
-  ).getActiveJournal.append(CreateOp(this))
+  em.getActiveJournal.append(CreateOp(this))
 }
 

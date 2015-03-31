@@ -2,7 +2,7 @@ package gama
 import internal._
 
 object when {
-  def apply(cond: Bool)(work: =>Unit)(implicit em: EnclosingModule): when = new when(cond, work, em.get)
+  def apply(cond: Bool)(work: =>Unit)(implicit em: EnclosingModule): when = new when(cond, work, em)
 }
 
 sealed class when private (cond: Bool, work: =>Unit, em: Module[_]) {

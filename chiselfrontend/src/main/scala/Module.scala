@@ -1,11 +1,10 @@
 package gama
 
 import internal._
-
-case class EnclosingModule(val em: Option[Module[_]])
+case class EnclosingModule(val enclosed: Module[_<:Data])
 object EnclosingModule {
   import scala.language.implicitConversions
-  implicit def EM2M(in: EnclosingModule): Option[Module[_]] = in.em
+  implicit def EM2M(in: EnclosingModule): Module[_<:Data] = in.enclosed
 }
 
 case object UnwrappedModuleException extends
@@ -13,12 +12,12 @@ case object UnwrappedModuleException extends
 case object OverwrappedModuleException extends
   ChiselException("Module() improperly called inside other Module() call without intervening module creation.")
 
-abstract class Module[IOT<:Data](makeIO: IOT) {
+abstract class Module[+IOT<:Data](makeIO: IOT) {
   val parent: Option[Module[_<:Data]] = Module.currentModule
   Module.push(this)
 
   // Capture operations on nodes inside this module
-  implicit val __enclosingmodule = EnclosingModule(Option(this))
+  implicit val __enclosingmodule = EnclosingModule(this)
 
   // First, must setup journal so can use them
   private val mainJournal = EmptyOpJournal()
@@ -33,8 +32,8 @@ abstract class Module[IOT<:Data](makeIO: IOT) {
   final val io: IOT = Port(makeIO)
 }
 object Module {
-  private var modWrapped: Boolean = false
   private def currentModule: Option[Module[_<:Data]] = modStack.headOption
+  private[this] var modWrapped: Boolean = false
   private[this] val modStack = scala.collection.mutable.Stack.empty[Module[_<:Data]]
   
   def apply[M<:Module[_<:Data]](in: =>M): M  = {

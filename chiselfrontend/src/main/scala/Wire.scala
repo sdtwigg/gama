@@ -12,9 +12,7 @@ object Wire {
   def apply[D<:Data](model: D)(implicit em: EnclosingModule): D = {
     val created = model.copy.rebind(WireSpell)
 
-    em.getOrElse(
-      throw UnenclosedSynthesizableException
-    ).getActiveJournal.append(CreateWire(created))
+    em.getActiveJournal.append(CreateWire(created))
 
     created
   }

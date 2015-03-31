@@ -18,13 +18,11 @@ abstract class Element(private[this] var _node: Node) extends Data {
 
   override def toString = s"${getClass.getSimpleName}(${node})"
 }
-case object UnenclosedTransferException extends ChiselException("Data transfer cannot occur outside an EnclosingModule")
+
 object Element {
   def genSelfTransferImpl[E<:Element](source: E, sink: E)(implicit em: EnclosingModule) = {
     // TODO: CONSIDER: CHECK FOR CROSSMODULE MIS-ASSIGNMENTS?
-    em.getOrElse(
-      throw UnenclosedTransferException
-    ).getActiveJournal.append(NodeAssign(source.node, sink.node))
+    em.getActiveJournal.append(NodeAssign(source.node, sink.node))
 
     sink
   }
