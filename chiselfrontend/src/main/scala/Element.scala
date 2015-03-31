@@ -1,23 +1,29 @@
 package gama
 import internal._
 
-case object ImproperElementRebind extends ChiselException("Cannot change target of an Element after being bound to a non-SPEC node.")
+case object ImproperElementRebindException extends ChiselException("Cannot change target of an Element after being bound to a non-SPEC node.")
 abstract class Element(private[this] var _node: Node) extends Data {
   def node = _node
-  def node_=(that: Synthesizable): Unit = {
-    if(!node.isInstanceOf[SPEC]) {throw ImproperElementRebind}
+  protected[gama] def node_=(that: Synthesizable): Unit = {
+    if(!node.isInstanceOf[SPEC]) {throw ImproperElementRebindException}
     _node = that
   }
+
+  def nodes = Seq(node)
+
   protected[gama] def rebind(xform: NodeSpell[_<:Synthesizable])(implicit em: EnclosingModule): this.type = {
     node = xform(node, em)
     this
   }
+
+  override def toString = s"${getClass.getSimpleName}(${node})"
 }
+case object UnenclosedTransferException extends ChiselException("Data transfer cannot occur outside an EnclosingModule")
 object Element {
   def genSelfTransferImpl[E<:Element](source: E, sink: E)(implicit em: EnclosingModule) = {
     // TODO: CONSIDER: CHECK FOR CROSSMODULE MIS-ASSIGNMENTS?
     em.getOrElse(
-      throw new Exception("Data transfer between Nodes must occur inside an enclosing module")
+      throw UnenclosedTransferException
     ).getActiveJournal.append(NodeAssign(source.node, sink.node))
 
     sink

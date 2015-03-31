@@ -16,9 +16,13 @@ class Vec[D<:Data: Vectorizable](val elements: immutable.Seq[D])(implicit em: En
     this
   }
 
+  def nodes = elements flatMap(_.nodes)
+
   implicit protected val eltmuxer: SelfMuxable[D] = implicitly[Vectorizable[D]].muxer
   def :=(source: Vec[D])(implicit eltxfer: SelfTransfer[D]) = implicitly[SelfTransfer[Vec[D]]].selfTransfer(source, this)
   def copy = new Vec(elements.map(_.copy)).asInstanceOf[this.type]
+
+  override def toString = "Vec(%s)".format(elements.mkString(", "))
 }
 object Vec {
   def apply[D<:Data: SelfMuxable](elts: D*)(implicit em: EnclosingModule) = new Vec(elts.toVector)
