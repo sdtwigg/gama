@@ -1,5 +1,10 @@
 package gama
 import internal._
+/*
+  General contract for copy is that it creates another Data of the same fully derived type (like clone).
+  However, all nodes are connected to a SPEC node with the same NodeStorage as before.
+  Also, suggested names should not be copied.
+*/
 
 abstract class Data {
   def copy: this.type

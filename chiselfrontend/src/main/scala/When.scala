@@ -10,7 +10,7 @@ sealed class when private (cond: Bool, work: =>Unit, em: Module[_]) {
   private val fcJournal = EmptyOpJournal()
 
   // Add the Conditionally onto the active journal
-  em.getActiveJournal.append(Conditionally(cond.node, tcJournal, fcJournal))
+  em.getActiveJournal.append(Conditionally(cond, tcJournal, fcJournal))
 
   // Do work under the true condition journal
   em.pushJournal(tcJournal)

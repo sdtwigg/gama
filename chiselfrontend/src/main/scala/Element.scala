@@ -4,7 +4,7 @@ import internal._
 case object ImproperElementRebindException extends ChiselException("Cannot change target of an Element after being bound to a non-SPEC node.")
 abstract class Element(private[this] var _node: Node) extends Data {
   def node = _node
-  protected[gama] def node_=(that: Synthesizable): Unit = {
+  protected[gama] def node_=(that: Node): Unit = {
     if(!node.isInstanceOf[SPEC]) {throw ImproperElementRebindException}
     _node = that
   }
@@ -22,7 +22,7 @@ abstract class Element(private[this] var _node: Node) extends Data {
 object Element {
   def genSelfTransferImpl[E<:Element](source: E, sink: E)(implicit em: EnclosingModule) = {
     // TODO: CONSIDER: CHECK FOR CROSSMODULE MIS-ASSIGNMENTS?
-    em.getActiveJournal.append(NodeAssign(source.node, sink.node))
+    em.getActiveJournal.append(NodeAssign(source, sink))
 
     sink
   }
