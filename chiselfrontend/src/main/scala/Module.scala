@@ -8,9 +8,17 @@ object EnclosingModule {
   implicit def EM2M(in: EnclosingModule): Option[Module[_]] = in.em
 }
 
-abstract class Module[IOT<:Data](makeIO: IOT)(val parent: Option[Module[_]]) {
+case object UnwrappedModuleException extends
+  ChiselException("Module instantiations not properly wrapped in Module() call")
+case object OverwrappedModuleException extends
+  ChiselException("Module() improperly called inside other Module() call without intervening module creation.")
+
+abstract class Module[IOT<:Data](makeIO: IOT) {
+  val parent: Option[Module[_<:Data]] = Module.currentModule
+  Module.push(this)
+
   // Capture operations on nodes inside this module
-  implicit val __enclosingmodule = EnclosingModule(Some(this))
+  implicit val __enclosingmodule = EnclosingModule(Option(this))
 
   // First, must setup journal so can use them
   private val mainJournal = EmptyOpJournal()
@@ -24,19 +32,26 @@ abstract class Module[IOT<:Data](makeIO: IOT)(val parent: Option[Module[_]]) {
   // Now, module enclosing and journal setup complete so can construct the IO
   final val io: IOT = Port(makeIO)
 }
+object Module {
+  private var modWrapped: Boolean = false
+  private def currentModule: Option[Module[_<:Data]] = modStack.headOption
+  private[this] val modStack = scala.collection.mutable.Stack.empty[Module[_<:Data]]
+  
+  def apply[M<:Module[_<:Data]](in: =>M): M  = {
+    if(modWrapped) {throw OverwrappedModuleException}
+    modWrapped = true
+    val created = in //push() called now
+    modStack.pop()
+    created
+  }
+  private def push(in: Module[_<:Data]): Unit = {
+    if(!modWrapped) {throw UnwrappedModuleException}
+    modWrapped = false
+    modStack.push(in)
+  }
+}
 
-/*
-  Plan is to expand class and object from:
-    @gamamod class Test extends Module(UInt()) {
-      ...
-    }
-  To:
-    class TestModule protected (parent: Option[Module[_]]) extends Module(UInt())(parent) {
-    object TestModule {
-      def apply()(implicit parent: EnclosingModule) = new TestModule(parent.em)
-    }
-*/
-class ExampleModule protected (parent: Option[Module[_]]) extends Module(UInt())(parent) {
+class ExampleModule protected () extends Module(UInt()) {
   val uint1 = Wire(UInt())
   val uint2 = Wire(UInt())
   val select1 = Wire(Bool())
@@ -61,5 +76,5 @@ class ExampleModule protected (parent: Option[Module[_]]) extends Module(UInt())
 */
 }
 object ExampleModule {
-  def apply()(implicit parent: EnclosingModule) = new ExampleModule(parent.em)
+  def apply(): ExampleModule = Module(new ExampleModule)
 }

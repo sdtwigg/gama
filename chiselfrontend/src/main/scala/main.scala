@@ -3,7 +3,7 @@ package gama
 object top {
   def main(args: Array[String]) {
 
-    val myTestModule = ExampleModule()(TOPMODULE)
+    val myTestModule = ExampleModule()
     println(myTestModule.getActiveJournal)
 
 /*  // These do not compile, as desired
@@ -14,7 +14,7 @@ object top {
   }
 }
 
-class TestModule protected (parent: Option[Module[_]]) extends Module(UInt())(parent) {
+class TestModule protected () extends Module(UInt()) {
   import scala.reflect.runtime.universe._
   def getTypeT[A: TypeTag](in: A) = typeTag[A]
 
@@ -47,5 +47,5 @@ class TestModule protected (parent: Option[Module[_]]) extends Module(UInt())(pa
   val myBool = Bool()
 }
 object TestModule {
-  def apply()(implicit parent: EnclosingModule) = new TestModule(parent.em)
+  def apply() = Module(new TestModule)
 }
