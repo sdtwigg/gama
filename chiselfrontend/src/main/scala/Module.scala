@@ -61,6 +61,15 @@ class ExampleModule protected () extends Module(UInt()) {
   val test = Wire(UInt())
   
   test := select1
+
+  class InnerModule extends Module(UInt()) {
+    val uint = Wire(UInt())
+    println(uint)
+  }
+
+  val myInnerModule = Module(new InnerModule)
+
+  test := myInnerModule.io
 /*
   when(select1) {
     when(select2) {

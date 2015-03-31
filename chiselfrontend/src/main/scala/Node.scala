@@ -16,7 +16,9 @@ trait NodeSpell[Out<:Synthesizable] {
   def apply(in: Node, em: EnclosingModule): Out
 }
 
-class Synthesizable(storage: NodeStore, em: EnclosingModule) extends Node(storage)
+class Synthesizable(storage: NodeStore, em: EnclosingModule) extends Node(storage) {
+  override def toString = s"${getClass.getSimpleName}@${hashCode.toHexString}_${em.enclosed.hashCode.toHexString}"
+}
 
 class Op(storage: NodeStore, em: EnclosingModule) extends Synthesizable(storage, em) {
   em.getActiveJournal.append(CreateOp(this))
