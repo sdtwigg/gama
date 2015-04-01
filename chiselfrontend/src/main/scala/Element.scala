@@ -16,7 +16,7 @@ abstract class Element(private[this] var _node: Node) extends Data {
     this
   }
 
-  override def toString = s"${getClass.getSimpleName}(${node})"
+  override def toString = s"${Console.CYAN}${getClass.getSimpleName}${Console.RESET}(${node})"
 }
 
 object Element {

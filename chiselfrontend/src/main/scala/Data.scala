@@ -3,7 +3,7 @@ import internal._
 /*
   General contract for copy is that it creates another Data of the same fully derived type (like clone).
   However, all nodes are connected to a SPEC node with the same NodeStorage as before.
-  Also, suggested names should not be copied.
+  Also, suggested names should not be copied (as they are only in Synthesizable nodes).
 */
 
 abstract class Data {

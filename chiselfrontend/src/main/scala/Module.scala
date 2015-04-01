@@ -57,7 +57,7 @@ class ExampleModule protected () extends Module(UInt()) {
   val select2 = Wire(Bool())
   val select3 = Wire(Bool())
 
-  val myMux = Mux(select1, uint1, uint2)
+//  val myMux = Mux(select1, uint1, uint2)
   val test = Wire(UInt())
   
   test := select1
@@ -70,18 +70,17 @@ class ExampleModule protected () extends Module(UInt()) {
   val myInnerModule = Module(new InnerModule)
 
   test := myInnerModule.io
-/*
+  
   when(select1) {
     when(select2) {
       test := select1
     }
     test := uint1
-  }.elsewhen(select3) {
+  }.elsewhen(Wire(Bool())) {
     test := select2
-  } otherwise {
+  }.otherwise {
     test := uint2
   }
-*/
 }
 object ExampleModule {
   def apply(): ExampleModule = Module(new ExampleModule)

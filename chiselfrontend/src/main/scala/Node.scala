@@ -17,7 +17,7 @@ trait NodeSpell[Out<:Synthesizable] {
 }
 
 class Synthesizable(storage: NodeStore, em: EnclosingModule) extends Node(storage) {
-  override def toString = s"${getClass.getSimpleName}@${hashCode.toHexString}_${em.enclosed.hashCode.toHexString}"
+  override def toString = s"${Console.YELLOW}${getClass.getSimpleName}@${hashCode.toHexString}${Console.RESET}_${Console.GREEN}${em.enclosed.hashCode.toHexString}${Console.RESET}"
 }
 
 class Op(storage: NodeStore, em: EnclosingModule) extends Synthesizable(storage, em) {
