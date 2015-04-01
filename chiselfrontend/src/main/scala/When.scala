@@ -17,8 +17,9 @@ sealed class when private (cond: Bool, work: =>Unit, em: Module[_]) {
   try {work}
   finally em.popJournal
 
-  def elsewhen(otherCond: Bool)(otherWork: =>Unit): when = {
+  def elsewhen(otherCond: =>Bool)(otherWork: =>Unit): when = {
     // Do the other work under the false condition journal inside a when with the other condition
+    //   otherCond is also call-by-name so that any created nodes contained within the false journal
     em.pushJournal(fcJournal)
     try { new when(otherCond, otherWork, em) }
     finally em.popJournal
