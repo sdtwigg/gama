@@ -5,6 +5,7 @@ object top {
 
     val myTestModule = ExampleModule()
     println(myTestModule.getActiveJournal)
+    println(myTestModule.myInnerModule.getActiveJournal)
 
 /*  // These do not compile, as desired
     val myBMux = Mux(myUInt, mySInt)
@@ -12,6 +13,41 @@ object top {
     val myBVec = new Vec(Vector(myUInt, myUInt, mySInt)) // doesn't compile as desired
 */
   }
+}
+
+class ExampleModule protected () extends Module(UInt()) {
+  val uint1 = Wire(UInt())
+  val uint2 = Wire(UInt())
+  val select1 = Wire(Bool())
+  val select2 = Wire(Bool())
+  val select3 = Wire(Bool())
+
+  val myMux = Mux(select1, uint1, uint2)
+  val test = Wire(UInt())
+  
+  test := select1
+
+  class InnerModule extends Module(UInt()) {
+    val uint = Wire(UInt())
+  }
+
+  val myInnerModule = Module(new InnerModule)
+
+  test := myInnerModule.io
+  
+  when(select1) {
+    when(select2) {
+      test := select1
+    }
+    test := uint1
+  }.elsewhen(Wire(Bool())) {
+    test := select2
+  }.otherwise {
+    test := uint2
+  }
+}
+object ExampleModule {
+  def apply(): ExampleModule = Module(new ExampleModule)
 }
 
 class TestModule protected () extends Module(UInt()) {
