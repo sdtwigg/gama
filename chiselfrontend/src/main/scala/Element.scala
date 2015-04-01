@@ -2,7 +2,9 @@ package gama
 import internal._
 
 case object ImproperElementRebindException extends ChiselException("Cannot change target of an Element after being bound to a non-SPEC node.")
-abstract class Element(private[this] var _node: Node) extends Data {
+abstract class Element(initialNode: Node) extends Data {
+  private[this] var _node: Node = initialNode 
+  // Elements DO NOT store an EnclosingModule... their nodes MAY (if Synthesizable)
   def node = _node
   protected[gama] def node_=(that: Node): Unit = {
     if(!node.isInstanceOf[SPEC]) {throw ImproperElementRebindException}
@@ -16,7 +18,7 @@ abstract class Element(private[this] var _node: Node) extends Data {
     this
   }
 
-  override def toString = s"${Console.CYAN}${getClass.getSimpleName}${Console.RESET}(${node})"
+  override def toString = s"${node}: ${Console.GREEN}${getClass.getSimpleName}${Console.RESET}|${node.storage}"
 }
 
 object Element {
@@ -28,7 +30,7 @@ object Element {
   }
 }
 
-abstract class Bits(node: Node) extends Element(node)
+abstract class Bits(initialNode: Node) extends Element(initialNode)
 object Bits {
 /*
 // Making this available would allow muxing between UInt and SInt (and thus making a Vec of them)

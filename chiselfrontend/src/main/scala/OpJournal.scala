@@ -2,7 +2,9 @@ package gama
 package internal
 
 sealed trait OpJournalEntry
-case class CreateOp(target: Op) extends OpJournalEntry
+case class CreateOp(target: Op) extends OpJournalEntry {
+  override def toString = s"CreateOp(${target} = ${target.elaborate}"
+}
 case class CreateWire(target: Data) extends OpJournalEntry {target.nodes.foreach(node => require(node.isInstanceOf[Wire]))}
 case class CreateReg(target: Data) extends OpJournalEntry {target.nodes.foreach(node => require(node.isInstanceOf[Reg]))}
 case class CreateModule(target: Module[_<:Data]) extends OpJournalEntry

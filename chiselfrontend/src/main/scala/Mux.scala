@@ -20,7 +20,9 @@ object Muxable {
   }
 }
 
-class Mux[E<:Element](storage: NodeStore, cond: Bool, tc: E, fc: E)(implicit em: EnclosingModule) extends Op(storage, em)
+class Mux[E<:Element](storage: NodeStore, cond: Bool, tc: E, fc: E)(implicit em: EnclosingModule) extends Op(storage, em) {
+  def elaborate = s"(${cond} ? ${tc} : ${fc})"
+}
 
 object Mux {
   //def apply[D<:Data : SelfMuxable](tc: D, fc: D): D = implicitly[SelfMuxable[D]].mux(tc, fc)

@@ -1,12 +1,19 @@
 package gama
-import internal._
+package internal
 
 abstract class NodeStore
 abstract class RawBits extends NodeStore {
   def width: Option[Int]
+  override def toString = {
+    val simpleWidth: String = width match {
+      case Some(width) => width.toString
+      case None => "?"
+    }
+    s"${Console.GREEN}${getClass.getSimpleName}(${simpleWidth})${Console.RESET}"
+  }
 }
-case class RawUBits(width: Option[Int]) extends RawBits
-case class RawSBits(width: Option[Int]) extends RawBits
+case class UBits(width: Option[Int]) extends RawBits
+case class SBits(width: Option[Int]) extends RawBits
 
 class Node(val storage: NodeStore)
 
@@ -17,10 +24,6 @@ trait NodeSpell[Out<:Synthesizable] {
 }
 
 class Synthesizable(storage: NodeStore, em: EnclosingModule) extends Node(storage) {
-  override def toString = s"${Console.YELLOW}${getClass.getSimpleName}@${hashCode.toHexString}${Console.RESET}_${Console.GREEN}${em.enclosed.hashCode.toHexString}${Console.RESET}"
-}
-
-class Op(storage: NodeStore, em: EnclosingModule) extends Synthesizable(storage, em) {
-  em.getActiveJournal.append(CreateOp(this))
+  override def toString = s"${Console.YELLOW}${getClass.getSimpleName}@${hashCode.toHexString}${Console.RESET}_${Console.MAGENTA}${em.enclosed.hashCode.toHexString}${Console.RESET}"
 }
 

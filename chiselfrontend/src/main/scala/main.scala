@@ -16,7 +16,7 @@ object top {
 }
 
 class ExampleModule protected () extends Module(UInt()) {
-  val uint1 = Wire(UInt())
+  val uint1 = Wire(UInt(8))
   val uint2 = Wire(UInt())
   val select1 = Wire(Bool())
   val select2 = Wire(Bool())
@@ -26,6 +26,7 @@ class ExampleModule protected () extends Module(UInt()) {
   val test = Wire(UInt())
   
   test := select1
+  test := uint1 + uint2
 
   class InnerModule extends Module(UInt()) {
     val uint = Wire(UInt())
