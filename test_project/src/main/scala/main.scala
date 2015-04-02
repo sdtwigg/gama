@@ -1,6 +1,7 @@
-package gama
+package test
+import gama._
 
-object top {
+object testmain {
   def main(args: Array[String]) {
 
     val myTestModule = ExampleModule()
