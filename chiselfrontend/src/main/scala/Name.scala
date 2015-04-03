@@ -10,7 +10,7 @@ case object NameFromMacro extends NamePriority(2)
 case object NameFromUser  extends NamePriority(3)
 case object NameFromIO    extends NamePriority(4) // Name from an IO call propogating down now
 
-trait Nameable {
+trait Nameable { // MUTABLE STATE: name
   private[this] var nameDetails: Option[Tuple2[String, NamePriority]] = None
   def name: Option[String] = nameDetails.map(_._1)
   protected[gama] def applyName(suggestion: String, priority: NamePriority): Unit

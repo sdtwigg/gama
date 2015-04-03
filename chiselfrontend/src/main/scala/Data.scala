@@ -2,8 +2,9 @@ package gama
 import internal._
 /*
   General contract for copy is that it creates another Data of the same fully derived type (like clone).
-  However, all nodes are connected to a SPEC node with the same NodeStorage as before.
-  Also, suggested names should not be copied (as they are only in Synthesizable nodes).
+  Regarding potential mutable state in Data (and subtypes):
+  -> node: all nodes should be connected to a SPEC node, with the same NodeStorage as before
+  -> name: should not be copied (and thus reset to None)
 */
 
 abstract class Data extends Nameable {

@@ -2,7 +2,7 @@ package gama
 import internal._
 
 case object ImproperElementRebindException extends ChiselException("Cannot change target of an Element after being bound to a non-SPEC node.")
-abstract class Element(initialNode: Node) extends Data {
+abstract class Element(initialNode: Node) extends Data { // MUTABLE STATE: node
   private[this] var _node: Node = initialNode 
   // Elements DO NOT store an EnclosingModule... their nodes MAY (if Synthesizable)
   def node = _node
