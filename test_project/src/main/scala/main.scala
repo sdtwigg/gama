@@ -1,5 +1,6 @@
 package test
 import gama._
+import gama.macros._
 
 object testmain {
   def main(args: Array[String]) {
@@ -16,18 +17,22 @@ object testmain {
   }
 }
 
-class ExampleModule protected () extends Module(UInt()) {
+@module class ExampleModule protected () extends Module(UInt()) {
   val uint1 = Wire(UInt(8))
   val uint2 = Wire(UInt())
   val select1 = Wire(Bool())
   val select2 = Wire(Bool())
   val select3 = Wire(Bool())
 
+  val myNewVec = Wire(Vec(Vector(UInt(),UInt())))
+  val myOldVec = Vec(Vector(uint1,myNewVec.elements(1),Wire(UInt())))
+
   val myMux = Mux(select1, uint1, uint2)
   val test = Wire(UInt())
   
   test := select1
-  test := uint1 + uint2
+  test := uint1 + uint2 + uint1
+  test := uint1(1,2) + uint1(1) + uint1(2,3)
 
   class InnerModule extends Module(UInt()) {
     val uint = Wire(UInt())

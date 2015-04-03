@@ -6,7 +6,7 @@ import internal._
   Also, suggested names should not be copied (as they are only in Synthesizable nodes).
 */
 
-abstract class Data {
+abstract class Data extends Nameable {
   def copy: this.type
   protected[gama] def rebind(xform: NodeSpell[_<:Synthesizable])(implicit em: EnclosingModule): this.type
 

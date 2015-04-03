@@ -9,7 +9,9 @@ case class CreateWire(target: Data) extends OpJournalEntry {target.nodes.foreach
 case class CreateReg(target: Data) extends OpJournalEntry {target.nodes.foreach(node => require(node.isInstanceOf[Reg]))}
 case class CreateModule(target: Module[_<:Data]) extends OpJournalEntry
 //case class CreateNode(target: Synthesizable) extends OpJournalEntry
-case class NodeAssign(source: Data, sink: Data) extends OpJournalEntry
+case class NodeAssign(source: Data, sink: Data) extends OpJournalEntry {
+  override def toString = s"NodeAssign(${sink} := ${source}"
+}
 case class Conditionally(cond: Bool, tc: OpJournal, fc: OpJournal) extends OpJournalEntry {require(cond.node.isInstanceOf[Synthesizable])}
 
 sealed class OpJournal {

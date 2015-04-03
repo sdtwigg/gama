@@ -18,9 +18,13 @@ abstract class Element(initialNode: Node) extends Data {
     this
   }
 
-  override def toString = s"${node}: ${Console.GREEN}${getClass.getSimpleName}${Console.RESET}|${node.storage}"
-}
+  override def toString = {
+    val forceName: String = name.map(n => s"${Console.RED}${n}${Console.RESET}").getOrElse(node.toString)
+    s"${forceName}: ${Console.GREEN}${getClass.getSimpleName}${Console.RESET}|${node.storage}"
+  }
 
+  protected[gama] def applyName(suggestion: String, priority: NamePriority): Unit = { name = (suggestion, priority) }
+}
 object Element {
   def genSelfTransferImpl[E<:Element](source: E, sink: E)(implicit em: EnclosingModule) = {
     // TODO: CONSIDER: CHECK FOR CROSSMODULE MIS-ASSIGNMENTS?
@@ -30,7 +34,12 @@ object Element {
   }
 }
 
-abstract class Bits(initialNode: Node) extends Element(initialNode)
+abstract class Bits(initialNode: Node) extends Element(initialNode) {
+  def extract(position: Int)(implicit em: EnclosingModule): Bool = ExtractOp(node, position, em)
+  def extract(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = ExtractOp(node, left_pos, right_pos, em)
+  def apply(position: Int)(implicit em: EnclosingModule): Bool = extract(position)(em)
+  def apply(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = extract(left_pos, right_pos)(em)
+}
 object Bits {
 /*
 // Making this available would allow muxing between UInt and SInt (and thus making a Vec of them)

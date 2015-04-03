@@ -10,7 +10,7 @@ object Vectorizable {
   implicit def vectorizer[D<:Data: SelfMuxable]: Vectorizable[D] = new Vectorizable[D] {val muxer = implicitly[SelfMuxable[D]]}
 }
 
-class Vec[D<:Data: Vectorizable](val elements: immutable.Seq[D])(implicit em: EnclosingModule)  extends Aggregate {
+class Vec[D<:Data: Vectorizable](val elements: immutable.Seq[D])(implicit em: EnclosingModule) extends Aggregate {
   protected[gama] def rebind(xform: NodeSpell[_<:Synthesizable])(implicit em: EnclosingModule): this.type = {
     elements.foreach(elem => elem.rebind(xform))
     this
@@ -22,7 +22,17 @@ class Vec[D<:Data: Vectorizable](val elements: immutable.Seq[D])(implicit em: En
   def :=(source: Vec[D])(implicit eltxfer: SelfTransfer[D]) = implicitly[SelfTransfer[Vec[D]]].selfTransfer(source, this)
   def copy = new Vec(elements.map(_.copy)).asInstanceOf[this.type]
 
-  override def toString = "Vec(%s)".format(elements.mkString(", "))
+  protected[gama] def applyName(suggestion: String, priority: NamePriority): Unit = {
+    name = (suggestion, priority)
+    // TODO: PROPOGATE TO CHILDREN
+  }
+
+  override def toString = {
+    val typespec = s"${Console.GREEN}Vec${Console.RESET}<%s>".format(elements.mkString(", "))
+    val selfname = name.map(n => s"${Console.RED}${n}${Console.RESET}").getOrElse(
+      s"${Console.YELLOW}${getClass.getSimpleName}@${hashCode.toHexString}${Console.RESET}_${Console.MAGENTA}${em.enclosed.hashCode.toHexString}${Console.RESET}")
+    s"${selfname}: ${typespec}"
+  }
 }
 object Vec {
   def apply[D<:Data: SelfMuxable](elts: D*)(implicit em: EnclosingModule) = new Vec(elts.toVector)
