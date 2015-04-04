@@ -63,6 +63,10 @@ abstract class BaseJournalReader extends JournalReader {
   def emitType(data: Data): String = data match {
     case elem: Element => (s"${emitNodeStore(elem.node.storage)}")
     case vec: Vec[_]   => (s"${emitType(vec.elemType)}[${vec.size}]")
+    case hwt: HardwareTuple =>
+      "{" +
+      (hwt.subfields map({case (sf: String, elem: Data) => s"${sf}: ${emitType(elem)}"}) mkString(", ")) +
+      "}"
   }
   def emitNodeStore(store: NodeStore): String = store match {
     case rb: RawBits => {

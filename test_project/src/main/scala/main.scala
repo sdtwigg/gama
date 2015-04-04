@@ -12,7 +12,18 @@ object testmain {
   }
 }
 
-@module class ExampleModule protected () extends Module(UInt()) {
+class ExampleIO extends HardwareTuple {
+  val in  = UInt(width=8)
+  val out = UInt(width=8)
+
+  lazy val subfields = Vector(
+    ("in", in),
+    ("out", out)
+  )
+  def copy = (new ExampleIO).asInstanceOf[this.type]
+}
+
+@module class ExampleModule protected () extends Module(new ExampleIO) {
   val dtype_uint = UInt()
 
   val uint1 = Wire(UInt(8))
@@ -26,6 +37,8 @@ object testmain {
 
   val myMux = Mux(select1, uint1, myNewVec(1))
   val test = Reg(UInt())
+  test := io.in
+  io.out := test
   
   val myAccessor = myNewVec(uint2)
   test := myAccessor
@@ -38,14 +51,16 @@ object testmain {
   val added = uint1 + uint2
   test := added
 
-  class InnerModule extends Module(Vec(4,UInt())) {
+  class InnerModule extends Module(new ExampleIO) {
     val uint = Reg(UInt(2))
-    uint := io(uint)
+    uint := io.in
+    io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
   }
 
   val myInnerModule = Module(new InnerModule)
 
-  test := myInnerModule.io(select1)
+  myInnerModule.io.in := test
+  test := myInnerModule.io.out
   
   when(select1) {
     when(select2) {

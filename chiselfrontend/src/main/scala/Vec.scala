@@ -21,7 +21,7 @@ class Vec[D<:Data: Vectorizable](val size: Int, initialModel: D) extends Aggrega
     this
   }
 
-  def nodes = elements flatMap(_.nodes)
+  def nodes = elements.flatMap(_.nodes)
 
   implicit protected val eltmuxer: SelfMuxable[D] = implicitly[Vectorizable[D]].muxer
   def :=(source: Vec[D])(implicit eltxfer: SelfTransfer[D], em: EnclosingModule) = implicitly[SelfTransfer[Vec[D]]].selfTransfer(source, this, em)
