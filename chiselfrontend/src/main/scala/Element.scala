@@ -19,14 +19,14 @@ abstract class Element(initialNode: Node) extends Data { // MUTABLE STATE: node
   }
 
   def propogateName(): Unit = {}
-  def propogateDescRef(): Unit = {OpCheck.assertSynthesizable(node)}
+  def propogateDescRef(): Unit = {NodeCheck.assertSynthesizable(this)}
 }
 object Element {
   trait SelfTransferImpl[E<:Element] extends SelfTransfer.SelfTransferImpl[E] {
     def verifyTransfer(source: E, sink: E): Unit = {}
   }
   trait SelfMuxableImpl[E<:Element] extends SelfMuxable[E] {
-    def verifyMux(cond: Bool, tc: E, fc: E): Unit = {}
+    def muxRetVal(tc: E, fc: E): E = tc.copy
   }
 }
 
@@ -35,6 +35,7 @@ abstract class Bits(initialNode: Node) extends Element(initialNode) {
   def extract(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = ExtractOp.UInt(this, left_pos, right_pos, em)
   def apply(position: Int)(implicit em: EnclosingModule): Bool = extract(position)(em)
   def apply(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = extract(left_pos, right_pos)(em)
+  
 }
 object Bits {
 /*

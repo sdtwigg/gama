@@ -3,13 +3,12 @@ package internal
 
 @annotation.implicitNotFound("Cannot create Mux for ${D}")
 trait SelfMuxable[D<:Data] {
-  def verifyMux(cond: Bool, tc: D, fc: D): Unit
+  def muxRetVal(tc: D, fc: D): D
   def mux(cond: Bool, tc: D, fc: D, em: EnclosingModule): D = {
-    OpCheck.assertSynthesizable(cond)
-    OpCheck.assertSynthesizable(tc)
-    OpCheck.assertSynthesizable(fc)
-    verifyMux(cond, tc, fc)
-    val retVal = tc.copy.rebind(OpGenericSpell(em))
+    TraversalException(NodeCheck.assertSynthesizable(cond), "cond", "mux")
+    TraversalException(NodeCheck.assertSynthesizable(tc),   "tc", "mux")
+    TraversalException(NodeCheck.assertSynthesizable(fc),   "fc", "mux")
+    val retVal = muxRetVal(tc, fc).rebind(OpGenericSpell(em))
     val newMux = MuxDesc[D](cond, tc, fc, retVal, em)
     retVal.descRef = newMux
     retVal

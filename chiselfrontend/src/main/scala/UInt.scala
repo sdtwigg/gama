@@ -13,5 +13,6 @@ class UInt(initialNode: Node) extends Bits(initialNode) {
   def :=(source: UInt)(implicit em: EnclosingModule) = implicitly[SelfTransfer[UInt]].selfTransfer(source, this, em)
   def copy = new UInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
 
-  def +(that: UInt)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpPlus, (this, that), em)
+  def +(that: UInt)(implicit em: EnclosingModule): UInt    = BinaryOp.UInt(OpPlus, (this, that), em)
+  def pad(that: Bits)(implicit em: EnclosingModule): UInt  = BinaryOp.UInt(OpPad,  (this, that), em)
 }

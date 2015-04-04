@@ -106,6 +106,7 @@ abstract class BaseJournalReader extends JournalReader {
     case OpToUInt => "toUInt"
     // Binary Ops
     case OpPlus => "+"
+    case OpPad  => "pad"
   }
   def emitAccDesc(accdesc: AccessorDesc[_<:Data]): String =
     s"${emitRef(accdesc.collection)}(${emitRef(accdesc.selector)})"

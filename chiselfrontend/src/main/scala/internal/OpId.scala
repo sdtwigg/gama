@@ -9,3 +9,4 @@ case object OpToUInt  extends OpIdUnary
 
 sealed trait OpIdBinary extends OpId
 case object OpPlus   extends OpIdBinary
+case object OpPad    extends OpIdBinary

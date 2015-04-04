@@ -6,3 +6,9 @@ object ChiselException {
   def unapply(e: ChiselException): Option[(String,Throwable)] = Some((e.message, e.cause))
 }
 
+case class TraversalException(subfield: String, container: String, cause: Throwable)
+  extends ChiselException(s"Exception while Traversing @ ${subfield} of ${container}:\n ${cause}", cause)
+object TraversalException {
+  def apply(work: =>Unit, subfield: String, container: String): Unit =
+    try {work} catch {case e: ChiselException => (throw TraversalException(subfield, container, e))}
+}

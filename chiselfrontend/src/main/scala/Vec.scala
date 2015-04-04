@@ -10,12 +10,13 @@ object Vectorizable {
   implicit def vectorizer[D<:Data: SelfMuxable]: Vectorizable[D] = new Vectorizable[D] {val muxer = implicitly[SelfMuxable[D]]}
 }
 
-class Vec[D<:Data: Vectorizable](val size: Int, initialModel: D) extends Aggregate with Accessible[D] {
-  val elemType: D = initialModel.copy
-  private val elements: immutable.Seq[D] = Vector.fill(size)(elemType.copy)
+final class Vec[D<:Data: Vectorizable](val size: Int, initialModel: D) extends Aggregate with Accessible[D] {
+  private[this] val mutableElemType: D = initialModel.copy
+  def elemType: D = mutableElemType.copy
+  protected[gama] val elements: immutable.Seq[D] = Vector.fill(size)(elemType)
 
   protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type = {
-    elemType.rebind(xform)
+    mutableElemType.rebind(xform)
     elements.foreach(elem => elem.rebind(xform))
     // TODO: VERIFY ALL VEC ELEMENTS STILL IDENTICAL to elemType
     this
@@ -29,12 +30,12 @@ class Vec[D<:Data: Vectorizable](val size: Int, initialModel: D) extends Aggrega
 
   // don't allow individual element access until synthesized
   def lookup(index: Int): D = {
-    OpCheck.assertSynthesizable(this)
+    NodeCheck.assertSynthesizable(this)
     elements(index)
   }
   def apply(index: Int): D = lookup(index)
 
-  def lookupCheck(selector: UInt): Unit = {OpCheck.assertSynthesizable(this)}
+  def lookupCheck(selector: UInt): Unit = {NodeCheck.assertSynthesizable(this)}
 
   
   def propogateName(): Unit = {
@@ -54,9 +55,10 @@ object Vec {
   // Second constructor just prevents unnecessary unpacking and repacking for case of immutable.Seq[D]
 
   // Basically, Vec can only be regenerated, transfered, etc. if constituent elements are regeneratable or transferable
-  implicit def selfMuxer[D<:Data]: SelfMuxable[Vec[D]] = new SelfMuxable[Vec[D]] {
-    def verifyMux(cond: Bool, tc: Vec[D], fc: Vec[D]) = {
+  implicit def selfMuxer[D<:Data: SelfMuxable]: SelfMuxable[Vec[D]] = new SelfMuxable[Vec[D]] {
+    def muxRetVal(tc: Vec[D], fc: Vec[D]) = {
       require(tc.elements.length==fc.elements.length, "Cannot mux together two vectors of different length")
+      Vec(tc.elements.length, implicitly[SelfMuxable[D]].muxRetVal(tc.elemType, fc.elemType))
     }
   }
   implicit def selfTransfer[D<:Data: SelfTransfer]: SelfTransfer[Vec[D]] = new SelfTransfer.SelfTransferImpl[Vec[D]] {
