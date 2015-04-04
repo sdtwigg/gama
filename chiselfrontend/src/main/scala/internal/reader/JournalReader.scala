@@ -22,8 +22,8 @@ abstract class BaseJournalReader extends JournalReader {
       val body = parseJournal(module.getActiveJournal)
       s"${HL.CYAN}module${HL.RESET} ${module.getClass.getName}(${HL.GREEN}${ioType}${HL.RESET})${body}"
     } finally {
-    module.io.name = ("$$$$UNDEFIO$$$$", NameOVERRIDE)
-    module.children.foreach(child => child.io.name = (s"$$$$UNDEFIO$$$$", NameOVERRIDE))
+      module.io.name = ("$$$$UNDEFIO$$$$", NameOVERRIDE)
+      module.children.foreach(child => child.io.name = (s"$$$$UNDEFIO$$$$", NameOVERRIDE))
     }
   }
   def ensureAllChildrenNamed(module: Module[_<:Data]): Unit = {

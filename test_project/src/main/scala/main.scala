@@ -13,27 +13,43 @@ object testmain {
   }
 }
 
-class ExampleIO extends HardwareTuple {
+@bundle class ExampleIO extends Bundle {
   val in1 = Input( UInt(width=8))
-  val in2 = Input( new myBundle)
+  val in2 = Input( new MyChildBundle)
   val out = Output(UInt(width=8))
-
-  lazy val subfields = Vector(
-    ("in1", in1),
-    ("in2", in2),
-    ("out", out)
-  )
-  def copy = (new ExampleIO).asInstanceOf[this.type]
 }
-class myBundle extends HardwareTuple {
+
+@bundle class MyBundle extends Bundle {
   val a = UInt(width=8)
   val b = UInt(width=8)
+}
 
-  lazy val subfields = Vector(
-    ("a", a),
-    ("b", b)
-  )
-  def copy = (new myBundle).asInstanceOf[this.type]
+@bundle @probe class MyChildBundle extends MyBundle {
+  var unstable = 5
+  val stable = 7
+  def bleh = c
+  val c = UInt(width=8)
+}
+
+trait Nested extends Bundle {
+  val a = Input(UInt(width=8))
+  val b = Input(UInt(width=8))
+}
+
+trait Nested2 extends Nested {
+  var unstable = 5
+  val stable = 7
+  def bleh = c
+  val c = Output(UInt(width=8))
+}
+
+@module class InnerModule extends Module(new Nested2 with Anon {
+  val in1 = Input(UInt(4))
+  val out = Output(UInt(4))
+}) {
+  val uint = Reg(UInt(2))
+  uint := io.in1
+  io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
 }
 
 @module class ExampleModule protected () extends Module(new ExampleIO) {
@@ -63,13 +79,7 @@ class myBundle extends HardwareTuple {
   test := uint1(1,2) + uint1(1) + uint1(2,3)
   val added = uint1 + uint2
   test := added
-
-  class InnerModule extends Module(new ExampleIO) {
-    val uint = Reg(UInt(2))
-    uint := io.in1
-    io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
-  }
-
+  
   val myInnerModule = Module(new InnerModule)
 
   myInnerModule.io.in1 := test
