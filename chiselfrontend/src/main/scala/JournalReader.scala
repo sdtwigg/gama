@@ -61,12 +61,19 @@ abstract class BaseJournalReader extends JournalReader {
 
   def emitRef(data: Data): String
   def emitType(data: Data): String = data match {
-    case elem: Element => (s"${emitNodeStore(elem.node.storage)}")
+    case elem: Element => (s"${emitIODirection(elem)}${emitNodeStore(elem.node.storage)}")
     case vec: Vec[_]   => (s"${emitType(vec.elemType)}[${vec.size}]")
     case hwt: HardwareTuple =>
       "{" +
       (hwt.subfields map({case (sf: String, elem: Data) => s"${sf}: ${emitType(elem)}"}) mkString(", ")) +
       "}"
+  }
+  def emitIODirection(elem: Element): String = elem.node match {
+    case PortNode(_, direction, _) => direction match {
+      case DirectionIO.Input  => "input "
+      case DirectionIO.Output => "output "
+    }
+    case _ => ""
   }
   def emitNodeStore(store: NodeStore): String = store match {
     case rb: RawBits => {
@@ -77,10 +84,16 @@ abstract class BaseJournalReader extends JournalReader {
   def emitRefType(data: Data): String = s"${emitRef(data)}: ${HL.GREEN}${emitType(data)}${HL.RESET}"
 
   def emitOpDesc(op: OpDesc): String = op match {
-    case UnaryOpDesc(op, input, _,_)          => (s"${op.shorthand}(${emitRef(input)})")
-    case BinaryOpDesc(op, (left, right), _,_) => (s"(${emitRef(left)} ${op.shorthand} ${emitRef(right)})")
+    case UnaryOpDesc(op, input, _,_)          => (s"${emitOpId(op)}(${emitRef(input)})")
+    case BinaryOpDesc(op, (left, right), _,_) => (s"(${emitRef(left)} ${emitOpId(op)} ${emitRef(right)})")
     case ExtractOpDesc(input, lp, rp, _,_)    => (s"${emitRef(input)}(${lp}, ${rp})")
     case MuxDesc(cond, tc, fc, _,_)           => (s"((${emitRef(cond)}) ? (${emitRef(tc)}) : (${emitRef(fc)}))")
+  }
+  def emitOpId(opid: OpId) = opid match {
+    // Unary Ops
+    case OpToUInt => "toUInt"
+    // Binary Ops
+    case OpPlus => "+"
   }
   def emitAccDesc(accdesc: AccessorDesc[_<:Data]): String =
     s"${emitRef(accdesc.collection)}(${emitRef(accdesc.selector)})"

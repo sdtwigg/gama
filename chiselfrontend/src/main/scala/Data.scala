@@ -10,7 +10,7 @@ import internal._
 
 abstract class Data extends Nameable with DescReference {
   def copy: this.type
-  protected[gama] def rebind(xform: NodeSpell[_<:Synthesizable], em: EnclosingModule): this.type
+  protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type
 
   def nodes: Seq[Node]
 }

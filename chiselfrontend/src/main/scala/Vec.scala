@@ -14,9 +14,9 @@ class Vec[D<:Data: Vectorizable](val size: Int, initialModel: D) extends Aggrega
   val elemType: D = initialModel.copy
   private val elements: immutable.Seq[D] = Vector.fill(size)(elemType.copy)
 
-  protected[gama] def rebind(xform: NodeSpell[_<:Synthesizable], em: EnclosingModule): this.type = {
-    elemType.rebind(xform, em)
-    elements.foreach(elem => elem.rebind(xform, em))
+  protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type = {
+    elemType.rebind(xform)
+    elements.foreach(elem => elem.rebind(xform))
     // TODO: VERIFY ALL VEC ELEMENTS STILL IDENTICAL to elemType
     this
   }

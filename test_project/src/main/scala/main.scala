@@ -1,6 +1,7 @@
 package test
 import gama._
 import gama.macros._
+import gama.Direction._
 
 object testmain {
   def main(args: Array[String]) {
@@ -13,8 +14,8 @@ object testmain {
 }
 
 class ExampleIO extends HardwareTuple {
-  val in  = UInt(width=8)
-  val out = UInt(width=8)
+  val in  = Input( UInt(width=8))
+  val out = Output(UInt(width=8))
 
   lazy val subfields = Vector(
     ("in", in),

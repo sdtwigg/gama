@@ -8,7 +8,7 @@ trait SelfMuxable[D<:Data] {
     OpCheck.assertSynthesizable(tc)
     OpCheck.assertSynthesizable(fc)
     verifyMux(cond, tc, fc)
-    val retVal = tc.copy.rebind(OpGenericSpell, em)
+    val retVal = tc.copy.rebind(OpGenericSpell(em))
     val newMux = MuxDesc[D](cond, tc, fc, retVal, em)
     retVal.descRef = newMux
     retVal

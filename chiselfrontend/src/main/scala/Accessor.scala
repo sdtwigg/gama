@@ -6,7 +6,7 @@ trait Accessible[+D<:Data] extends Data {
   def elemType: D
   def lookup(selector: UInt)(implicit em: EnclosingModule): D = {
     lookupCheck(selector)
-    val retVal = elemType.copy.rebind(AccessorSpell, em)
+    val retVal = elemType.copy.rebind(AccessorSpell(em))
     val newAccessor = AccessorDesc[D](this, selector, retVal, em)
     retVal.descRef = newAccessor
     retVal

@@ -13,8 +13,8 @@ abstract class Element(initialNode: Node) extends Data { // MUTABLE STATE: node
 
   def nodes = Seq(node)
 
-  protected[gama] def rebind(xform: NodeSpell[_<:Synthesizable], em: EnclosingModule): this.type = {
-    node = xform(node, em)
+  protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type = {
+    node = xform(node)
     this
   }
 

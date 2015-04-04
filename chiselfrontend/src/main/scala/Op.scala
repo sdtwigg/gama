@@ -1,16 +1,6 @@
 package gama
 package internal
 
-// OpId Here:
-sealed abstract class OpId(val shorthand: String)
-
-sealed abstract class OpIdUnary(shorthand: String) extends OpId(shorthand)
-case object OpToUInt  extends OpIdUnary("toUInt")
-case object OpExtract extends OpIdUnary("extract")
-
-sealed abstract class OpIdBinary(shorthand: String) extends OpId(shorthand)
-case object OpPlus   extends OpIdBinary("+")
-
 case object ExpectedSynthesizableException extends ChiselException("Expected node to be of type Synthesizable")
 object OpCheck {
   def checkSynthesizable(node: Node): Boolean = node match {

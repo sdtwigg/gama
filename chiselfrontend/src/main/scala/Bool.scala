@@ -2,7 +2,7 @@ package gama
 import internal._
 
 object Bool {
-  def apply() = new Bool(new SPEC(UBits(Some(1))))
+  def apply() = new Bool(SPEC(UBits(Some(1)), None))
 
   implicit object basicfunctionality extends Element.SelfMuxableImpl[Bool] with Element.SelfTransferImpl[Bool] 
   import scala.language.implicitConversions
@@ -10,6 +10,6 @@ object Bool {
 }
 class Bool(initialNode: Node) extends Bits(initialNode) {
   def :=(source: Bool)(implicit em: EnclosingModule) = implicitly[SelfTransfer[Bool]].selfTransfer(source, this, em)
-  def copy = new Bool(new SPEC(node.storage)).asInstanceOf[this.type]
+  def copy = new Bool(SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
 }

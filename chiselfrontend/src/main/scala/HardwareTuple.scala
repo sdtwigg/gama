@@ -5,8 +5,8 @@ abstract class HardwareTuple extends Data {
   protected[gama] val subfields: Seq[Tuple2[String, Data]]
 
   private[this] def elements: Seq[Data] = subfields.map(_._2)
-  protected[gama] def rebind(xform: NodeSpell[_<:Synthesizable], em: EnclosingModule): this.type = {
-    elements.foreach((elem: Data) => elem.rebind(xform, em))
+  protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type = {
+    elements.foreach((elem: Data) => elem.rebind(xform))
     this
   }
 
