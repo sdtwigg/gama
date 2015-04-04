@@ -21,8 +21,8 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
   implicit val __enclosingmodule = EnclosingModule(this)
 
   // First, must setup journal so can use them
-  private val mainJournal = EmptyJournal()
-  private val subJournalStack = scala.collection.mutable.Stack.empty[Journal]
+  private[this] val mainJournal = EmptyJournal()
+  private[this] val subJournalStack = scala.collection.mutable.Stack.empty[Journal]
     // sub-journals are used by when statements
 
   def getActiveJournal: Journal = subJournalStack.headOption.getOrElse(mainJournal)
@@ -31,13 +31,17 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
   
   // Now, module enclosing and journal setup complete so can construct the IO
   final val io: IOT =
-    InternalName(Port(makeIO, __enclosingmodule), "UNDEFIO", NameFromIO)
+    InternalName(Port(makeIO, __enclosingmodule), "$$$$UNDEFIO$$$$", NameFromIO)
   
   // Also, add self to parent, if it exists
   parent.foreach(_.addSubmodule(this))
+  private[this] var _children = scala.collection.mutable.ListBuffer.empty[Module[_<:Data]]
+  protected[gama] def children = _children.toList
   private def addSubmodule(child: Module[_<:Data]) = {
     getActiveJournal.append(CreateModule(child))
+    _children.append(child)
   }
+
   
   def propogateName(): Unit = {} // do not propogate to IO
 }

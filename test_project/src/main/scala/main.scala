@@ -6,27 +6,23 @@ object testmain {
   def main(args: Array[String]) {
 
     val myTestModule = ExampleModule()
-    val myReader = gama.internal.FoldedJournalReader
-    println(myReader.Colorful(myTestModule.getActiveJournal))
-    println(myReader.Colorful(myTestModule.myInnerModule.getActiveJournal))
-
-/*  // These do not compile, as desired
-    val myBMux = Mux(myUInt, mySInt)
-    println(getTypeT(myBMux))
-    val myBVec = new Vec(Vector(myUInt, myUInt, mySInt)) // doesn't compile as desired
-*/
+    val myReader = gama.internal.FoldedJournalReader.Colorful
+    println(myReader.parseModule(myTestModule))
+    println(myReader.parseModule(myTestModule.myInnerModule))
   }
 }
 
 @module class ExampleModule protected () extends Module(UInt()) {
+  val dtype_uint = UInt()
+
   val uint1 = Wire(UInt(8))
-  val uint2 = Wire(UInt())
+  val uint2 = Wire(dtype_uint)
   val select1 = Wire(Bool())
   val select2 = Wire(Bool())
   val select3 = Wire(Bool())
+  val waste = select3
 
   val myNewVec = Wire(Vec(2, UInt(4)))
-  //val myOldVec = Vec(Vector(uint1,myNewVec.elements(1),Wire(UInt())))
 
   val myMux = Mux(select1, uint1, myNewVec(1))
   val test = Reg(UInt())
@@ -42,14 +38,14 @@ object testmain {
   val added = uint1 + uint2
   test := added
 
-  class InnerModule extends Module(UInt()) {
-    val uint = Wire(UInt())
-    uint := io
+  class InnerModule extends Module(Vec(4,UInt())) {
+    val uint = Reg(UInt(2))
+    uint := io(uint)
   }
 
   val myInnerModule = Module(new InnerModule)
 
-  test := myInnerModule.io
+  test := myInnerModule.io(select1)
   
   when(select1) {
     when(select2) {

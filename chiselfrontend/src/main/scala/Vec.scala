@@ -39,7 +39,7 @@ class Vec[D<:Data: Vectorizable](val size: Int, initialModel: D) extends Aggrega
   
   def propogateName(): Unit = {
     elements.zipWithIndex.foreach({case (elem: Data, idx: Int) => 
-      elem.name = (s"${name.get}(${idx})", namePriority.get)
+      elem.name = (s"${name.get}(${idx})", NameOVERRIDE)
     })
   }
   def propogateDescRef(): Unit = {

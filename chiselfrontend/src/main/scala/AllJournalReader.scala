@@ -23,7 +23,7 @@ sealed abstract class AllJournalReader extends BaseJournalReader {
       case CreateWire(data)        => check(data,"W")
       case CreateReg(data)         => check(data,"R")
       case CreateAccessor(accdesc) => check(accdesc.retVal,"A")
-      case CreateModule(module)    => check(module, "M")
+      case CreateModule(module)    => None // handled above
       case Conditionally(_,_,_) => None // recall: will recursively see
       case DataTransfer(_,_) => None
     })

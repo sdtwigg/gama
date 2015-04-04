@@ -4,12 +4,40 @@ package internal
 import scala.collection.{immutable=>immutable}
 
 trait JournalReader {
+  def parseModule(module: Module[_<:Data]): String
   def parseJournal(entries: immutable.Seq[JournalEntry]): String
-  def apply(journal: Journal): String = parseJournal(journal.entries)
+  def parseJournal(journal: Journal): String = parseJournal(journal.entries)
 }
 
 abstract class BaseJournalReader extends JournalReader {
   def HL: Highlighter
+  
+  def parseModule(module: Module[_<:Data]): String = {
+    module.io.name = ("io", NameOVERRIDE)
+    ensureAllChildrenNamed(module)
+    module.children.foreach(child => child.io.name = (s"${child.name.get}.io", NameOVERRIDE))
+    try {
+      val ioType = emitType(module.io)
+      val body = parseJournal(module.getActiveJournal)
+      s"${HL.CYAN}module${HL.RESET} ${module.getClass.getName}(${HL.GREEN}${ioType}${HL.RESET})${body}"
+    } finally {
+    module.io.name = ("$$$$UNDEFIO$$$$", NameOVERRIDE)
+    module.children.foreach(child => child.io.name = (s"$$$$UNDEFIO$$$$", NameOVERRIDE))
+    }
+  }
+  def ensureAllChildrenNamed(module: Module[_<:Data]): Unit = {
+    val childrenToName: Iterable[Nameable] = module.children flatMap(child => {
+      child.name match {
+        case None    => Some(child)
+        case Some(_) => None
+      }
+    })
+    childrenToName.zipWithIndex.foreach(_ match {
+      case (target: Nameable, idx: Int) => {
+        target.name = (s"M${idx}", NameFromTemp)
+      }
+    })
+  }
 
   def parseJournalEntry(entry: JournalEntry): String = {
     entry match {
@@ -24,7 +52,7 @@ abstract class BaseJournalReader extends JournalReader {
       case CreateModule(module) =>
         s"${HL.CYAN}inst${HL.RESET}  ${emitModuleInst(module)}"
       case Conditionally(cond, tc, fc) =>
-        s"${HL.CYAN}when${HL.RESET}(${emitRef(cond)}) ${apply(tc)} ${HL.CYAN}else${HL.RESET} ${apply(fc)}"
+        s"${HL.CYAN}when${HL.RESET}(${emitRef(cond)}) ${parseJournal(tc)} ${HL.CYAN}else${HL.RESET} ${parseJournal(fc)}"
       case DataTransfer(source, sink) =>
         s"${emitRef(sink)} := ${emitRef(source)}"
     }
