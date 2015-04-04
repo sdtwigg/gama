@@ -6,8 +6,9 @@ object testmain {
   def main(args: Array[String]) {
 
     val myTestModule = ExampleModule()
-    println(myTestModule.getActiveJournal)
-    println(myTestModule.myInnerModule.getActiveJournal)
+    val myReader = gama.internal.RawJournalReader
+    println(myReader.Colorful(myTestModule.getActiveJournal))
+    println(myReader.Colorful(myTestModule.myInnerModule.getActiveJournal))
 
 /*  // These do not compile, as desired
     val myBMux = Mux(myUInt, mySInt)
@@ -24,15 +25,22 @@ object testmain {
   val select2 = Wire(Bool())
   val select3 = Wire(Bool())
 
-  val myNewVec = Wire(Vec(Vector(UInt(),UInt())))
-  val myOldVec = Vec(Vector(uint1,myNewVec.elements(1),Wire(UInt())))
+  val myNewVec = Wire(Vec(2, UInt(4)))
+  //val myOldVec = Vec(Vector(uint1,myNewVec.elements(1),Wire(UInt())))
 
-  val myMux = Mux(select1, uint1, uint2)
-  val test = Wire(UInt())
+  val myMux = Mux(select1, uint1, myNewVec(1))
+  val test = Reg(UInt())
+  
+  val myAccessor = myNewVec(uint2)
+  test := myAccessor
+
+  test := myNewVec(uint2)
   
   test := select1
   test := uint1 + uint2 + uint1
   test := uint1(1,2) + uint1(1) + uint1(2,3)
+  val added = uint1 + uint2
+  test := added
 
   class InnerModule extends Module(UInt()) {
     val uint = Wire(UInt())
@@ -75,8 +83,8 @@ class TestModule protected () extends Module(UInt()) {
   val mySInt = SInt(32)
   println(getTypeT(mySInt))
 
-  val myUVec = Vec(myUInt, myUInt, myUInt)
-  val myUVec2 = Vec(Vector(myUInt, myUInt, myUInt))
+  val myUVec = Vec(3, myUInt)
+  val myUVec2 = Vec(3, myUInt)
   println(getTypeT(myUVec))
 
   myUVec := myUVec

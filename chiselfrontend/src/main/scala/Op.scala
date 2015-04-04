@@ -1,6 +1,7 @@
 package gama
 package internal
 
+// OpId Here:
 sealed abstract class OpId(val shorthand: String)
 
 sealed abstract class OpIdUnary(shorthand: String) extends OpId(shorthand)
@@ -11,46 +12,62 @@ sealed abstract class OpIdBinary(shorthand: String) extends OpId(shorthand)
 case object OpPlus   extends OpIdBinary("+")
 
 case object ExpectedSynthesizableException extends ChiselException("Expected node to be of type Synthesizable")
-abstract class Op(storage: NodeStore, em: EnclosingModule) extends Synthesizable(storage, em) {
-  def elaborate: String
-  em.getActiveJournal.append(CreateOp(this))
-}
-object Op {
+object OpCheck {
+  def checkSynthesizable(node: Node): Boolean = node match {
+    case syn: Synthesizable => (true)
+    case _ => (false)
+  }
   def getSynthesizable(node: Node): Synthesizable = node match {
     case syn: Synthesizable => (syn)
     case _ => throw ExpectedSynthesizableException
   }
+  def assertSynthesizable(node: Node): Unit = if(!checkSynthesizable(node)) {throw ExpectedSynthesizableException}
+  def assertSynthesizable(data: Data): Unit = data.nodes.foreach(node => assertSynthesizable(node))
 }
 
-class UnaryOp(op: OpIdUnary, input: Synthesizable, storage: NodeStore, em: EnclosingModule) extends Op(storage, em) {
-  def elaborate = s"${op.shorthand}(${input.toString})"
+abstract class OpDescImpl {
+  self: OpDesc =>
+    em.getActiveJournal.append(CreateOp(this))
 }
+
+// OpDesc Here:
 object UnaryOp {
-  def UInt(op: OpIdUnary, input: Node, em: EnclosingModule): UInt =
-    new UInt(new UnaryOp(op, Op.getSynthesizable(input), UBits(None), em))
+  def UInt(op: OpIdUnary, input: Element, width: Option[Int], em: EnclosingModule): UInt = {
+    OpCheck.assertSynthesizable(input)
+    val retVal = new UInt(OpNode(UBits(width),em))
+    val newOpDesc = UnaryOpDesc(op, input, retVal, em)
+    retVal.descRef = newOpDesc
+    retVal
+  }
+}
 
-  def UInt(op: OpIdUnary, input: Node, width: Int, em: EnclosingModule): UInt =
-    new UInt(new UnaryOp(op, Op.getSynthesizable(input), UBits(Some(width)), em))
-}
-class ExtractOp(input: Synthesizable, left_pos: Int, right_pos: Int, storage: NodeStore, em: EnclosingModule) extends UnaryOp(OpExtract, input, storage, em) {
-  override def elaborate = s"${input.toString}(${left_pos},${right_pos})"
-}
 object ExtractOp {
-  def apply(input: Node, position: Int, em: EnclosingModule): Bool =
-    new Bool(new ExtractOp(Op.getSynthesizable(input), position, position, UBits(Some(1)), em))
+  def Bool(input: Element, position: Int, em: EnclosingModule): Bool = {
+    OpCheck.assertSynthesizable(input)
+    val retVal = new Bool(OpNode(UBits(Some(1)),em))
+    val newOpDesc = ExtractOpDesc(input, position, position, retVal, em)
+    retVal.descRef = newOpDesc
+    retVal
+  }
 
-  def apply(input: Node, left_pos: Int, right_pos: Int, em: EnclosingModule): UInt =
-    new UInt(new ExtractOp(Op.getSynthesizable(input), left_pos, right_pos, UBits(Some(math.abs(left_pos-right_pos))), em))
-
+  def UInt(input: Element, left_pos: Int, right_pos: Int, em: EnclosingModule): UInt = {
+    OpCheck.assertSynthesizable(input)
+    val retVal = new UInt(OpNode(UBits(Some(math.abs(left_pos-right_pos))),em))
+    val newOpDesc = ExtractOpDesc(input, left_pos, right_pos, retVal, em)
+    retVal.descRef = newOpDesc
+    retVal
+  }
 }
 
-class BinaryOp(op: OpIdBinary, inputs: Tuple2[Synthesizable,Synthesizable], storage: NodeStore, em: EnclosingModule) extends Op(storage, em) {
-  def elaborate = s"(${inputs._1.toString} ${op.shorthand} ${inputs._2.toString})"
-}
 object BinaryOp {
-  def getSynthesizable(inputs: Tuple2[Node,Node]): Tuple2[Synthesizable,Synthesizable] = 
-    (Op.getSynthesizable(inputs._1),Op.getSynthesizable(inputs._2))
-
-  def UInt(op: OpIdBinary, inputs: Tuple2[Node,Node], em: EnclosingModule): UInt = 
-    new UInt(new BinaryOp(op, getSynthesizable(inputs), UBits(None), em))
+  def UInt(op: OpIdBinary, inputs: Tuple2[Element,Element], em: EnclosingModule): UInt = {
+    OpCheck.assertSynthesizable(inputs._1)
+    OpCheck.assertSynthesizable(inputs._2)
+    val retVal = new UInt(OpNode(UBits(None),em))
+    val newOpDesc = BinaryOpDesc(op, inputs, retVal, em)
+    retVal.descRef = newOpDesc
+    retVal
+  }
 }
+
+

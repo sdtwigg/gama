@@ -13,30 +13,26 @@ abstract class Element(initialNode: Node) extends Data { // MUTABLE STATE: node
 
   def nodes = Seq(node)
 
-  protected[gama] def rebind(xform: NodeSpell[_<:Synthesizable])(implicit em: EnclosingModule): this.type = {
+  protected[gama] def rebind(xform: NodeSpell[_<:Synthesizable], em: EnclosingModule): this.type = {
     node = xform(node, em)
     this
   }
 
-  override def toString = {
-    val forceName: String = name.map(n => s"${Console.RED}${n}${Console.RESET}").getOrElse(node.toString)
-    s"${forceName}: ${Console.GREEN}${getClass.getSimpleName}${Console.RESET}|${node.storage}"
-  }
-
-  protected[gama] def applyName(suggestion: String, priority: NamePriority): Unit = { name = (suggestion, priority) }
+  def propogateName(): Unit = {}
+  def propogateDescRef(): Unit = {OpCheck.assertSynthesizable(node)}
 }
 object Element {
-  def genSelfTransferImpl[E<:Element](source: E, sink: E)(implicit em: EnclosingModule) = {
-    // TODO: CONSIDER: CHECK FOR CROSSMODULE MIS-ASSIGNMENTS?
-    em.getActiveJournal.append(NodeAssign(source, sink))
-
-    sink
+  trait SelfTransferImpl[E<:Element] extends SelfTransfer.SelfTransferImpl[E] {
+    def verifyTransfer(source: E, sink: E): Unit = {}
+  }
+  trait SelfMuxableImpl[E<:Element] extends SelfMuxable[E] {
+    def verifyMux(cond: Bool, tc: E, fc: E): Unit = {}
   }
 }
 
 abstract class Bits(initialNode: Node) extends Element(initialNode) {
-  def extract(position: Int)(implicit em: EnclosingModule): Bool = ExtractOp(node, position, em)
-  def extract(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = ExtractOp(node, left_pos, right_pos, em)
+  def extract(position: Int)(implicit em: EnclosingModule): Bool = ExtractOp.Bool(this, position, em)
+  def extract(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = ExtractOp.UInt(this, left_pos, right_pos, em)
   def apply(position: Int)(implicit em: EnclosingModule): Bool = extract(position)(em)
   def apply(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = extract(left_pos, right_pos)(em)
 }

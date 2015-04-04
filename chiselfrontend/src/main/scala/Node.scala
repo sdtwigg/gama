@@ -1,29 +1,21 @@
 package gama
 package internal
 
-abstract class NodeStore
-abstract class RawBits extends NodeStore {
-  def width: Option[Int]
-  override def toString = {
-    val simpleWidth: String = width match {
-      case Some(width) => width.toString
-      case None => "?"
-    }
-    s"${Console.GREEN}${getClass.getSimpleName}(${simpleWidth})${Console.RESET}"
-  }
-}
-case class UBits(width: Option[Int]) extends RawBits
-case class SBits(width: Option[Int]) extends RawBits
+abstract class NodeStore {def generic: NodeStore} // generic used by OpGenericSpell
+abstract class RawBits extends NodeStore {def width: Option[Int]}
+case class UBits(width: Option[Int]) extends RawBits {def generic = UBits(None)}
+case class SBits(width: Option[Int]) extends RawBits {def generic = SBits(None)}
 
-class Node(val storage: NodeStore)
+sealed trait Node {val storage: NodeStore}
 
-class SPEC(storage: NodeStore) extends Node(storage) // used only as a placeholder until conversion to 
+case class SPEC(storage: NodeStore) extends Node // used only as a placeholder until conversion to 
 
-trait NodeSpell[Out<:Synthesizable] {
-  def apply(in: Node, em: EnclosingModule): Out
-}
+sealed trait Synthesizable extends Node {val em: EnclosingModule}
 
-class Synthesizable(storage: NodeStore, em: EnclosingModule) extends Node(storage) {
-  override def toString = s"${Console.YELLOW}${getClass.getSimpleName}@${hashCode.toHexString}${Console.RESET}_${Console.MAGENTA}${em.enclosed.hashCode.toHexString}${Console.RESET}"
-}
+sealed trait Connectable extends Synthesizable
+case class WireNode(storage: NodeStore, em: EnclosingModule) extends Connectable
+case class RegNode(storage: NodeStore, em: EnclosingModule) extends Connectable
+case class PortNode(storage: NodeStore, em: EnclosingModule) extends Connectable
+case class AccessorNode(storage: NodeStore, em: EnclosingModule) extends Connectable // TODO: Extending Connectable isn't quite right....
 
+case class OpNode(storage: NodeStore, em: EnclosingModule) extends Synthesizable

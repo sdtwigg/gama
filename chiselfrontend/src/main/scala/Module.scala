@@ -21,16 +21,17 @@ abstract class Module[+IOT<:Data](makeIO: IOT) {
   implicit val __enclosingmodule = EnclosingModule(this)
 
   // First, must setup journal so can use them
-  private val mainJournal = EmptyOpJournal()
-  private val subJournalStack = scala.collection.mutable.Stack.empty[OpJournal]
+  private val mainJournal = EmptyJournal()
+  private val subJournalStack = scala.collection.mutable.Stack.empty[Journal]
     // sub-journals are used by when statements
 
-  def getActiveJournal: OpJournal = subJournalStack.headOption.getOrElse(mainJournal)
-  protected[gama] def pushJournal(in: OpJournal): Unit = {subJournalStack.push(in)}
-  protected[gama] def popJournal: OpJournal = {subJournalStack.pop}
+  def getActiveJournal: Journal = subJournalStack.headOption.getOrElse(mainJournal)
+  protected[gama] def pushJournal(in: Journal): Unit = {subJournalStack.push(in)}
+  protected[gama] def popJournal: Journal = {subJournalStack.pop}
   
   // Now, module enclosing and journal setup complete so can construct the IO
-  final val io: IOT = Port(makeIO)
+  final val io: IOT =
+    InternalName(Port(makeIO, __enclosingmodule), "io", NameFromIO)
   
   // Also, add self to parent, if it exists
   parent.foreach(_.addSubmodule(this))
