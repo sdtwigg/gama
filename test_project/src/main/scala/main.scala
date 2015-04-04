@@ -14,14 +14,26 @@ object testmain {
 }
 
 class ExampleIO extends HardwareTuple {
-  val in  = Input( UInt(width=8))
+  val in1 = Input( UInt(width=8))
+  val in2 = Input( new myBundle)
   val out = Output(UInt(width=8))
 
   lazy val subfields = Vector(
-    ("in", in),
+    ("in1", in1),
+    ("in2", in2),
     ("out", out)
   )
   def copy = (new ExampleIO).asInstanceOf[this.type]
+}
+class myBundle extends HardwareTuple {
+  val a = UInt(width=8)
+  val b = UInt(width=8)
+
+  lazy val subfields = Vector(
+    ("a", a),
+    ("b", b)
+  )
+  def copy = (new myBundle).asInstanceOf[this.type]
 }
 
 @module class ExampleModule protected () extends Module(new ExampleIO) {
@@ -38,7 +50,7 @@ class ExampleIO extends HardwareTuple {
 
   val myMux = Mux(select1, uint1, myNewVec(1))
   val test = Reg(UInt())
-  test := io.in
+  test := io.in1
   io.out := test
   
   val myAccessor = myNewVec(uint2)
@@ -54,13 +66,13 @@ class ExampleIO extends HardwareTuple {
 
   class InnerModule extends Module(new ExampleIO) {
     val uint = Reg(UInt(2))
-    uint := io.in
+    uint := io.in1
     io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
   }
 
   val myInnerModule = Module(new InnerModule)
 
-  myInnerModule.io.in := test
+  myInnerModule.io.in1 := test
   test := myInnerModule.io.out
   
   when(select1) {

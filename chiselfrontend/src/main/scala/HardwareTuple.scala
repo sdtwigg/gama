@@ -1,12 +1,17 @@
 package gama
 import internal._
 
+case class TraversalException(subfield: String, containerType: String, cause: Throwable)
+  extends ChiselException(s"Exception while Traversing @ ${subfield} of ${containerType}:\n ${cause}", cause)
 abstract class HardwareTuple extends Data {
   protected[gama] val subfields: Seq[Tuple2[String, Data]]
 
   private[this] def elements: Seq[Data] = subfields.map(_._2)
   protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type = {
-    elements.foreach((elem: Data) => elem.rebind(xform))
+    subfields.foreach({case (subfield: String, elem: Data) =>
+      try {elem.rebind(xform)}
+      catch {case e: Throwable => {throw TraversalException(subfield, this.getClass.getName, e)}}
+    })
     this
   }
 
