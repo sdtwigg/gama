@@ -7,3 +7,8 @@ object Direction {
   case object Flipped { def apply[D<:Data](in: D): in.type = {in.rebind(DirectionSpells.Flip)} }
 }
 
+trait DirectionAPI {
+  def Input   = Direction.Input
+  def Output  = Direction.Output
+  def Flipped = Direction.Flipped
+}

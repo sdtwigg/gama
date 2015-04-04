@@ -5,6 +5,7 @@ package internal
 trait SelfMuxable[D<:Data] {
   def verifyMux(cond: Bool, tc: D, fc: D): Unit
   def mux(cond: Bool, tc: D, fc: D, em: EnclosingModule): D = {
+    OpCheck.assertSynthesizable(cond)
     OpCheck.assertSynthesizable(tc)
     OpCheck.assertSynthesizable(fc)
     verifyMux(cond, tc, fc)

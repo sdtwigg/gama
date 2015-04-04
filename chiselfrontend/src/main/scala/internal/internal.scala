@@ -5,3 +5,4 @@ abstract class ChiselException(private val message: String, private val cause: T
 object ChiselException {
   def unapply(e: ChiselException): Option[(String,Throwable)] = Some((e.message, e.cause))
 }
+

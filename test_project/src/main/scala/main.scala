@@ -1,15 +1,15 @@
 package test
 import gama._
+import gama.api._
 import gama.macros._
-import gama.Direction._
 
 object testmain {
   def main(args: Array[String]) {
 
-    val myTestModule = ExampleModule()
+    val myTopModule = ExampleModule()
     val myReader = gama.internal.reader.FoldedJournalReader.Colorful
-    println(myReader.parseModule(myTestModule))
-    println(myReader.parseModule(myTestModule.myInnerModule))
+
+    println(myReader.parseCircuit(myTopModule) mkString("\n"))
   }
 }
 
@@ -100,14 +100,14 @@ object ExampleModule {
   def apply(): ExampleModule = Module(new ExampleModule)
 }
 
-class TestModule protected () extends Module(UInt()) {
+@module class TestModule protected () extends Module(Output(UInt(32))) {
   import scala.reflect.runtime.universe._
   def getTypeT[A: TypeTag](in: A) = typeTag[A]
 
   val myUInt = UInt()
   val myUWire = Wire(myUInt)
   val myUReg = Reg(myUInt)
-  val myUMux = Mux(Bool(), myUWire, myUReg)
+  val myUMux = Mux(Reg(Bool()), myUWire, myUReg)
 
   println(getTypeT(myUInt))
   println(getTypeT(myUWire))
@@ -118,12 +118,12 @@ class TestModule protected () extends Module(UInt()) {
   val mySInt = SInt(32)
   println(getTypeT(mySInt))
 
-  val myUVec = Vec(3, myUInt)
-  val myUVec2 = Vec(3, myUInt)
+  val myUVec  = Wire(Vec(3, myUInt))
+  val myUVec2 = Wire(Vec(3, myUInt))
   println(getTypeT(myUVec))
 
   myUVec := myUVec
-  val myUVecMux = Mux(Bool(), myUVec, myUVec)
+  val myUVecMux = Mux(Reg(Bool()), myUVec, myUVec)
   val myUVecReg = Reg(myUVec)
   println(getTypeT(myUVecMux))
   println(getTypeT(myUVecReg))

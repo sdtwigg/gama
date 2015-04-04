@@ -51,7 +51,7 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
     })
   }
 
-  def emitRef(data: Data): String  = data.name.get
+  def emitRef(data: Data): String  = data.name.getOrElse("$$$$BADREF$$$$")
   def emitModuleInst(module: Module[_<:Data]): String = 
    s"${module.name.get}: ${HL.GREEN}${module.getClass.getName}${HL.RESET}"
 }

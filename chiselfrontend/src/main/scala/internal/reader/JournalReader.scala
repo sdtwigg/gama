@@ -13,6 +13,17 @@ trait JournalReader {
 abstract class BaseJournalReader extends JournalReader {
   def HL: Highlighter
   
+  def parseCircuit(topModule: Module[_<:Data]): Seq[String] = {
+    val setupQueue = scala.collection.mutable.Queue[Module[_<:Data]](topModule)
+    val workList = scala.collection.mutable.ListBuffer.empty[Module[_<:Data]]
+    while(setupQueue.nonEmpty) {
+      val work = setupQueue.dequeue
+      setupQueue.enqueue(work.children:_*)
+      workList.append(work)
+    }
+    workList.toList.map(parseModule(_))
+  }
+  
   def parseModule(module: Module[_<:Data]): String = {
     module.io.name = ("io", NameOVERRIDE)
     ensureAllChildrenNamed(module)
