@@ -9,7 +9,7 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
     val filteredEntries: immutable.Seq[JournalEntry] = entries flatMap(entry => entry match {
       case CreateOp(opdesc) if opdesc.retVal.namePriority.get <= NameFromMath => None
       case CreateAccessor(accdesc) if accdesc.retVal.namePriority.get <= NameFromMath => None
-      case other => Option(other)
+      case other => Some(other)
     })
     "{\n" +
     (filteredEntries flatMap(entry => parseJournalEntry(entry).split("\n")) map("  " + _) mkString("\n")) +
@@ -19,7 +19,7 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
     def check(target: Nameable, tempprefix: String): Option[Tuple2[Nameable,String]] = {
       target.name match {
         case Some(_) => None
-        case None    => Option((target, tempprefix))
+        case None    => Some((target, tempprefix))
       }
     }
     val itemsToTempName: Iterable[Tuple2[Nameable,String]] = entries flatMap(entry => entry match {

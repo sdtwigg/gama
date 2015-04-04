@@ -22,7 +22,7 @@ trait Nameable { // MUTABLE STATE: name
       case Some((oldName, oldPriority)) if priority > oldPriority => true
       case _ => false
     }) {
-      nameDetails = Option(Tuple2(suggestion, priority))
+      nameDetails = Some(Tuple2(suggestion, priority))
       propogateName()
     }
     name

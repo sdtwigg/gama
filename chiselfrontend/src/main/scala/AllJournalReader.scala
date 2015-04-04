@@ -14,7 +14,7 @@ sealed abstract class AllJournalReader extends BaseJournalReader {
     def check(target: Nameable, tempprefix: String): Option[Tuple2[Nameable,String]] = {
       target.name match {
         case Some(_) => None
-        case None    => Option((target, tempprefix))
+        case None    => Some((target, tempprefix))
       }
     }
     val itemsToName: Iterable[Tuple2[Nameable,String]] = entries flatMap((entry: JournalEntry) => entry match {

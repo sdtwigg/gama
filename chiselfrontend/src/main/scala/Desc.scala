@@ -9,7 +9,7 @@ trait DescReference { // MUTABLE STATE: descRef
     protected[gama] def propogateDescRef(): Unit
     protected[gama] def descRef_=(in: Desc): Unit = {
       assert(_descRef.isEmpty)
-      _descRef = Option(in)
+      _descRef = Some(in)
       propogateDescRef()
     }
 }
