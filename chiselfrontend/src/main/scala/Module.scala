@@ -12,7 +12,7 @@ case object UnwrappedModuleException extends
 case object OverwrappedModuleException extends
   ChiselException("Module() improperly called inside other Module() call without intervening module creation.")
 
-abstract class Module[+IOT<:Data](makeIO: IOT) {
+abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
   // Setup parent then add self to module stack
   val parent: Option[Module[_<:Data]] = Module.currentModule
   Module.push(this)
@@ -31,13 +31,15 @@ abstract class Module[+IOT<:Data](makeIO: IOT) {
   
   // Now, module enclosing and journal setup complete so can construct the IO
   final val io: IOT =
-    InternalName(Port(makeIO, __enclosingmodule), "io", NameFromIO)
+    InternalName(Port(makeIO, __enclosingmodule), "UNDEFIO", NameFromIO)
   
   // Also, add self to parent, if it exists
   parent.foreach(_.addSubmodule(this))
   private def addSubmodule(child: Module[_<:Data]) = {
     getActiveJournal.append(CreateModule(child))
   }
+  
+  def propogateName(): Unit = {} // do not propogate to IO
 }
 object Module {
   private def currentModule: Option[Module[_<:Data]] = modStack.headOption

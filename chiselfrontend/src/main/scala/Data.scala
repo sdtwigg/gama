@@ -22,7 +22,7 @@ object SelfTransfer {
   trait SelfTransferImpl[D<:Data] extends SelfTransfer[D] {
     def verifyTransfer(source: D, sink: D): Unit
     def selfTransfer(source: D, sink: D, em: EnclosingModule): D = {
-      em.getActiveJournal.append(NodeAssign(source, sink))
+      em.getActiveJournal.append(DataTransfer(source, sink))
       sink
     }
   }

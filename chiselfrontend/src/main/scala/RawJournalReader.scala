@@ -10,7 +10,9 @@ sealed abstract class RawJournalReader extends BaseJournalReader {
     "\n}"
   }
 
-  def emitRef(data: Data): String  = data.name.getOrElse(data.toString)
+  def emitRef(data: Data): String = data.name.getOrElse(data.toString)
+  def emitModuleInst(module: Module[_<:Data]): String = 
+    module.name.getOrElse(module.toString)
 }
 
 object RawJournalReader {

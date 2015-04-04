@@ -18,4 +18,5 @@ case class RegNode(storage: NodeStore, em: EnclosingModule) extends Connectable
 case class PortNode(storage: NodeStore, em: EnclosingModule) extends Connectable
 case class AccessorNode(storage: NodeStore, em: EnclosingModule) extends Connectable // TODO: Extending Connectable isn't quite right....
 
-case class OpNode(storage: NodeStore, em: EnclosingModule) extends Synthesizable
+sealed trait NonConnectable extends Synthesizable
+case class OpNode(storage: NodeStore, em: EnclosingModule) extends NonConnectable

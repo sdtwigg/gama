@@ -14,7 +14,7 @@ case class CreateModule(module: Module[_<:Data]) extends JournalEntry
 case class Conditionally(cond: Bool, tc: Journal, fc: Journal) extends JournalEntry {
   require(cond.node.isInstanceOf[Synthesizable])
 }
-case class NodeAssign(source: Data, sink: Data) extends JournalEntry 
+case class DataTransfer(source: Data, sink: Data) extends JournalEntry 
 
 final class Journal {
   private val _entries = scala.collection.mutable.ListBuffer.empty[JournalEntry]

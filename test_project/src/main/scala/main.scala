@@ -6,7 +6,7 @@ object testmain {
   def main(args: Array[String]) {
 
     val myTestModule = ExampleModule()
-    val myReader = gama.internal.RawJournalReader
+    val myReader = gama.internal.FoldedJournalReader
     println(myReader.Colorful(myTestModule.getActiveJournal))
     println(myReader.Colorful(myTestModule.myInnerModule.getActiveJournal))
 
@@ -44,6 +44,7 @@ object testmain {
 
   class InnerModule extends Module(UInt()) {
     val uint = Wire(UInt())
+    uint := io
   }
 
   val myInnerModule = Module(new InnerModule)
@@ -55,7 +56,7 @@ object testmain {
       test := select1
     }
     test := uint1
-  }.elsewhen(Wire(Bool())) {
+  }.elsewhen({Reg(Bool()) := select1}) {
     test := select2
   }.otherwise {
     test := uint2

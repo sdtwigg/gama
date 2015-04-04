@@ -22,13 +22,15 @@ abstract class BaseJournalReader extends JournalReader {
       case CreateAccessor(accdesc) =>
         s"${HL.CYAN}acc${HL.RESET}   ${emitRefType(accdesc.retVal)} = ${emitAccDesc(accdesc)}"
       case CreateModule(module) =>
-        s"${HL.CYAN}inst${HL.RESET}  ${module}"
+        s"${HL.CYAN}inst${HL.RESET}  ${emitModuleInst(module)}"
       case Conditionally(cond, tc, fc) =>
         s"${HL.CYAN}when${HL.RESET}(${emitRef(cond)}) ${apply(tc)} ${HL.CYAN}else${HL.RESET} ${apply(fc)}"
-      case NodeAssign(source, sink) =>
+      case DataTransfer(source, sink) =>
         s"${emitRef(sink)} := ${emitRef(source)}"
     }
   }
+  def emitModuleInst(module: Module[_<:Data]): String
+
   def emitRef(data: Data): String
   def emitType(data: Data): String = data match {
     case elem: Element => (s"${emitNodeStore(elem.node.storage)}")
@@ -50,5 +52,6 @@ abstract class BaseJournalReader extends JournalReader {
   }
   def emitAccDesc(accdesc: AccessorDesc[_<:Data]): String =
     s"${emitRef(accdesc.collection)}(${emitRef(accdesc.selector)})"
+
 }
 
