@@ -1,5 +1,6 @@
 package gama
 package internal
+package reader
 
 import scala.collection.{immutable=>immutable}
 

@@ -7,7 +7,7 @@ object testmain {
   def main(args: Array[String]) {
 
     val myTestModule = ExampleModule()
-    val myReader = gama.internal.FoldedJournalReader.Colorful
+    val myReader = gama.internal.reader.FoldedJournalReader.Colorful
     println(myReader.parseModule(myTestModule))
     println(myReader.parseModule(myTestModule.myInnerModule))
   }

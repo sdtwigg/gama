@@ -1,5 +1,6 @@
 package gama
 package internal
+package reader
 
 trait Highlighter {
   def BLACK:   String
