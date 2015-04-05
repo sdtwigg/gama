@@ -4,12 +4,12 @@ package internal
 // links to whatever OpDesc, Reg, Wire, etc. master instance made me.
 trait DescReference { // MUTABLE STATE: descRef
   self: Data =>
-    private[this] var _descRef: Option[Desc] = None
-    protected[gama] def descRef: Option[Desc] = _descRef
+    private[this] var _descRef: Option[scala.ref.WeakReference[Desc]] = None
+    protected[gama] def descRef: Option[Desc] = _descRef.flatMap(_.get)
     protected[gama] def propogateDescRef(): Unit
     protected[gama] def descRef_=(in: Desc): Unit = {
       assert(_descRef.isEmpty)
-      _descRef = Some(in)
+      _descRef = Some(scala.ref.WeakReference(in))
       propogateDescRef()
     }
 }
