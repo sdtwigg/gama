@@ -15,6 +15,14 @@ object UnaryOp {
     retVal.descRef = newOpDesc
     retVal
   }
+  
+  def Bool(op: OpIdUnary, input: Element, em: EnclosingModule): Bool = {
+    NodeCheck.assertSynthesizable(input)
+    val retVal = new Bool(OpNode(UBits(Some(1)),em))
+    val newOpDesc = UnaryOpDesc(op, input, retVal, em)
+    retVal.descRef = newOpDesc
+    retVal
+  }
 }
 
 object ExtractOp {
@@ -48,6 +56,14 @@ object BinaryOp {
     NodeCheck.assertSynthesizable(inputs._1)
     NodeCheck.assertSynthesizable(inputs._2)
     val retVal = new SInt(OpNode(SBits(None),em))
+    val newOpDesc = BinaryOpDesc(op, inputs, retVal, em)
+    retVal.descRef = newOpDesc
+    retVal
+  }
+  def Bool(op: OpIdBinary, inputs: Tuple2[Element,Element], em: EnclosingModule): Bool = {
+    NodeCheck.assertSynthesizable(inputs._1)
+    NodeCheck.assertSynthesizable(inputs._2)
+    val retVal = new Bool(OpNode(UBits(Some(1)),em))
     val newOpDesc = BinaryOpDesc(op, inputs, retVal, em)
     retVal.descRef = newOpDesc
     retVal

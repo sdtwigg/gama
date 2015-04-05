@@ -104,9 +104,27 @@ abstract class BaseJournalReader extends JournalReader {
   def emitOpId(opid: OpId) = opid match {
     // Unary Ops
     case OpToUInt => "toUInt"
+    case OpNot    => "not"
     // Binary Ops
-    case OpPlus => "+"
-    case OpPad  => "pad"
+    case OpPlus  => "+"
+    case OpSubt  => "-"
+    case OpMult  => "*"
+    case OpDiv   => "/"
+    case OpMod   => "%"
+
+    case OpAnd   => "&"
+    case OpOr    => "|"
+    case OpXor   => "^"
+    
+    case OpPadTo => "pad"
+    case OpCat   => "##"
+    
+    case OpEqual => "=="
+    case OpNoneq => "!="
+    case OpLess  => "<"
+    case OpLeEq  => "<="
+    case OpGrt   => ">"
+    case OpGrEq  => ">="
   }
   def emitAccDesc(accdesc: AccessorDesc[_<:Data]): String =
     s"${emitRef(accdesc.collection)}(${emitRef(accdesc.selector)})"

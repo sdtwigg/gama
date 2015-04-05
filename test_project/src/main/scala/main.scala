@@ -12,6 +12,15 @@ object testmain {
     println(myReader.parseCircuit(myTopModule) mkString("\n"))
   }
 }
+/*
+// These fails to compile as desired
+@bundle trait TestTrait extends Bundle{
+  val test = UInt()
+}
+@bundle abstract class TestAbstractClass extends Bundle{
+  val test = UInt()
+}
+*/
 
 @bundle class ExampleIO extends Bundle {
   val in1 = Input( UInt(width=8))
@@ -22,6 +31,21 @@ object testmain {
 @bundle class MyBundle extends Bundle {
   val a = UInt(width=8)
   val b = UInt(width=8)
+}
+
+@bundle @probe final class Decoupled[+T<:Data] private (model: T) extends Bundle {
+  val valid = Output(Bool())
+  val bits  = Output(model.copy)
+  val ready = Input( Bool())
+  def fire(implicit em: EnclosingModule): Bool = valid && ready
+}
+object Decoupled {
+  def apply[T<:Data](model: T): Decoupled[T] = new Decoupled(model)
+}
+
+@bundle class DecoupledExample extends Bundle {
+  val in  = Flipped(Decoupled(new MyBundle))
+  val out =         Decoupled(new MyBundle)
 }
 
 @bundle @probe class MyChildBundle extends MyBundle {
@@ -50,6 +74,11 @@ trait Nested2 extends Nested {
   val uint = Reg(UInt(2))
   uint := io.in1
   io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
+}
+@module class OtherModule extends Module(new DecoupledExample) {
+  val uint = Reg(UInt(2))
+  //uint := io.in1
+  //io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
 }
 
 @module class ExampleModule protected () extends Module(new ExampleIO) {
@@ -107,6 +136,9 @@ trait Nested2 extends Nested {
 
   @probe val wireVecVec = Wire(Vec(5,Vec(5,UInt()))).apply(test).apply(test)
   Reg(UInt()) := wireVecVec + Reg(UInt())
+
+  val myBool = Wire(Bool())
+  val myBReg  = Reg(Bool()) := myBool && myBool || myBool ^ !myBool 
 }
 object ExampleModule {
   def apply(): ExampleModule = Module(new ExampleModule)

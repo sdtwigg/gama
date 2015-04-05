@@ -12,5 +12,5 @@ class SInt(initialNode: Node) extends Bits(initialNode) {
   def :=(source: SInt)(implicit em: EnclosingModule) = ConnectSelf[SInt].connectSelf(source, this, em)
   def copy = new SInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
-  def pad(that: Bits)(implicit em: EnclosingModule): SInt  = BinaryOp.SInt(OpPad,  (this, that), em)
+  def pad(that: Bits)(implicit em: EnclosingModule): SInt  = BinaryOp.SInt(OpPadTo,  (this, that), em)
 }

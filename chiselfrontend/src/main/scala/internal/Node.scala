@@ -20,6 +20,7 @@ case class WireNode(storage: NodeStore, em: EnclosingModule) extends Connectable
 case class RegNode(storage: NodeStore, em: EnclosingModule) extends Connectable
 case class PortNode(storage: NodeStore, direction: DirectionIO, em: EnclosingModule) extends Connectable {override def resolveDirection = Some(direction)}
 
+// TODO: NonConnectable may be unnecessary
 sealed abstract class NonConnectable extends Synthesizable
 case class OpNode(storage: NodeStore, em: EnclosingModule) extends NonConnectable
 

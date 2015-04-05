@@ -14,5 +14,5 @@ class UInt(initialNode: Node) extends Bits(initialNode) {
   def copy = new UInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
 
   def +(that: UInt)(implicit em: EnclosingModule): UInt    = BinaryOp.UInt(OpPlus, (this, that), em)
-  def pad(that: Bits)(implicit em: EnclosingModule): UInt  = BinaryOp.UInt(OpPad,  (this, that), em)
+  def pad(that: Bits)(implicit em: EnclosingModule): UInt  = BinaryOp.UInt(OpPadTo,  (this, that), em)
 }
