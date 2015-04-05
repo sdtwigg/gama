@@ -8,10 +8,9 @@ trait SelfMuxable[D<:Data] {
     TraversalException(NodeCheck.assertSynthesizable(cond), "cond", "mux")
     TraversalException(NodeCheck.assertSynthesizable(tc),   "tc", "mux")
     TraversalException(NodeCheck.assertSynthesizable(fc),   "fc", "mux")
-    val retVal = muxRetVal(tc, fc).rebind(OpGenericSpell(em))
-    val newMux = MuxDesc[D](cond, tc, fc, retVal, em)
-    retVal.descRef = newMux
-    retVal
+    Desc.generate(muxRetVal(tc, fc).rebind(OpGenericSpell(em)))(rv =>
+      MuxDesc(cond, tc, fc, rv, em)
+    )
   }
 }
 
