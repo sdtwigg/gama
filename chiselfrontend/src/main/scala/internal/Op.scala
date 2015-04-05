@@ -1,7 +1,7 @@
 package gama
 package internal
 
-abstract class OpDescImpl {
+trait OpDescImpl {
   self: OpDesc =>
     em.getActiveJournal.append(CreateOp(this))
 }

@@ -14,9 +14,9 @@ trait DescReference { // MUTABLE STATE: descRef
     }
 }
 
-sealed trait Desc {val retVal: Data; val em: EnclosingModule}
+sealed abstract class Desc {val retVal: Data; val em: EnclosingModule}
 
-sealed trait OpDesc extends OpDescImpl with Desc
+sealed abstract class OpDesc extends Desc with OpDescImpl
 case class UnaryOpDesc(
   op: OpIdUnary, input: Element,
   retVal: Element, em: EnclosingModule
@@ -37,4 +37,4 @@ case class MuxDesc[T<:Data](
 case class AccessorDesc[+T<:Data](
   collection: Accessible[T], selector: UInt,
   retVal: T, em: EnclosingModule
-) extends AccessorDescImpl[T] with Desc
+) extends Desc with AccessorDescImpl[T]

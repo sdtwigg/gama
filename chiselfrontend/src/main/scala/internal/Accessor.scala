@@ -16,7 +16,7 @@ trait Accessible[+D<:Data] extends Data {
   def apply(selector: UInt)(implicit em: EnclosingModule): D = lookup(selector)
 }
 
-abstract class AccessorDescImpl[+T<:Data] {
+trait AccessorDescImpl[+T<:Data] {
   self: AccessorDesc[T] =>
     em.getActiveJournal.append(CreateAccessor(this))
 }
