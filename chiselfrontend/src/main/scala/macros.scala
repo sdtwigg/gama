@@ -29,6 +29,9 @@ protected[gama] object macroAnno {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
           c.warning(c.enclosingPosition, s"Module-type $parentName has inner class named ${tpname.toString}.")
         }
+        case q"$mods trait $tpname[..$tparams] extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
+          c.warning(c.enclosingPosition, s"Module-type $parentName has inner trait named ${tpname.toString}.")
+        }
         case _ => super.traverse(tree)
       }
     }
@@ -58,6 +61,16 @@ protected[gama] object macroAnno {
         val newBody = valnamer.transformTrees(stats)
         q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$newBody }"
       }
+      case q"$mods trait $tpname[..$tparams] extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
+        if(!allowInnerClasses) {
+          val parentName = tpname.toString
+          innerclasschecker(parentName).traverseTrees(earlydefns)
+          innerclasschecker(parentName).traverseTrees(stats)
+        }
+
+        val newBody = valnamer.transformTrees(stats)
+        q"$mods trait $tpname[..$tparams] extends { ..$earlydefns } with ..$parents { $self => ..$newBody }"
+      }
       case _ => tree
     })
     
@@ -67,6 +80,7 @@ protected[gama] object macroAnno {
   def bundleimpl(c: Context)(annottees: c.Tree*): c.Tree = {
     import c.universe._
     import Flag._
+    //TODO: EMIT ERROR IF THIS CLASS IS NOT CONCRETE
 
     def getTermName(in: ValDef): TermName = in match {case q"$mods val $tname: $tpt = $expr" => tname}
     def getNoArgDefs(in: Seq[Tree]): Seq[String] = { //clever trick from delegate example
@@ -77,7 +91,11 @@ protected[gama] object macroAnno {
     }
 
     val xformd: Seq[Tree] = annottees.map(_ match {
+      case q"$mods trait $tpname[..$tparams] extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
+        c.abort(c.enclosingPosition, "@bundle annotation can only be used on concrete classes")
+      }
       case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
+        if(mods.hasFlag(ABSTRACT)) { c.abort(c.enclosingPosition, "@bundle annotation can only be used on concrete classes") }
         val termparamss = paramss.map(a=>a.map(b=>getTermName(b)))
         val myclone = q"override def copy: this.type = (new $tpname(...$termparamss)).asInstanceOf[this.type]"
         val newbody = stats ++ Seq(
