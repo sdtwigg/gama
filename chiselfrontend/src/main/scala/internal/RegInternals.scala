@@ -9,5 +9,6 @@ object RegInternals {
 trait RegDescImpl[+T<:Data] {
   self: RegDesc[T] =>
     def validateRetVal(): Unit = NodeCheck.assertRegNode(retVal)
-    def genJournalEntry = CreateReg(this)
+    def genJournalEntry = Some(CreateReg(this))
 }
+

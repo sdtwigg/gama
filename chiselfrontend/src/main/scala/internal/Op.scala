@@ -4,7 +4,7 @@ package internal
 trait OpDescImpl {
   self: OpDesc =>
     def validateRetVal(): Unit = NodeCheck.assertOpNode(retVal)
-    def genJournalEntry = CreateOp(this)
+    def genJournalEntry = Some(CreateOp(this))
 }
 
 // OpDesc Here:

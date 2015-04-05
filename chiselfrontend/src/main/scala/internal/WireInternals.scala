@@ -10,5 +10,5 @@ object WireInternals {
 trait WireDescImpl[+T<:Data] {
   self: WireDesc[T] =>
     def validateRetVal(): Unit = NodeCheck.assertWireNode(retVal)
-    def genJournalEntry = CreateWire(this)
+    def genJournalEntry = Some(CreateWire(this))
 }

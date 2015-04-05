@@ -16,16 +16,21 @@ trait DescReference { // MUTABLE STATE: descRef
 
 sealed abstract class Desc {
   val retVal: Data
-  val em: EnclosingModule
+  def oem: Option[EnclosingModule]
 
   def validateRetVal(): Unit
-  def genJournalEntry: JournalEntry
+  def genJournalEntry: Option[JournalEntry]
+  // Note: can be enclosed but still not emit a JournalEntry, eg. PortDesc 
 
   validateRetVal()
-  em.getActiveJournal.append(genJournalEntry)
+  for(em <- oem; entry <- genJournalEntry) yield {
+    em.getActiveJournal.append(entry)
+  }
 }
+trait EnclosedDesc extends Desc   {val em: EnclosingModule; def oem = Some(em)}
+trait UnenclosedDesc extends Desc {def oem = None}
 
-sealed abstract class OpDesc extends Desc with OpDescImpl
+sealed abstract class OpDesc extends Desc with OpDescImpl with EnclosedDesc
 case class UnaryOpDesc(
   op: OpIdUnary, input: Element,
   retVal: Element, em: EnclosingModule
@@ -46,12 +51,16 @@ case class MuxDesc[T<:Data](
 case class AccessorDesc[+T<:Data](
   collection: Accessible[T], selector: UInt,
   retVal: T, em: EnclosingModule
-) extends Desc with AccessorDescImpl[T]
+) extends Desc with AccessorDescImpl[T] with EnclosedDesc
 
 case class RegDesc[+T<:Data](retVal: T, em: EnclosingModule)
- extends Desc with RegDescImpl[T]
+ extends Desc with RegDescImpl[T] with EnclosedDesc
+
 case class WireDesc[+T<:Data](retVal: T, em: EnclosingModule)
- extends Desc with WireDescImpl[T]
+ extends Desc with WireDescImpl[T] with EnclosedDesc
+
+case class LitDesc[T<:Data](retVal: T, litMap: LitMap[T])
+ extends Desc with LitDescImpl[T] with UnenclosedDesc
 
 object Desc {
   def generate[RV<:Data](retVal: RV)(genDesc: RV=>Desc): RV = {

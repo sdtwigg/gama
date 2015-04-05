@@ -47,4 +47,6 @@ object NodeCheck {
     assertNodeBuilder({case syn: NonConnectable => (true)}, ExpectedNodeException.partial("NonConnectable"))
   val assertOpNode: DataCheck =
     assertNodeBuilder({case syn: OpNode => (true)}, ExpectedNodeException.partial("OpNode"))
+  val assertLitNode: DataCheck =
+    assertNodeBuilder({case syn: LitNode[_] => (true)}, ExpectedNodeException.partial("LitNode"))
 }

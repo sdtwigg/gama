@@ -18,5 +18,5 @@ trait Accessible[+D<:Data] extends Data {
 trait AccessorDescImpl[+T<:Data] {
   self: AccessorDesc[T] =>
     def validateRetVal(): Unit = NodeCheck.assertAccessorNode(retVal)
-    def genJournalEntry = CreateAccessor(this)
+    def genJournalEntry = Some(CreateAccessor(this))
 }
