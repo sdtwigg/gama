@@ -19,7 +19,10 @@ sealed trait Connectable extends Synthesizable
 case class WireNode(storage: NodeStore, em: EnclosingModule) extends Connectable
 case class RegNode(storage: NodeStore, em: EnclosingModule) extends Connectable
 case class PortNode(storage: NodeStore, direction: DirectionIO, em: EnclosingModule) extends Connectable {override def resolveDirection = Some(direction)}
-case class AccessorNode(storage: NodeStore, em: EnclosingModule) extends Connectable // TODO: Extending Connectable isn't quite right....
 
 sealed trait NonConnectable extends Synthesizable
 case class OpNode(storage: NodeStore, em: EnclosingModule) extends NonConnectable
+
+sealed trait AccessorNode extends Synthesizable
+case class ConnectableAccessorNode(storage: NodeStore, em: EnclosingModule) extends AccessorNode with Connectable
+case class NonConnectableAccessorNode(storage: NodeStore, em: EnclosingModule) extends AccessorNode with NonConnectable

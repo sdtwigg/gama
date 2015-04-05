@@ -5,7 +5,7 @@ import internal._
   Regarding potential mutable state in Data (and subtypes):
   -> node: all nodes should be connected to a SPEC node, with the same NodeStorage as before
   -> name: should not be copied (and thus reset to None)
-  -> opRef: should not be copied (and thus reset to None)
+  -> descRef: should not be copied (and thus reset to None)
 */
 
 abstract class Data extends Nameable with DescReference {

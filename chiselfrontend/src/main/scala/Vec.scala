@@ -10,10 +10,10 @@ object Vectorizable {
   implicit def vectorizer[D<:Data: SelfMuxable]: Vectorizable[D] = new Vectorizable[D] {val muxer = implicitly[SelfMuxable[D]]}
 }
 
-final class Vec[D<:Data: Vectorizable](val size: Int, initialModel: D) extends Aggregate with Accessible[D] {
+final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends Aggregate with Accessible[D] with IndexedSeq[D] {
   private[this] val mutableElemType: D = initialModel.copy
   def elemType: D = mutableElemType.copy
-  protected[gama] val elements: immutable.Seq[D] = Vector.fill(size)(elemType)
+  private val elements: immutable.IndexedSeq[D] = Vector.fill(length)(elemType)
 
   protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type = {
     mutableElemType.rebind(xform)
@@ -28,15 +28,25 @@ final class Vec[D<:Data: Vectorizable](val size: Int, initialModel: D) extends A
   def :=(source: Vec[D])(implicit eltxfer: SelfTransfer[D], em: EnclosingModule) = implicitly[SelfTransfer[Vec[D]]].selfTransfer(source, this, em)
   def copy = Vec(size, elemType).asInstanceOf[this.type]
 
-  // don't allow individual element access until synthesized
+  // Until Synthesized, elemType (clones) 'hide' all access to elements (see lookup)
   def lookup(index: Int): D = {
-    NodeCheck.assertSynthesizable(this)
-    elements(index)
+    nodes.headOption.getOrElse(mutableElemType) match {
+      case _: SPEC => {
+        if(index>length) throw new java.lang.IndexOutOfBoundsException(index.toString)
+        elemType
+      }
+      case _: Synthesizable => (elements(index))
+    }
   }
   def apply(index: Int): D = lookup(index)
 
-  def lookupCheck(selector: UInt): Unit = {NodeCheck.assertSynthesizable(this)}
-
+  def lookupIsConnectable(selector: UInt): Boolean = {
+    nodes.headOption.getOrElse(mutableElemType) match {
+      case _: SPEC => {throw ExpectedNodeException("Synthesizable","SPEC")}
+      case _: Connectable => {NodeCheck.assertConnectable(this); true}
+      case _: NonConnectable => {NodeCheck.assertNonConnectable(this); false}
+    }
+  }
   
   def propogateName(): Unit = {
     elements.zipWithIndex.foreach({case (elem: Data, idx: Int) => 

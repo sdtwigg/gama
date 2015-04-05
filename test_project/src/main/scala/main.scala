@@ -54,6 +54,7 @@ trait Nested2 extends Nested {
 
 @module class ExampleModule protected () extends Module(new ExampleIO) {
   val dtype_uint = UInt()
+  val vectype = Vec(4, UInt())
 
   val uint1 = Wire(UInt(8))
   val uint2 = Wire(dtype_uint)
@@ -61,6 +62,7 @@ trait Nested2 extends Nested {
   val select2 = Wire(Bool())
   val select3 = Wire(Bool())
   val waste = select3
+  //val wrong = vectype(uint1)
 
   val myNewVec  = Wire(Vec(2, UInt(4)))
 
@@ -70,13 +72,14 @@ trait Nested2 extends Nested {
 
   val myMux    = Mux(select1, uint1, myNewVec(1))
   val myVecMux = Mux(select1, myNewVec, myUnknownVec)
-  val myVecMux2 = Mux(select1, myNewVec, myUnknownVec)
+  val myVecMux2 = Mux(select1, myNewVec, myVecMux)
   val test = Reg(UInt())
   test := io.in1
   io.out := test
   
   val myAccessor = myNewVec(uint2)
   test := myAccessor
+  myAccessor := uint2
 
   test := myNewVec(uint2)
   
@@ -101,6 +104,9 @@ trait Nested2 extends Nested {
   }.otherwise {
     test := uint2
   }
+
+  @probe val wireVecVec = Wire(Vec(5,Vec(5,UInt()))).apply(test).apply(test)
+  Reg(UInt()) := wireVecVec + Reg(UInt())
 }
 object ExampleModule {
   def apply(): ExampleModule = Module(new ExampleModule)

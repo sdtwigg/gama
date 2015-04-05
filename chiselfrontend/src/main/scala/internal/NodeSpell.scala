@@ -3,7 +3,7 @@ package internal
 
 case object SynthesizableTransformException extends ChiselException("Transformations cannot be performed on Synthesizable Nodes.")
 
-sealed trait NodeSpell[Out<:Node] {
+sealed trait NodeSpell[+Out<:Node] {
   def apply(in: SPEC): Out
   def apply(in: Node): Out = in match {
     case syn: Synthesizable => {throw SynthesizableTransformException}
@@ -41,8 +41,11 @@ case class PortSpell(em: EnclosingModule) extends NodeSpell[PortNode] {
   def apply(in: SPEC) = PortNode(in.storage, in.direction.getOrElse(throw NoDirectionException), em)
 }
 
-case class AccessorSpell(em: EnclosingModule) extends NodeSpell[AccessorNode] {
-  def apply(in: SPEC) = AccessorNode(in.storage, em)
+case class ConnectableAccessorSpell(em: EnclosingModule) extends NodeSpell[ConnectableAccessorNode] {
+  def apply(in: SPEC) = ConnectableAccessorNode(in.storage, em)
+}
+case class NonConnectableAccessorSpell(em: EnclosingModule) extends NodeSpell[NonConnectableAccessorNode] {
+  def apply(in: SPEC) = NonConnectableAccessorNode(in.storage, em)
 }
 
 case class OpCopySpell(em: EnclosingModule) extends NodeSpell[OpNode] {

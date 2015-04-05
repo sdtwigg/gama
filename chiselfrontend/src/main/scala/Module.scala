@@ -13,7 +13,7 @@ case object OverwrappedModuleException extends
   ChiselException("Module() improperly called inside other Module() call without intervening module creation.")
 
 abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
-  // Setup parent then add self to module stack
+  // Setup parent then add self to module stack before an exception that leads to Module stack corruption
   val parent: Option[Module[_<:Data]] = Module.currentModule
   Module.push(this)
 
@@ -53,9 +53,8 @@ object Module {
   def apply[M<:Module[_<:Data]](in: =>M): M  = {
     if(modWrapped) {throw OverwrappedModuleException}
     modWrapped = true
-    val created = in //push() called now
-    modStack.pop()
-    created
+    try{in} //push() called now
+    finally {modStack.pop()}
   }
   private def push(in: Module[_<:Data]): Unit = {
     if(!modWrapped) {throw UnwrappedModuleException}
