@@ -1,10 +1,14 @@
 package gama
 
 import internal._
-case class EnclosingModule(val enclosed: Module[_<:Data])
+
+final class EnclosingModule private (incomingEnclosed: Module[_<:Data]) extends EnclosureWeakReference[Module[_<:Data]](incomingEnclosed) {
+  protected[this] val lostLinkDetails: String = s"EnclosingModule (previously connected to ${incomingEnclosed.toString})"
+}
 object EnclosingModule {
+  def apply(enclosing: Module[_<:Data]) = new EnclosingModule(enclosing)
   import scala.language.implicitConversions
-  implicit def EM2M(in: EnclosingModule): Module[_<:Data] = in.enclosed
+  implicit def EM2M(in: EnclosingModule): Module[_<:Data] = in.enclosure
 }
 
 case object UnwrappedModuleException extends

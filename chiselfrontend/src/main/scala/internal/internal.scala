@@ -12,3 +12,6 @@ object TraversalException {
   def apply(work: =>Unit, subfield: String, container: String): Unit =
     try {work} catch {case e: ChiselException => (throw TraversalException(subfield, container, e))}
 }
+
+case class DesignLostException(lostLink: String)
+  extends ChiselException(s"Parts of elaborated design Lost to Time and Space, likely due to garbase collection. Link lost at $lostLink. Consult developers guide for details.")
