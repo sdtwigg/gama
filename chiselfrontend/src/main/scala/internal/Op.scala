@@ -3,7 +3,8 @@ package internal
 
 trait OpDescImpl {
   self: OpDesc =>
-    em.getActiveJournal.append(CreateOp(this))
+    def validateRetVal(): Unit = NodeCheck.assertOpNode(retVal)
+    def genJournalEntry = CreateOp(this)
 }
 
 // OpDesc Here:

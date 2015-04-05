@@ -8,15 +8,15 @@ trait Accessible[+D<:Data] extends Data {
     val spell: NodeSpell[AccessorNode] =
       if(lookupIsConnectable(selector)) ConnectableAccessorSpell(em)
       else NonConnectableAccessorSpell(em)
-    val retVal = elemType.copy.rebind(spell)
-    val newAccessor = AccessorDesc[D](this, selector, retVal, em)
-    retVal.descRef = newAccessor
-    retVal
+    Desc.generate(elemType.copy.rebind(spell))(rv =>
+      AccessorDesc[D](this, selector, rv, em)
+    )
   }
   def apply(selector: UInt)(implicit em: EnclosingModule): D = lookup(selector)
 }
 
 trait AccessorDescImpl[+T<:Data] {
   self: AccessorDesc[T] =>
-    em.getActiveJournal.append(CreateAccessor(this))
+    def validateRetVal(): Unit = NodeCheck.assertAccessorNode(retVal)
+    def genJournalEntry = CreateAccessor(this)
 }

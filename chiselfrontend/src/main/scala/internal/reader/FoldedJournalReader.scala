@@ -26,8 +26,8 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
     val itemsToTempName: Iterable[Tuple2[Nameable,String]] = entries flatMap(entry => entry match {
       // Determine which entries need named
       case CreateOp(opdesc)        => None // fold later
-      case CreateWire(data)        => check(data,"W")
-      case CreateReg(data)         => check(data,"R")
+      case CreateWire(wiredesc)    => check(wiredesc.retVal,"W")
+      case CreateReg(regdesc)      => check(regdesc.retVal,"R")
       case CreateAccessor(accdesc) => None // fold later
       case CreateModule(module)    => check(module, "M")
       case Conditionally(_,_,_) => None // recall: will recursively see

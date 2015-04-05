@@ -14,7 +14,16 @@ trait DescReference { // MUTABLE STATE: descRef
     }
 }
 
-sealed abstract class Desc {val retVal: Data; val em: EnclosingModule}
+sealed abstract class Desc {
+  val retVal: Data
+  val em: EnclosingModule
+
+  def validateRetVal(): Unit
+  def genJournalEntry: JournalEntry
+
+  validateRetVal()
+  em.getActiveJournal.append(genJournalEntry)
+}
 
 sealed abstract class OpDesc extends Desc with OpDescImpl
 case class UnaryOpDesc(
@@ -38,3 +47,16 @@ case class AccessorDesc[+T<:Data](
   collection: Accessible[T], selector: UInt,
   retVal: T, em: EnclosingModule
 ) extends Desc with AccessorDescImpl[T]
+
+case class RegDesc[+T<:Data](retVal: T, em: EnclosingModule)
+ extends Desc with RegDescImpl[T]
+case class WireDesc[+T<:Data](retVal: T, em: EnclosingModule)
+ extends Desc with WireDescImpl[T]
+
+object Desc {
+  def generate[RV<:Data](retVal: RV)(genDesc: RV=>Desc): RV = {
+    val newDesc = genDesc(retVal)
+    retVal.descRef = newDesc
+    retVal
+  }
+}

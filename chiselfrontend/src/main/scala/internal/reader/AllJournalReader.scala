@@ -21,8 +21,8 @@ sealed abstract class AllJournalReader extends BaseJournalReader {
     val itemsToName: Iterable[Tuple2[Nameable,String]] = entries flatMap((entry: JournalEntry) => entry match {
       // Determine which entries need named
       case CreateOp(opdesc)        => check(opdesc.retVal,"T")
-      case CreateWire(data)        => check(data,"W")
-      case CreateReg(data)         => check(data,"R")
+      case CreateWire(wiredesc)    => check(wiredesc.retVal,"W")
+      case CreateReg(regdesc)      => check(regdesc.retVal,"R")
       case CreateAccessor(accdesc) => check(accdesc.retVal,"A")
       case CreateModule(module)    => None // handled above
       case Conditionally(_,_,_) => None // recall: will recursively see

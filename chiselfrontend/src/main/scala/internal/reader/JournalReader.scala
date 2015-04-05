@@ -55,10 +55,10 @@ abstract class BaseJournalReader extends JournalReader {
     entry match {
       case CreateOp(opdesc) =>
         s"${HL.CYAN}node${HL.RESET}  ${emitRefType(opdesc.retVal)} = ${emitOpDesc(opdesc)}"
-      case CreateWire(data) =>
-        s"${HL.CYAN}wire${HL.RESET}  ${emitRefType(data)}"
-      case CreateReg(data) =>
-        s"${HL.CYAN}reg${HL.RESET}   ${emitRefType(data)}"
+      case CreateWire(wiredesc) =>
+        s"${HL.CYAN}wire${HL.RESET}  ${emitRefType(wiredesc.retVal)}"
+      case CreateReg(regdesc) =>
+        s"${HL.CYAN}reg${HL.RESET}   ${emitRefType(regdesc.retVal)}"
       case CreateAccessor(accdesc) =>
         s"${HL.CYAN}acc${HL.RESET}   ${emitRefType(accdesc.retVal)} = ${emitAccDesc(accdesc)}"
       case CreateModule(module) =>
