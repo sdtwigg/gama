@@ -31,7 +31,7 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
       case CreateAccessor(accdesc) => None // fold later
       case CreateModule(module)    => check(module, "M")
       case Conditionally(_,_,_) => None // recall: will recursively see
-      case DataTransfer(_,_) => None
+      case ConnectData(_,_) => None
     })
     itemsToTempName.zipWithIndex.foreach(_ match {
       case ((target: Nameable, prefix: String), idx: Int) => {

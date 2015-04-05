@@ -26,7 +26,7 @@ sealed abstract class AllJournalReader extends BaseJournalReader {
       case CreateAccessor(accdesc) => check(accdesc.retVal,"A")
       case CreateModule(module)    => None // handled above
       case Conditionally(_,_,_) => None // recall: will recursively see
-      case DataTransfer(_,_) => None
+      case ConnectData(_,_) => None
     })
     itemsToName.zipWithIndex.foreach(_ match {
       case ((target: Nameable, prefix: String), idx: Int) => {

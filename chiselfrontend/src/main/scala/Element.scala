@@ -22,8 +22,8 @@ abstract class Element(initialNode: Node) extends Data { // MUTABLE STATE: node
   def propogateDescRef(): Unit = {NodeCheck.assertSynthesizable(this)}
 }
 object Element {
-  trait SelfTransferImpl[E<:Element] extends SelfTransfer.SelfTransferImpl[E] {
-    def verifyTransfer(source: E, sink: E): Unit = {}
+  trait ConnectSelfImpl[E<:Element] extends ConnectSelf.ConnectSelfImpl[E] {
+    def verifyConnectSelf(source: E, sink: E): Unit = {}
   }
   trait SelfMuxableImpl[E<:Element] extends SelfMuxable[E] {
     def muxRetVal(tc: E, fc: E): E = tc.copy

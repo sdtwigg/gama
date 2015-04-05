@@ -25,7 +25,7 @@ final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends
   def nodes = elements.flatMap(_.nodes)
 
   implicit protected val eltmuxer: SelfMuxable[D] = implicitly[Vectorizable[D]].muxer
-  def :=(source: Vec[D])(implicit eltxfer: SelfTransfer[D], em: EnclosingModule) = implicitly[SelfTransfer[Vec[D]]].selfTransfer(source, this, em)
+  def :=(source: Vec[D])(implicit eltxfer: ConnectSelf[D], em: EnclosingModule) = ConnectSelf[Vec[D]].connectSelf(source, this, em)
   def copy = Vec(size, elemType).asInstanceOf[this.type]
 
   // Until Synthesized, elemType (clones) 'hide' all access to elements (see lookup)
@@ -71,8 +71,8 @@ object Vec {
       Vec(tc.elements.length, implicitly[SelfMuxable[D]].muxRetVal(tc.elemType, fc.elemType))
     }
   }
-  implicit def selfTransfer[D<:Data: SelfTransfer]: SelfTransfer[Vec[D]] = new SelfTransfer.SelfTransferImpl[Vec[D]] {
-    def verifyTransfer(source: Vec[D], sink: Vec[D]) = {
+  implicit def connectSelf[D<:Data: ConnectSelf]: ConnectSelf[Vec[D]] = new ConnectSelf.ConnectSelfImpl[Vec[D]] {
+    def verifyConnectSelf(source: Vec[D], sink: Vec[D]) = {
       require(source.elements.length==sink.elements.length, "Cannot assign to/from two vectors of different length")
     }
   }

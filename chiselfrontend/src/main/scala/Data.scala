@@ -15,14 +15,16 @@ abstract class Data extends Nameable with DescReference {
   def nodes: Seq[Node]
 }
 
-trait SelfTransfer[D<:Data] {
-  def selfTransfer(source: D, sink: D, em: EnclosingModule): D
+@annotation.implicitNotFound("Cannot connect elements of type ${D}. No implicit ConnectSelf[${D}] available")
+trait ConnectSelf[D<:Data] {
+  def connectSelf(source: D, sink: D, em: EnclosingModule): D
 }
-object SelfTransfer {
-  trait SelfTransferImpl[D<:Data] extends SelfTransfer[D] {
-    def verifyTransfer(source: D, sink: D): Unit
-    def selfTransfer(source: D, sink: D, em: EnclosingModule): D = {
-      em.getActiveJournal.append(DataTransfer(source, sink))
+object ConnectSelf {
+  def apply[D<:Data: ConnectSelf] = implicitly[ConnectSelf[D]]
+  trait ConnectSelfImpl[D<:Data] extends ConnectSelf[D] {
+    def verifyConnectSelf(source: D, sink: D): Unit
+    def connectSelf(source: D, sink: D, em: EnclosingModule): D = {
+      em.getActiveJournal.append(ConnectData(source, sink))
       sink
     }
   }

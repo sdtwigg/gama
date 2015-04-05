@@ -65,7 +65,7 @@ abstract class BaseJournalReader extends JournalReader {
         s"${HL.CYAN}inst${HL.RESET}  ${emitModuleInst(module)}"
       case Conditionally(cond, tc, fc) =>
         s"${HL.CYAN}when${HL.RESET}(${emitRef(cond)}) ${parseJournal(tc)} ${HL.CYAN}else${HL.RESET} ${parseJournal(fc)}"
-      case DataTransfer(source, sink) =>
+      case ConnectData(source, sink) =>
         s"${emitRef(sink)} := ${emitRef(source)}"
     }
   }

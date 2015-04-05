@@ -8,7 +8,7 @@ case class CreateReg(data: Data)    extends JournalEntry {NodeCheck.assertRegNod
 case class CreateAccessor(accdesc: AccessorDesc[_<:Data]) extends JournalEntry {NodeCheck.assertAccessorNode(accdesc.retVal)}
 case class CreateModule(module: Module[_<:Data]) extends JournalEntry
 case class Conditionally(cond: Bool, tc: Journal, fc: Journal) extends JournalEntry {NodeCheck.assertSynthesizable(cond)}
-case class DataTransfer(source: Data, sink: Data) extends JournalEntry {
+case class ConnectData(source: Data, sink: Data) extends JournalEntry {
   NodeCheck.assertConnectable(sink)
   NodeCheck.assertSynthesizable(source)
 }
