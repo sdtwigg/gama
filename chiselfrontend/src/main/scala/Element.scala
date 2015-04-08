@@ -25,11 +25,6 @@ object Element {
   trait ConnectSelfImpl[E<:Element] extends ConnectSelf.ConnectSelfImpl[E] {
     def verifyConnectSelf(source: E, sink: E): Unit = {}
   }
-  /*
-  trait SelfMuxableImpl[E<:Element] extends SelfMuxable[E] {
-    def muxRetVal(tc: E, fc: E): E = tc.copy
-  }
-  */
 }
 
 abstract class Bits(initialNode: Node) extends Element(initialNode) {

@@ -1,7 +1,7 @@
 package gama
 package internal
 
-@annotation.implicitNotFound("Cannot create Mux for ${D}")
+@annotation.implicitNotFound("Cannot create Mux for type ${D}")
 trait SelfMuxable[D<:Data] {
   def muxRetVal(tc: D, fc: D): D
   def mux(cond: Bool, tc: D, fc: D, em: EnclosingModule): D = {
@@ -15,7 +15,7 @@ trait SelfMuxable[D<:Data] {
       // Can have GenerelizeSpell that HardwareTuples can implement
   }
 }
-
+/*
 @annotation.implicitNotFound("Cannot create Mux between ${TC} and ${FC}")
 trait Muxable[TC<:Data,FC<:Data] {
   def mux[D<:Data, A >: TC <: D, B >: FC <: D](cond: Bool, tc: TC, fc: FC, em: EnclosingModule): D
@@ -29,4 +29,4 @@ object Muxable {
     // Cast required to overcome issue with scala type inferer that won't acknowledge SM <: D
   }
 }
-
+*/

@@ -138,7 +138,7 @@ trait Nested2 extends Nested {
       test := select1
     }
     test := uint1
-  }.elsewhen(False) {
+  }.elsewhen(True && (test === select1) && (uint1 !== U(10)) && (uint2 > uint1)) {
     test := select1
   }.otherwise {
     test := uint2

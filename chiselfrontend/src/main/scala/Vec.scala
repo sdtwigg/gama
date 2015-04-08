@@ -11,6 +11,7 @@ object Vectorizable {
 }
 
 final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends Aggregate with Accessible[D] with IndexedSeq[D] {
+  // TODO: INDEXED SEQ MAY BE SUBTLY INCORRECT
   private[this] val mutableElemType: D = initialModel.copy
   def elemType: D = mutableElemType.copy
   private val elements: immutable.IndexedSeq[D] = Vector.fill(length)(elemType)
@@ -31,6 +32,7 @@ final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends
 
   // Until Synthesized, elemType (clones) 'hide' all access to elements (see lookup)
   def lookup(index: Int): D = {
+    // TODO: OBSCURATION MAY BE UNNECESSARY AND WRONG
     nodes.headOption.getOrElse(mutableElemType) match {
       case _: SPEC => {
         if(index>length) throw new java.lang.IndexOutOfBoundsException(index.toString)

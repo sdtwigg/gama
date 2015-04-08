@@ -125,8 +125,8 @@ abstract class BaseJournalReader extends JournalReader {
     case OpPadTo => "pad"
     case OpCat   => "##"
     
-    case OpEqual => "=="
-    case OpNoneq => "!="
+    case OpEqual => "==="
+    case OpNoneq => "!=="
     case OpLess  => "<"
     case OpLeEq  => "<="
     case OpGrt   => ">"
