@@ -16,7 +16,7 @@ trait Accessible[+D<:Data] extends Data {
 
   def apply(selector: UInt, em: EnclosingModule): D = lookup(selector)(em)
   import scala.language.experimental.macros
-  def apply(arg0: UInt): D = macro gama.macros.macroDef.transformapply1
+  def apply(arg0: UInt): D = macro macroDef.transformapply1
 }
 
 trait AccessorDescImpl[+T<:Data] {

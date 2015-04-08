@@ -1,29 +1,9 @@
 package gama
-package macros
-
-import scala.reflect.macros.whitebox.Context //consider blackbox
-import scala.language.experimental.macros
-import scala.annotation.StaticAnnotation
-import scala.annotation.compileTimeOnly
-
-@compileTimeOnly("Enable macro paradise to expand macro annotations")
-class module extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro macroAnno.moduleimpl
-}
-@compileTimeOnly("Enable macro paradise to expand macro annotations")
-class bundle extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro macroAnno.bundleimpl
-}
-@compileTimeOnly("Enable macro paradise to expand macro annotations")
-class probe extends StaticAnnotation {
-  def macroTransform(annottees: Any*): Any = macro macroAnno.probeimpl
-}
-
-object MACRODEBUG {
-  def apply[T](target: T): T = macro macroDef.debug
-}
+package internal
 
 protected[gama] object macroDef {
+  import scala.reflect.macros.blackbox.Context
+
   def debug(c: Context)(target: c.Tree): c.Tree = {
     import c.universe._
     println(showCode(target))
@@ -44,6 +24,8 @@ protected[gama] object macroDef {
 }
 
 protected[gama] object macroAnno {
+  import scala.reflect.macros.whitebox.Context
+
   def moduleimpl(c: Context)(annottees: c.Tree*): c.Tree = {
     import c.universe._
 

@@ -4,7 +4,7 @@ import scala.collection.{immutable=>immutable}
 
 @annotation.implicitNotFound("""Cannot create Vec of elements with common type ${D}.
 Most common reason is that no self-muxing operation (SelfMuxable[${D}]) available""")
-trait Vectorizable[D<:Data] { val muxer: SelfMuxable[D] }
+trait Vectorizable[D<:Data] { def muxer: SelfMuxable[D] }
 // Only reason Vectorizable trait exists is so that failing to create a Vec gives a specialized error message
 object Vectorizable {
   implicit def vectorizer[D<:Data: SelfMuxable]: Vectorizable[D] = new Vectorizable[D] {val muxer = implicitly[SelfMuxable[D]]}

@@ -1,7 +1,7 @@
 package test
 import gama._
 import gama.api._
-import gama.macros._
+import gama.annotations._
 
 object testmain {
   def main(args: Array[String]) {

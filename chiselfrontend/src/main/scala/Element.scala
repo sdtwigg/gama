@@ -38,8 +38,8 @@ abstract class Bits(initialNode: Node) extends Element(initialNode) {
   def apply(left_pos: Int, right_pos: Int, em: EnclosingModule): UInt = extract(left_pos, right_pos)(em)
 
   import scala.language.experimental.macros
-  def apply(arg0: Int): Bool = macro gama.macros.macroDef.transformapply1 
-  def apply(arg0: Int, arg1: Int): UInt = macro gama.macros.macroDef.transformapply2
+  def apply(arg0: Int): Bool = macro macroDef.transformapply1 
+  def apply(arg0: Int, arg1: Int): UInt = macro macroDef.transformapply2
   
 }
 object Bits {
