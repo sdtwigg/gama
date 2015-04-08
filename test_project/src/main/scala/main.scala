@@ -78,6 +78,15 @@ trait Nested2 extends Nested {
 @module @probe class OtherModule extends Module(new DecoupledExample) {
   val uint = Reg(UInt(2))
 
+  val myBundle = Wire(new MyBundle)
+  val myChildBundle = Wire(new MyChildBundle)
+  val mymux = Mux(True, myChildBundle, myBundle)
+  
+  val myBundleVec      = Wire(Vec(2, new MyBundle))
+  val myChildBundleVec = Wire(Vec(2, new MyChildBundle))
+  val vecmux = Mux(True, myBundleVec, myChildBundleVec.asInstanceOf[Vec[MyBundle]])
+    // type cast IS required here since Vec's type is invariant
+
   //uint := io.in1
   //io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
 }
@@ -139,7 +148,8 @@ trait Nested2 extends Nested {
     when(select2) {
       test := select1
     }
-    test := uint1
+    val myInternalMath = uint1 * uint2
+    test := myInternalMath
   }.elsewhen(True && (test !== select1) && (uint1 !== 10.U) && (uint2 > uint1)) {
     test := select1
   }.otherwise {

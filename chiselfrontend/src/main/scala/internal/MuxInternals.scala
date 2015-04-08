@@ -15,6 +15,11 @@ trait SelfMuxable[D<:Data] {
       // Can have GenerelizeSpell that HardwareTuples can implement
   }
 }
+object SelfMuxable {
+  implicit def genBundleSelfMuxable[B<:Bundle]: SelfMuxable[B] = {
+    new BundleSelfMuxableImpl[B]
+  }
+}
 /*
 @annotation.implicitNotFound("Cannot create Mux between ${TC} and ${FC}")
 trait Muxable[TC<:Data,FC<:Data] {

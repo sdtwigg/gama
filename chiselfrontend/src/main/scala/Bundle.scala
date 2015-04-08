@@ -3,35 +3,33 @@ import internal._
 
 case class NoDataFoundException(containerType: String)
   extends ChiselException(s"Could not find any Data vals in ${containerType}")
-abstract class Bundle extends HardwareTuple {
-  protected[gama] lazy val subfields: Seq[Tuple2[String, Data]] = {
-    import scala.reflect.runtime.{universe=>ru}
-    import Reflection._
 
-    val myMirror = getInstanceMirror(this)
-    val myType = myMirror.symbol.toType
-
-    val allTerms: Seq[ru.TermSymbol] = myType.members.toList filter(_.isTerm) map(_.asTerm)
-    val termCandidates = allTerms.filter(ts =>
-      ( ts.isVal || (ts.isGetter && ts.isStable) )
-    )
-    def findGetterCandidate(start: ru.TermSymbol): Option[ru.TermSymbol] = {
-      allTerms.find(cand => (cand.name == start.name) && cand.isPublic && cand.isMethod)
+object Bundle {
+  implicit object basicfunctionality extends ConnectSelf.ConnectSelfImpl[Bundle] {
+    def verifyConnectSelf(source: Bundle, sink: Bundle): Unit = {
+      //TODO: actual checks here...
+      // Likely will need to do some sort of matching
     }
-    val getterCandidates = termCandidates.flatMap(ts => findGetterCandidate(ts)).distinct
-    val dataGetters = getterCandidates.map(_.asMethod).filter(_.returnType <:< ru.typeOf[Data])
-    
-    val result = dataGetters.map(dataGetter =>
-      (dataGetter.name.toString, myMirror.reflectMethod(dataGetter).apply().asInstanceOf[Data])
-    ).sortBy(_._1)
-    if(result.isEmpty) {throw NoDataFoundException(this.getClass.getName)}
-    result
   }
-//  def copy: this.type
+}
+abstract class Bundle extends HardwareTuple with BundleReflection {
+  def :=(source: Bundle)(implicit em: EnclosingModule) = ConnectSelf[Bundle].connectSelf(source, this, em) 
+}
+
+case class ImproperBundleMuxException(tc: String, fc: String)
+  extends ChiselException (s"For Mux, either tc($tc) or fc($fc) must directly descend from the other.")
+class BundleSelfMuxableImpl[B<:Bundle] extends SelfMuxable[B] {
+  def muxRetVal(tc: B, fc: B): B = {
+    if(tc.getClass.isAssignableFrom(fc.getClass)) tc.copy else
+    if(fc.getClass.isAssignableFrom(tc.getClass)) fc.copy else
+      throw ImproperBundleMuxException(tc.getClass.getName, fc.getClass.getName)
+  }
 }
 
 case class NeedCopyMethodException(containerType: String)
   extends ChiselException(s"AnonBundle ${containerType} needs an explicit copy method")
-trait Anon extends Bundle {
+trait Anon {
+  self: HardwareTuple =>
+
   def copy: this.type = throw NeedCopyMethodException(this.getClass.getName)
 }

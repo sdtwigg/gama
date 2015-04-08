@@ -11,6 +11,8 @@ object Vectorizable {
 }
 
 final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends Aggregate with Accessible[D] with IndexedSeq[D] {
+  // D must be invariant because of assignment (:=), amongst other reasons
+
   // TODO: INDEXED SEQ MAY BE SUBTLY INCORRECT
   private[this] val mutableElemType: D = initialModel.copy
   def elemType: D = mutableElemType.copy
@@ -77,6 +79,8 @@ object Vec {
   implicit def connectSelf[D<:Data: ConnectSelf]: ConnectSelf[Vec[D]] = new ConnectSelf.ConnectSelfImpl[Vec[D]] {
     def verifyConnectSelf(source: Vec[D], sink: Vec[D]) = {
       require(source.elements.length==sink.elements.length, "Cannot assign to/from two vectors of different length")
+      // TODO: VERIFY SUBELEMENTS CONNECTION?
+      // := already grabs the associated element-level ConnectSelf
     }
   }
 }
