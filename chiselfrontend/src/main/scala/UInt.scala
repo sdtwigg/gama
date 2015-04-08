@@ -12,6 +12,6 @@ object UInt {
 }
 // Placing object first lets the class find the implicits in the object
 class UInt(initialNode: Node) extends UIntLike(initialNode) {
-  def :=(source: UIntLike)(implicit em: EnclosingModule) = ConnectSelf[UIntLike].connectSelf(source, this, em)
+  def :=(source: UIntLike)(implicit em: EnclosingModule) = ConnectSelf[UIntLike].connectSelf(Sink(this), Source(source), em)
   def copy = new UInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
 }

@@ -23,7 +23,7 @@ abstract class Element(initialNode: Node) extends Data { // MUTABLE STATE: node
 }
 object Element {
   trait ConnectSelfImpl[E<:Element] extends ConnectSelf.ConnectSelfImpl[E] {
-    def verifyConnectSelf(source: E, sink: E): Unit = {}
+    def verifyConnectSelf(sink: Sink[E], source: Source[E]): Unit = {}
   }
 }
 

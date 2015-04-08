@@ -6,14 +6,14 @@ case class NoDataFoundException(containerType: String)
 
 object Bundle {
   implicit object basicfunctionality extends ConnectSelf.ConnectSelfImpl[Bundle] {
-    def verifyConnectSelf(source: Bundle, sink: Bundle): Unit = {
+    def verifyConnectSelf(sink: Sink[Bundle], source: Source[Bundle]): Unit = {
       //TODO: actual checks here...
       // Likely will need to do some sort of matching
     }
   }
 }
 abstract class Bundle extends HardwareTuple with BundleReflection {
-  def :=(source: Bundle)(implicit em: EnclosingModule) = ConnectSelf[Bundle].connectSelf(source, this, em) 
+  def :=(source: Bundle)(implicit em: EnclosingModule) = ConnectSelf[Bundle].connectSelf(Sink(this), Source(source), em) 
 }
 
 case class ImproperBundleMuxException(tc: String, fc: String)

@@ -70,7 +70,7 @@ abstract class BaseJournalReader extends JournalReader {
       case Conditionally(cond, tc, fc) =>
         s"${HL.CYAN}when${HL.RESET}(${emitRef(cond)}) ${parseJournal(tc)} ${HL.CYAN}else${HL.RESET} ${parseJournal(fc)}"
       case ConnectData(source, sink) =>
-        s"${emitRef(sink)} := ${emitRef(source)}"
+        s"${emitRef(sink.data)} := ${emitRef(source.data)}"
     }
   }
   def emitModuleInst(module: Module[_<:Data]): String

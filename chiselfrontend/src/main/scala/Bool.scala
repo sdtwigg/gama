@@ -12,7 +12,7 @@ object Bool {
 }
 class Bool(initialNode: Node) extends UIntLike(initialNode) {
   def copy = new Bool(SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
-  def :=(source: Bool)(implicit em: EnclosingModule) = ConnectSelf[Bool].connectSelf(source, this, em)
+  def :=(source: Bool)(implicit em: EnclosingModule) = ConnectSelf[Bool].connectSelf(Sink(this), Source(source), em)
 
   def unary_!(implicit em: EnclosingModule): Bool = UnaryOp.Bool(OpNot, this, em)
 
