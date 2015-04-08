@@ -1,6 +1,7 @@
 package gama
 package internal
 
+
 trait Accessible[+D<:Data] extends Data {
   def lookupIsConnectable(selector: UInt): Boolean
   def elemType: D
@@ -12,7 +13,10 @@ trait Accessible[+D<:Data] extends Data {
       AccessorDesc[D](this, selector, rv, em)
     )
   }
-  def apply(selector: UInt)(implicit em: EnclosingModule): D = lookup(selector)
+
+  def apply(selector: UInt, em: EnclosingModule): D = lookup(selector)(em)
+  import scala.language.experimental.macros
+  def apply(arg0: UInt): D = macro gama.macros.macroDef.transformapply1
 }
 
 trait AccessorDescImpl[+T<:Data] {

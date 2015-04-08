@@ -25,16 +25,19 @@ abstract class BaseJournalReader extends JournalReader {
   }
   
   def parseModule(module: Module[_<:Data]): String = {
-    module.io.name = ("io", NameOVERRIDE)
+    module.io.forceSetName(NameTerm("io"), NameFromIO, true)
     ensureAllChildrenNamed(module)
-    module.children.foreach(child => child.io.name = (s"${child.name.get}.io", NameOVERRIDE))
+    module.children.foreach(child =>
+      child.io.forceSetName(NameField(child.name.getOrElse(NameUNKNOWN), "io"), NameFromIO, true)
+    )
     try {
       val ioType = emitType(module.io)
       val body = parseJournal(module.getActiveJournal)
       s"${HL.CYAN}module${HL.RESET} ${module.getClass.getName}(${HL.GREEN}${ioType}${HL.RESET})${body}"
     } finally {
-      module.io.name = ("$$$$UNDEFIO$$$$", NameOVERRIDE)
-      module.children.foreach(child => child.io.name = (s"$$$$UNDEFIO$$$$", NameOVERRIDE))
+      // wipeout names so know if future clients forget to adjust them
+      module.io.forceSetName(NameUNKNOWN, NameFromIO, true)
+      module.children.foreach(_.io.forceSetName(NameUNKNOWN, NameFromIO, true))
     }
   }
   def ensureAllChildrenNamed(module: Module[_<:Data]): Unit = {
@@ -46,7 +49,7 @@ abstract class BaseJournalReader extends JournalReader {
     })
     childrenToName.zipWithIndex.foreach(_ match {
       case (target: Nameable, idx: Int) => {
-        target.name = (s"M${idx}", NameFromTemp)
+        target.checkedSetName(NameTerm(s"M${idx}"), NameFromTemp, true)
       }
     })
   }
@@ -54,7 +57,7 @@ abstract class BaseJournalReader extends JournalReader {
   def parseJournalEntry(entry: JournalEntry): String = {
     entry match {
       case CreateOp(opdesc) =>
-        s"${HL.CYAN}node${HL.RESET}  ${emitRefType(opdesc.retVal)} = ${emitOpDesc(opdesc)}"
+        s"${HL.CYAN}const${HL.RESET} ${emitRefType(opdesc.retVal)} = ${emitOpDesc(opdesc)}"
       case CreateWire(wiredesc) =>
         s"${HL.CYAN}wire${HL.RESET}  ${emitRefType(wiredesc.retVal)}"
       case CreateReg(regdesc) =>
@@ -129,5 +132,18 @@ abstract class BaseJournalReader extends JournalReader {
   def emitAccDesc(accdesc: AccessorDesc[_<:Data]): String =
     s"${emitRef(accdesc.collection)}(${emitRef(accdesc.selector)})"
 
+  def emitName(name: Option[NameTree]): String = parseNameTree(name.getOrElse(NameUNKNOWN))
+  def parseNameTree(name: NameTree): String = name match {
+    case NameTerm(identifier) => identifier
+    case NameField(source, field) => s"${parseNameTree(source)}.${field}"
+    case NameIndex(source, index) => s"${parseNameTree(source)}(${index})"
+
+    case NameLit(litdesc) => parseLitDesc(litdesc)
+    case NameUnnamedOp(opdesc) => "$$$$UNHANDLED" + opdesc.toString 
+
+    case NameUNKNOWN => "$$$$UNKNOWN$$$$"
+  }
+  
+  def parseLitDesc[D<:Data](litdesc: LitDesc[D]): String = ???
 }
 

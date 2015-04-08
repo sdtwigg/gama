@@ -25,7 +25,7 @@ case class PortNode(storage: NodeStore, direction: DirectionIO, em: EnclosingMod
 // TODO: NonConnectable may be unnecessary
 sealed abstract class NonConnectable extends Synthesizable
 case class OpNode(storage: NodeStore, em: EnclosingModule)  extends NonConnectable with EnclosedNode
-case class LitNode[NS<:NodeStore](litDesc: LitNodeDesc[NS], storage: NodeStore) extends NonConnectable with UnenclosedNode
+case class LitNode(storage: NodeStore) extends NonConnectable with UnenclosedNode //formerly had LitNodeDesc
 
 sealed trait AccessorNode extends Synthesizable
 case class ConnectableAccessorNode(storage: NodeStore, em: EnclosingModule) extends Connectable with AccessorNode

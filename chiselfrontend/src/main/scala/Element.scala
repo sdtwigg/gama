@@ -18,8 +18,8 @@ abstract class Element(initialNode: Node) extends Data { // MUTABLE STATE: node
     this
   }
 
-  def propogateName(): Unit = {}
-  def propogateDescRef(): Unit = {NodeCheck.assertSynthesizable(this)}
+  def propogateName(newname: NameTree, newsource: NameSource): Unit = {}
+  def propogateDescRef(newdesc: Desc): Unit = {NodeCheck.assertSynthesizable(this)}
 }
 object Element {
   trait ConnectSelfImpl[E<:Element] extends ConnectSelf.ConnectSelfImpl[E] {
@@ -33,8 +33,13 @@ object Element {
 abstract class Bits(initialNode: Node) extends Element(initialNode) {
   def extract(position: Int)(implicit em: EnclosingModule): Bool = ExtractOp.Bool(this, position, em)
   def extract(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = ExtractOp.UInt(this, left_pos, right_pos, em)
-  def apply(position: Int)(implicit em: EnclosingModule): Bool = extract(position)(em)
-  def apply(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = extract(left_pos, right_pos)(em)
+
+  def apply(position: Int, em: EnclosingModule): Bool = extract(position)(em)
+  def apply(left_pos: Int, right_pos: Int, em: EnclosingModule): UInt = extract(left_pos, right_pos)(em)
+
+  import scala.language.experimental.macros
+  def apply(arg0: Int): Bool = macro gama.macros.macroDef.transformapply1 
+  def apply(arg0: Int, arg1: Int): UInt = macro gama.macros.macroDef.transformapply2
   
 }
 object Bits {

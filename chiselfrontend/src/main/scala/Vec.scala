@@ -19,6 +19,7 @@ final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends
     mutableElemType.rebind(xform)
     elements.foreach(elem => elem.rebind(xform))
     // TODO: VERIFY ALL VEC ELEMENTS STILL IDENTICAL to elemType
+    // Should be sufficient to check NodeStorage equality and perhaps node type
     this
   }
 
@@ -48,13 +49,13 @@ final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends
     }
   }
   
-  def propogateName(): Unit = {
+  def propogateName(newname: NameTree, newsource: NameSource): Unit = {
     elements.zipWithIndex.foreach({case (elem: Data, idx: Int) => 
-      elem.name = (s"${name.get}(${idx})", NameOVERRIDE)
+      elem.forceSetName(NameIndex(newname, idx), newsource, true)
     })
   }
-  def propogateDescRef(): Unit = {
-    elements.foreach(elem => {elem.descRef = descRef.get})
+  def propogateDescRef(newdesc: Desc): Unit = {
+    elements.foreach( elem => {elem.setDescRef(newdesc, true)} )
   }
 }
 object Vec {

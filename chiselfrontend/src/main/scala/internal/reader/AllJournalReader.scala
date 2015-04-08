@@ -30,14 +30,14 @@ sealed abstract class AllJournalReader extends BaseJournalReader {
     })
     itemsToName.zipWithIndex.foreach(_ match {
       case ((target: Nameable, prefix: String), idx: Int) => {
-        target.name = (s"${prefix}${idx}", NameFromTemp)
+        target.checkedSetName(NameTerm(s"${prefix}${idx}"), NameFromTemp, true)
       }
     })
   }
 
-  def emitRef(data: Data): String  = data.name.get
+  def emitRef(data: Data): String  = emitName(data.name)
   def emitModuleInst(module: Module[_<:Data]): String = 
-   s"${module.name.get}: ${HL.GREEN}${module.getClass.getName}${HL.RESET}"
+   s"${emitName(module.name)}: ${HL.GREEN}${module.getClass.getName}${HL.RESET}"
 }
 
 object AllJournalReader {

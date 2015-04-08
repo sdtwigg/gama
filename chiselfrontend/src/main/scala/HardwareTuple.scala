@@ -15,10 +15,10 @@ abstract class HardwareTuple extends Data {
 
   def nodes: Seq[Node] = elements.flatMap(_.nodes)
 
-  protected[gama] def propogateName(): Unit = {
+  protected[gama] def propogateName(newname: NameTree, newsource: NameSource): Unit = {
     subfields.foreach({case (subfield: String, elem: Data) =>
-      elem.name = (s"${name.get}.${subfield}", NameOVERRIDE)
+      elem.forceSetName(NameField(newname, subfield), newsource, true)
     })
   }
-  protected[gama] def propogateDescRef(): Unit = elements.foreach(elem => {elem.descRef = descRef.get})
+  protected[gama] def propogateDescRef(newdesc: Desc): Unit = elements.foreach( elem => {elem.setDescRef(newdesc, true)} )
 }

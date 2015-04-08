@@ -18,7 +18,7 @@ case object OverwrappedModuleException extends
 
 abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
   // Setup parent then add self to module stack before an exception that leads to Module stack corruption
-  val parent: Option[Module[_<:Data]] = Module.currentModule
+  protected[gama] val parent: Option[Module[_<:Data]] = Module.currentModule
   Module.push(this)
 
   // Capture operations on nodes inside this module
@@ -47,7 +47,7 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
   }
 
   
-  def propogateName(): Unit = {} // do not propogate to IO
+  def propogateName(newname: NameTree, newsource: NameSource): Unit = {} // do not propogate to IO
 }
 object Module {
   private def currentModule: Option[Module[_<:Data]] = modStack.headOption

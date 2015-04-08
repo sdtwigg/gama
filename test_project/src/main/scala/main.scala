@@ -75,15 +75,23 @@ trait Nested2 extends Nested {
   uint := io.in1
   io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
 }
-@module class OtherModule extends Module(new DecoupledExample) {
+@module @probe class OtherModule extends Module(new DecoupledExample) {
   val uint = Reg(UInt(2))
+
   //uint := io.in1
   //io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
 }
 
 @module class ExampleModule protected () extends Module(new ExampleIO) {
-  val dtype_uint = UInt()
-  val vectype = Vec(4, UInt())
+  println(this)
+  println(ExampleModule.this)
+
+  val data_width = 32
+  val vec_length = 4
+  val dtype_uint = UInt(data_width)
+  val vectype = Vec(vec_length, dtype_uint)
+  val exampleVec   = Wire(vectype)
+  val example2Vec  = Reg(vectype)
 
   val uint1 = Wire(UInt(8))
   val uint2 = Wire(dtype_uint)
@@ -119,6 +127,7 @@ trait Nested2 extends Nested {
   test := added
   
   val myInnerModule = Module(new InnerModule)
+  val myOtherModule = Module(new OtherModule)
 
   myInnerModule.io.in1 := test
   test := myInnerModule.io.out
@@ -129,13 +138,17 @@ trait Nested2 extends Nested {
     }
     test := uint1
   }.elsewhen({Reg(Bool()) := select1}) {
-    test := select2
+    test := select1
   }.otherwise {
     test := uint2
   }
 
-  @probe val wireVecVec = Wire(Vec(5,Vec(5,UInt()))).apply(test).apply(test)
-  Reg(UInt()) := wireVecVec + Reg(UInt())
+  val pos = Wire(UInt())
+  val wireVecVec = Wire(Vec(5,Vec(5,UInt(6))))
+  val lookup = wireVecVec(pos)(pos)(3,2)(1,0)(0)
+  val wireVecVec2 = Wire(Vec(5,Vec(5,UInt())))
+  val test1: Bool = wireVecVec2(test)(test)(5,1)(0)
+  Reg(UInt()) := test + Reg(UInt())
 
   val myBool = Wire(Bool())
   val myBReg  = Reg(Bool()) := myBool && myBool || myBool ^ !myBool 

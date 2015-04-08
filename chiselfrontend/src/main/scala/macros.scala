@@ -19,6 +19,30 @@ class probe extends StaticAnnotation {
   def macroTransform(annottees: Any*): Any = macro macroAnno.probeimpl
 }
 
+object MACRODEBUG {
+  def apply[T](target: T): T = macro macroDef.debug
+}
+
+protected[gama] object macroDef {
+  def debug(c: Context)(target: c.Tree): c.Tree = {
+    import c.universe._
+    println(showCode(target))
+    target
+  }
+  def transformapply1(c: Context)(arg0: c.Tree): c.Tree = {
+    import c.universe._
+    val myThis = c.prefix.tree
+    val emtype = tq"_root_.gama.EnclosingModule"
+    q"$myThis.apply($arg0, implicitly[$emtype])"
+  }
+  def transformapply2(c: Context)(arg0: c.Tree, arg1: c.Tree): c.Tree = {
+    import c.universe._
+    val myThis = c.prefix.tree
+    val emtype = tq"_root_.gama.EnclosingModule"
+    q"$myThis.apply($arg0, $arg1, implicitly[$emtype])"
+  }
+}
+
 protected[gama] object macroAnno {
   def moduleimpl(c: Context)(annottees: c.Tree*): c.Tree = {
     import c.universe._

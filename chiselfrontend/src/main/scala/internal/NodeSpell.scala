@@ -56,3 +56,8 @@ case class OpGenericSpell(em: EnclosingModule) extends NodeSpell[OpNode] {
   // For Mux, although Mux COULD be clever and try to propogate some width info
   def apply(in: SPEC) = OpNode(in.storage.generic, em)
 }
+
+case class LitAssignSpell(litnode: LitNode) extends NodeSpell[LitNode] {
+  // intentionally ignoring SPEC since literals construction from nether
+  def apply(in: SPEC) = litnode
+}

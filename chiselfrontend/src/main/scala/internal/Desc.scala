@@ -4,13 +4,15 @@ package internal
 // links to whatever OpDesc, Reg, Wire, etc. master instance made me.
 trait DescReference { // MUTABLE STATE: descRef
   self: Data =>
+    protected[gama] def propogateDescRef(newdesc: Desc): Unit
+    
     private[this] var _descRef: Option[scala.ref.WeakReference[Desc]] = None
     protected[gama] def descRef: Option[Desc] = _descRef.flatMap(_.get)
-    protected[gama] def propogateDescRef(): Unit
-    protected[gama] def descRef_=(in: Desc): Unit = {
+    
+    protected[gama] def setDescRef(in: Desc, propogate: Boolean): Unit = {
       assert(_descRef.isEmpty)
       _descRef = Some(scala.ref.WeakReference(in))
-      propogateDescRef()
+      if(propogate) { propogateDescRef(in) }
     }
 }
 
@@ -65,7 +67,7 @@ case class LitDesc[T<:Data](retVal: T, litMap: LitMap[T])
 object Desc {
   def generate[RV<:Data](retVal: RV)(genDesc: RV=>Desc): RV = {
     val newDesc = genDesc(retVal)
-    retVal.descRef = newDesc
+    retVal.setDescRef(newDesc, true)
     retVal
   }
 }

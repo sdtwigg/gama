@@ -1,40 +1,44 @@
 package gama
 package internal
 
-sealed abstract class NamePriority(private val priority: Int) extends Ordered[NamePriority] {
-  def compare(that: NamePriority) = priority.compare(that.priority)
+sealed abstract class NameSource(private val priority: Int) extends Ordered[NameSource] {
+  def compare(that: NameSource) = priority.compare(that.priority)
 }
-case object NameFromMath  extends NamePriority(0)
-case object NameFromTemp  extends NamePriority(1)
-case object NameFromMacro extends NamePriority(2)
-case object NameFromUser  extends NamePriority(3)
-case object NameFromIO    extends NamePriority(4) // Name from an IO call propogating down now
-case object NameOVERRIDE  extends NamePriority(999) // Used for Module to force-adjust IO
+case object NameFromMath  extends NameSource(0) // e.g. when ops folded, like 1 + 1
+case object NameFromTemp  extends NameSource(1) // e.g. T0, R1, A2, M3, W4
+
+case object NameFromMacro extends NameSource(2)
+case object NameFromUser  extends NameSource(3)
+
+case object NameFromIO    extends NameSource(10) // Name from an IO setup of some variety
+case object NameFromLit   extends NameSource(11) // Name is a NameLit
 
 trait Nameable { // MUTABLE STATE: name
-  private[this] var nameDetails: Option[Tuple2[String, NamePriority]] = None
-  def name: Option[String] = nameDetails.map(_._1)
-  protected[gama] def namePriority: Option[NamePriority] = nameDetails.map(_._2)
-  protected[gama] def propogateName(): Unit
-  protected[gama] def name_=(in: Tuple2[String, NamePriority]): Unit = {
-    val (suggestion, priority) = in
-    (nameDetails match {
-      case None => Some(priority)
-      case Some((oldName, oldPriority)) if priority == NameOVERRIDE => Some(oldPriority)
-      case Some((oldName, oldPriority)) if priority > oldPriority => Some(priority)
-      case _ => None
-    }).foreach(newPriority => {
-      nameDetails = Some(Tuple2(suggestion, newPriority))
-      propogateName()
-    })
-    name
+  protected[gama] def propogateName(newname: NameTree, newsource: NameSource): Unit
+  
+  private[this] var nameDetails: Option[Tuple2[NameTree, NameSource]] = None
+  protected[gama] def name: Option[NameTree] = nameDetails.map(_._1)
+  protected[gama] def nameSource: Option[NameSource] = nameDetails.map(_._2)
+
+  protected[gama] def forceSetName(newname: NameTree, newsource: NameSource, propogate: Boolean): Unit = {
+    nameDetails = Some(Tuple2(newname, newsource))
+    if(propogate) { propogateName(newname, newsource) }
+  }
+  protected[gama] def checkedSetName(newname: NameTree, newsource: NameSource, propogate: Boolean): Unit = {
+    if(nameDetails match {
+      case None => true
+      case Some((_, oldsource)) if newsource > oldsource => true
+      case _ => false
+    }) {
+      forceSetName(newname, newsource, propogate)
+    }
   }
 }
 
 object InternalName {
-  def apply[A](in: A, suggestion: String, priority: NamePriority): A = {
+  def apply[A](in: A, suggestion: String, priority: NameSource): A = {
     in match {
-      case x: Data => (x.name = (suggestion,priority))
+      case x: Data => (x.checkedSetName(NameTerm(suggestion), priority, true)) 
       case _ => 
     }
     in
