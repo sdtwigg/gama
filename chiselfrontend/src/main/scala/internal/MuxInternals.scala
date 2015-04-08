@@ -11,6 +11,8 @@ trait SelfMuxable[D<:Data] {
     Desc.generate(muxRetVal(tc, fc).rebind(OpGenericSpell(em)))(rv =>
       MuxDesc(cond, tc, fc, rv, em)
     )
+      // TODO: OpGenericSpell MAY be unnecessary if care is taken
+      // Can have GenerelizeSpell that HardwareTuples can implement
   }
 }
 
