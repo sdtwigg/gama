@@ -10,6 +10,10 @@ object LiteralBool {
   val actualTrue: Bool  = LitDesc(Bool(), BoolLitMap(true)).retVal
   val actualFalse: Bool = LitDesc(Bool(), BoolLitMap(false)).retVal
 }
+trait LitBoolObjectImpl {
+  def apply(value: Boolean): Bool =
+    if(value) LiteralBool.actualTrue else LiteralBool.actualFalse
+}
 
 // INTEGER LITERALS
 trait LitIntObjectBase[Out<:Bits] {
@@ -29,3 +33,4 @@ trait LitUIntObjectImpl extends LitIntObjectBase[UInt] {
   def apply(value: BigInt): UInt = 
     LitDesc(UInt(), UIntLitMap(value, None)).retVal
 }
+

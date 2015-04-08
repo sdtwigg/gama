@@ -72,7 +72,7 @@ trait Nested2 extends Nested {
   val out = Output(UInt(4))
 }) {
   val uint = Reg(UInt(2))
-  uint := io.in1 * U(10) + U(7) * U(4) + True
+  uint := io.in1 * U(10,16) + 7.U * 4.U + True
   io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
 }
 @module @probe class OtherModule extends Module(new DecoupledExample) {
@@ -100,6 +100,8 @@ trait Nested2 extends Nested {
   val select3 = Wire(Bool())
   val waste = select3
   //val wrong = vectype(uint1)
+  val sint1 = Reg(SInt())
+  sint1 := -1.S
 
   val myNewVec  = Wire(Vec(2, UInt(4)))
 
@@ -121,8 +123,8 @@ trait Nested2 extends Nested {
   test := myNewVec(uint2)
   
   test := select1
-  test := U(15, 14) + U(1) + U(1)
-  test := uint1 + uint2 + uint1 + U(1)
+  test := U(15, 14) + 1.U + 1.U
+  test := uint1 + uint2 + uint1 + 1.U
   test := uint1(1,2) + uint1(1) + uint1(2,3)
   val added = uint1 + uint2
   test := added
@@ -138,7 +140,7 @@ trait Nested2 extends Nested {
       test := select1
     }
     test := uint1
-  }.elsewhen(True && (test === select1) && (uint1 !== U(10)) && (uint2 > uint1)) {
+  }.elsewhen(True && (test !== select1) && (uint1 !== 10.U) && (uint2 > uint1)) {
     test := select1
   }.otherwise {
     test := uint2
