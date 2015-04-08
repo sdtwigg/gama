@@ -18,19 +18,26 @@ trait DescReference { // MUTABLE STATE: descRef
 
 sealed abstract class Desc {
   val retVal: Data
-  def oem: Option[EnclosingModule]
 
+  def doWork(): Unit
   def validateRetVal(): Unit
+
+  doWork()
+  validateRetVal()
+}
+trait EnclosedDesc extends Desc   {
+  val em: EnclosingModule
   def genJournalEntry: Option[JournalEntry]
   // Note: can be enclosed but still not emit a JournalEntry, eg. PortDesc 
-
-  validateRetVal()
-  for(em <- oem; entry <- genJournalEntry) yield {
-    em.getActiveJournal.append(entry)
+  
+  def doWork(): Unit = {
+    for(entry <- genJournalEntry) yield {
+      em.getActiveJournal.append(entry)
+    }
   }
+
 }
-trait EnclosedDesc extends Desc   {val em: EnclosingModule; def oem = Some(em)}
-trait UnenclosedDesc extends Desc {def oem = None}
+trait UnenclosedDesc extends Desc
 
 sealed abstract class OpDesc extends Desc with OpDescImpl with EnclosedDesc
 case class UnaryOpDesc(

@@ -11,6 +11,7 @@ trait JournalReader {
 }
 
 abstract class BaseJournalReader extends JournalReader {
+  // TODO: SPLIT THIS INTO MULTIPLE TRAITS
   def HL: Highlighter
   
   def parseCircuit(topModule: Module[_<:Data]): Seq[String] = {
@@ -104,6 +105,8 @@ abstract class BaseJournalReader extends JournalReader {
     case ExtractOpDesc(input, lp, rp, _,_)    => (s"${emitRef(input)}(${lp}, ${rp})")
     case MuxDesc(cond, tc, fc, _,_)           => (s"((${emitRef(cond)}) ? (${emitRef(tc)}) : (${emitRef(fc)}))")
   }
+
+  // TODO: FOLD OPID INTO OPDESC
   def emitOpId(opid: OpId) = opid match {
     // Unary Ops
     case OpToUInt => "toUInt"
@@ -144,6 +147,16 @@ abstract class BaseJournalReader extends JournalReader {
     case NameUNKNOWN => "$$$$UNKNOWN$$$$"
   }
   
-  def parseLitDesc[D<:Data](litdesc: LitDesc[D]): String = ???
+  def parseLitDesc[D<:Data](litdesc: LitDesc[D]): String = litdesc.litMap match {
+    case BoolLitMap(value) => HL.RED + (if(value) "true" else "false") + HL.RESET
+    case UIntLitMap(value, width) => {
+      val w = width.map(_.toString).getOrElse("?")
+      s"${HL.RED}UBits($value, $w)${HL.RESET}"
+    }
+    case SIntLitMap(value, width) => {
+      val w = width.map(_.toString).getOrElse("?")
+      s"${HL.RED}SBits($value, $w)${HL.RESET}"
+    }
+  }
 }
 

@@ -72,7 +72,7 @@ trait Nested2 extends Nested {
   val out = Output(UInt(4))
 }) {
   val uint = Reg(UInt(2))
-  uint := io.in1
+  uint := io.in1 * U(10) + U(7) * U(4) + True
   io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
 }
 @module @probe class OtherModule extends Module(new DecoupledExample) {
@@ -121,7 +121,8 @@ trait Nested2 extends Nested {
   test := myNewVec(uint2)
   
   test := select1
-  test := uint1 + uint2 + uint1
+  test := U(15, 14) + U(1) + U(1)
+  test := uint1 + uint2 + uint1 + U(1)
   test := uint1(1,2) + uint1(1) + uint1(2,3)
   val added = uint1 + uint2
   test := added
@@ -137,7 +138,7 @@ trait Nested2 extends Nested {
       test := select1
     }
     test := uint1
-  }.elsewhen({Reg(Bool()) := select1}) {
+  }.elsewhen(False) {
     test := select1
   }.otherwise {
     test := uint2
@@ -151,7 +152,7 @@ trait Nested2 extends Nested {
   Reg(UInt()) := test + Reg(UInt())
 
   val myBool = Wire(Bool())
-  val myBReg  = Reg(Bool()) := myBool && myBool || myBool ^ !myBool 
+  val myBReg  = Reg(Bool()) := myBool && True || myBool || myBool ^ !myBool 
 }
 object ExampleModule {
   def apply(): ExampleModule = Module(new ExampleModule)
