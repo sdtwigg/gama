@@ -1,7 +1,9 @@
 package gama
 import internal._
 
-abstract class HardwareTuple extends Data {
+trait HardwareTupleImpl {
+  self: HardwareTuple =>
+
   protected[gama] val subfields: Seq[Tuple2[String, Data]]
 
   private[this] def elements: Seq[Data] = subfields.map(_._2)

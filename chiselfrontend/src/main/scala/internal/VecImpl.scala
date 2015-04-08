@@ -10,13 +10,14 @@ object Vectorizable {
   implicit def vectorizer[D<:Data: SelfMuxable]: Vectorizable[D] = new Vectorizable[D] {val muxer = implicitly[SelfMuxable[D]]}
 }
 
-final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends Aggregate with Accessible[D] with IndexedSeq[D] {
+abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
+  self: Vec[D] =>
   // D must be invariant because of assignment (:=), amongst other reasons
-
   // TODO: INDEXED SEQ MAY BE SUBTLY INCORRECT
+  
   private[this] val mutableElemType: D = initialModel.copy
   def elemType: D = mutableElemType.copy
-  private val elements: immutable.IndexedSeq[D] = Vector.fill(length)(elemType)
+  protected[gama] val elements: immutable.IndexedSeq[D] = Vector.fill(length)(elemType)
 
   protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type = {
     mutableElemType.rebind(xform)
@@ -30,7 +31,6 @@ final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends
 
   implicit protected val eltmuxer: SelfMuxable[D] = implicitly[Vectorizable[D]].muxer
   def :=(source: Vec[D])(implicit eltxfer: ConnectSelf[D], em: EnclosingModule) = ConnectSelf[Vec[D]].connectSelf(Sink(this), Source(source), em)
-  def copy = Vec(size, elemType).asInstanceOf[this.type]
 
   // Until Synthesized, elemType (clones) 'hide' all access to elements (see lookup)
   def lookup(index: Int): D = {
@@ -62,7 +62,8 @@ final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends
     elements.foreach( elem => {elem.setDescRef(newdesc, true)} )
   }
 }
-object Vec {
+
+trait VecObjectImpl {
   def apply[D<:Data: Vectorizable](size: Int, model: D): Vec[D] = new Vec(size, model)
 //  def apply[D<:Data: Vectorizable](elts: D*)(implicit em: EnclosingModule) = new Vec(elts.toVector)
 //  def apply[D<:Data: Vectorizable](elts: immutable.Seq[D])(implicit em: EnclosingModule) = new Vec(elts)

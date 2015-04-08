@@ -8,10 +8,27 @@ import internal._
   -> descRef: should not be copied (and thus reset to None)
 */
 
-abstract class Data extends Nameable with DescReference {
+sealed trait Data extends Nameable with DescReference {
   def copy: this.type
   protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type
 
   def nodes: Seq[Node]
 }
 
+// ELEMENT
+abstract class Element(initialNode: Node) extends ElementImpl(initialNode) with Data
+  // MUTABLE STATE: node
+object Element extends ElementObjectImpl 
+
+// AGGREGATE
+sealed trait Aggregate extends Data
+
+final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends VecImpl(initialModel) with Aggregate
+  with Accessible[D] with IndexedSeq[D]
+{  
+  def copy = Vec(size, elemType).asInstanceOf[this.type] // has to be here because of this.type cast
+}
+object Vec extends VecObjectImpl
+
+abstract class HardwareTuple extends Aggregate with HardwareTupleImpl {
+}

@@ -1,8 +1,9 @@
 package gama
 package internal
 
+trait Accessible[+D<:Data] {
+  self: Data =>
 
-trait Accessible[+D<:Data] extends Data {
   def lookupIsConnectable(selector: UInt): Boolean
   def elemType: D
   def lookup(selector: UInt)(implicit em: EnclosingModule): D = {
