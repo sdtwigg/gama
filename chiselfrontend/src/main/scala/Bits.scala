@@ -36,25 +36,25 @@ abstract class Bits(initialNode: Node) extends Element(initialNode) {
   def asSInt(implicit em: EnclosingModule): SInt
 
   // DISPATCHED OPERATIONS
-  def +(that: Bits)(implicit em: EnclosingModule): Bits = this match {
-    case u: UIntLike => (u + that)
-    case s: SInt     => (s + that)
+  def +(that: Bits)(implicit em: EnclosingModule): Bits = that match {
+    case u: UIntLike => (this + u)
+    case s: SInt     => (this + s)
   }
-  def -(that: Bits)(implicit em: EnclosingModule): Bits = this match {
-    case u: UIntLike => (u - that)
-    case s: SInt     => (s - that)
+  def -(that: Bits)(implicit em: EnclosingModule): Bits = that match {
+    case u: UIntLike => (this - u)
+    case s: SInt     => (this - s)
   }
-  def *(that: Bits)(implicit em: EnclosingModule): Bits = this match {
-    case u: UIntLike => (u * that)
-    case s: SInt     => (s * that)
+  def *(that: Bits)(implicit em: EnclosingModule): Bits = that match {
+    case u: UIntLike => (this * u)
+    case s: SInt     => (this * s)
   }
-  def /(that: Bits)(implicit em: EnclosingModule): Bits = this match {
-    case u: UIntLike => (u / that)
-    case s: SInt     => (s / that)
+  def /(that: Bits)(implicit em: EnclosingModule): Bits = that match {
+    case u: UIntLike => (this / u)
+    case s: SInt     => (this / s)
   }
-  def %(that: Bits)(implicit em: EnclosingModule): Bits = this match {
-    case u: UIntLike => (u % that)
-    case s: SInt     => (s % that)
+  def %(that: Bits)(implicit em: EnclosingModule): Bits = that match {
+    case u: UIntLike => (this % u)
+    case s: SInt     => (this % s)
   }
 
   // DISPATCH DEPENDENCIES

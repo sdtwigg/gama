@@ -89,6 +89,19 @@ trait Nested2 extends Nested {
   val test_b2u: UInt = True.toUInt
   val test_bAs: SInt = True.asSInt
   val test_bAu: UInt = True.asUInt
+
+  val sint = Reg(SInt())
+  val test_upu = uint + uint
+  val test_ups = uint + sint
+  val test_spu = sint + uint
+  val test_sps = sint + sint
+ 
+  val ouint: Bits = uint
+  val osint: Bits = sint
+  val otest_upu = ouint + ouint
+  val otest_ups = ouint + osint
+  val otest_spu = osint + ouint
+  val otest_sps = osint + osint
 }
 @module @probe class OtherModule extends Module(new DecoupledExample) {
   val uint = Reg(UInt(2))

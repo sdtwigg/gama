@@ -29,9 +29,9 @@ abstract class UIntLike(initialNode: Node) extends Bits(initialNode) {
   def  >=(that: UIntLike)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpGrEq,  (this, that), em)
 
   // IMPLEMENT OPERATIONS WITH OTHERS
-  def +(that: SInt)(implicit em: EnclosingModule): SInt = ???
-  def -(that: SInt)(implicit em: EnclosingModule): SInt = ???
-  def *(that: SInt)(implicit em: EnclosingModule): SInt = ???
-  def /(that: SInt)(implicit em: EnclosingModule): SInt = ???
-  def %(that: SInt)(implicit em: EnclosingModule): SInt = ???
+  def +(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPlus, (this.toSInt, that), em)
+  def -(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpSubt, (this.toSInt, that), em)
+  def *(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMult, (this.toSInt, that), em)
+  def /(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpDiv,  (this.toSInt, that), em)
+  def %(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMod,  (this.toSInt, that), em)
 }
