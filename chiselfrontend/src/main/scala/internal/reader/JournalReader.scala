@@ -100,45 +100,52 @@ abstract class BaseJournalReader extends JournalReader {
   def emitRefType(data: Data): String = s"${emitRef(data)}: ${HL.GREEN}${emitType(data)}${HL.RESET}"
 
   def emitOpDesc(op: OpDesc): String = op match {
-    case UnaryOpDesc(op, input, _,_)          => (s"${emitOpId(op)}(${emitRef(input)})")
-    case BinaryOpDesc(op, (left, right), _,_) => (s"(${emitRef(left)} ${emitOpId(op)} ${emitRef(right)})")
+    case UnaryOpDesc(op, input, _,_)          => emitUnaryOp(op, input)
+    case BinaryOpDesc(op, (left, right), _,_) => emitBinaryOp(op, left, right)
     case ExtractOpDesc(input, lp, rp, _,_)    => (s"${emitRef(input)}(${lp}, ${rp})")
     case MuxDesc(cond, tc, fc, _,_)           => (s"((${emitRef(cond)}) ? (${emitRef(tc)}) : (${emitRef(fc)}))")
   }
 
   // TODO: FOLD OPID INTO OPDESC
-  def emitOpId(opid: OpId) = opid match {
-    // Unary Ops
-    case OpIDENT  => ""
-    
-    case OpToUInt => "toUInt"
-    case OpToSInt => "toSInt"
-    case OpAsUInt => "asUInt"
-    case OpAsSInt => "asSInt"
-    
-    case OpNot    => "not"
-
-    // Binary Ops
-    case OpPlus  => "+"
-    case OpSubt  => "-"
-    case OpMult  => "*"
-    case OpDiv   => "/"
-    case OpMod   => "%"
-
-    case OpAnd   => "&"
-    case OpOr    => "|"
-    case OpXor   => "^"
-    
-    case OpPadTo => "pad"
-    case OpCat   => "##"
-    
-    case OpEqual => "==="
-    case OpNoneq => "!=="
-    case OpLess  => "<"
-    case OpLeEq  => "<="
-    case OpGrt   => ">"
-    case OpGrEq  => ">="
+  def emitUnaryOp(opid: OpIdUnary, input: Element): String = {
+    val opname = opid match {
+      case OpIDENT  => ""
+      
+      case OpToUInt => "toUInt"
+      case OpToSInt => "toSInt"
+      case OpAsUInt => "asUInt"
+      case OpAsSInt => "asSInt"
+      
+      case OpNot    => "not"
+    }
+    s"$opname(${emitRef(input)})"
   }
+  def emitBinaryOp(opid: OpIdBinary, left: Element, right: Element): String = {
+    def infix(opname: String)   = s"(${emitRef(left)} $opname ${emitRef(right)})"
+    def postfix(opname: String) = s"$opname(${emitRef(left)}, ${emitRef(right)})"
+    opid match {
+      case OpPlus  => infix("+")
+      case OpSubt  => infix("-")
+      case OpMult  => infix("*")
+      case OpDiv   => infix("/")
+      case OpMod   => infix("%")
+
+      case OpAnd   => infix("&")
+      case OpOr    => infix("|")
+      case OpXor   => infix("^")
+      
+      case OpPadTo => postfix("pad")
+      case OpCat   => infix("##")
+      
+      case OpEqual => infix("===")
+      case OpNoneq => infix("!==")
+      case OpLess  => infix("<")
+      case OpLeEq  => infix("<=")
+      case OpGrt   => infix(">")
+      case OpGrEq  => infix(">=")
+    }
+  }
+  
   def emitAccDesc(accdesc: AccessorDesc[_<:Data]): String =
     s"${emitRef(accdesc.collection)}(${emitRef(accdesc.selector)})"
 
