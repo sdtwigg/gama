@@ -1,7 +1,8 @@
 package test
+
 import gama._
 import gama.api._
-import gama.annotations._
+import gama.library._
 
 object testmain {
   def main(args: Array[String]) {
@@ -31,16 +32,6 @@ object testmain {
 @bundle class MyBundle extends Bundle {
   val a = UInt(width=8)
   val b = UInt(width=8)
-}
-
-@bundle @probe final class Decoupled[+T<:Data] private (model: T) extends Bundle {
-  val valid = Output(Bool())
-  val bits  = Output(model.copy)
-  val ready = Input( Bool())
-  def fire(implicit em: EnclosingModule): Bool = valid && ready
-}
-object Decoupled {
-  def apply[T<:Data](model: T): Decoupled[T] = new Decoupled(model)
 }
 
 @bundle class DecoupledExample extends Bundle {
@@ -75,33 +66,41 @@ trait Nested2 extends Nested {
   uint := io.in1 * U(10,16) + 7.U * 4.U + True
   io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
 
-  val test_u2s: SInt = 1.U.toSInt
-  val test_u2u: UInt = 1.U.toUInt
-  val test_uAs: SInt = 1.U.asSInt
-  val test_uAu: UInt = 1.U.asUInt
-  
-  val test_s2s: SInt = 1.S.toSInt
-  val test_s2u: UInt = 1.S.toUInt
-  val test_sAs: SInt = 1.S.asSInt
-  val test_sAu: UInt = 1.S.asUInt
-  
-  val test_b2s: SInt = True.toSInt
-  val test_b2u: UInt = True.toUInt
-  val test_bAs: SInt = True.asSInt
-  val test_bAu: UInt = True.asUInt
+  ExecBlock {
+    val test_u2s: SInt = 1.U.toSInt
+    val test_u2u: UInt = 1.U.toUInt
+    val test_uAs: SInt = 1.U.asSInt
+    val test_uAu: UInt = 1.U.asUInt
+    
+    val test_s2s: SInt = 1.S.toSInt
+    val test_s2u: UInt = 1.S.toUInt
+    val test_sAs: SInt = 1.S.asSInt
+    val test_sAu: UInt = 1.S.asUInt
+    
+    val test_b2s: SInt = True.toSInt
+    val test_b2u: UInt = True.toUInt
+    val test_bAs: SInt = True.asSInt
+    val test_bAu: UInt = True.asUInt
+  }
 
   val sint = Reg(SInt())
-  val test_upu = uint + uint
-  val test_ups = uint + sint
-  val test_spu = sint + uint
-  val test_sps = sint + sint
- 
-  val ouint: Bits = uint
-  val osint: Bits = sint
-  val otest_upu = ouint + ouint
-  val otest_ups = ouint + osint
-  val otest_spu = osint + ouint
-  val otest_sps = osint + osint
+  ExecBlock {
+    val test_upu = uint + uint
+    val test_ups = uint + sint
+    val test_spu = sint + uint
+    val test_sps = sint + sint
+   
+    val ouint: Bits = uint
+    val osint: Bits = sint
+    val otest_upu = ouint + ouint
+    val otest_ups = ouint + osint
+    val otest_spu = osint + ouint
+    val otest_sps = osint + osint
+  }
+
+  val andR = uint.andR
+  val orR  = uint.orR
+  val xorR = uint.xorR
 }
 @module @probe class OtherModule extends Module(new DecoupledExample) {
   val uint = Reg(UInt(2))
@@ -125,9 +124,6 @@ trait Nested2 extends Nested {
 }
 
 @module class ExampleModule protected () extends Module(new ExampleIO) {
-  println(this)
-  println(ExampleModule.this)
-
   val data_width = 32
   val vec_length = 4
   val dtype_uint = UInt(data_width)

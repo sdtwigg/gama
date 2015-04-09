@@ -67,6 +67,8 @@ abstract class BaseJournalReader extends JournalReader {
         s"${HL.CYAN}acc${HL.RESET}   ${emitRefType(accdesc.retVal)} = ${emitAccDesc(accdesc)}"
       case CreateModule(module) =>
         s"${HL.CYAN}inst${HL.RESET}  ${emitModuleInst(module)}"
+      case AddExecBlock(journal) =>
+        s"${parseJournal(journal)}"
       case Conditionally(cond, tc, fc) =>
         s"${HL.CYAN}when${HL.RESET}(${emitRef(cond)}) ${parseJournal(tc)} ${HL.CYAN}else${HL.RESET} ${parseJournal(fc)}"
       case ConnectData(Sink(sink), Source(source)) =>
@@ -117,6 +119,8 @@ abstract class BaseJournalReader extends JournalReader {
       case OpAsSInt => "asSInt"
       
       case OpNot    => "not"
+      
+      case OpXorRed => "xorR"
     }
     s"$opname(${emitRef(input)})"
   }
@@ -136,9 +140,10 @@ abstract class BaseJournalReader extends JournalReader {
       
       case OpPadTo => postfix("pad")
       case OpCat   => infix("##")
+      case OpLShft => infix("<<")
       
       case OpEqual => infix("===")
-      case OpNoneq => infix("!==")
+      case OpNotEq => infix("!==")
       case OpLess  => infix("<")
       case OpLeEq  => infix("<=")
       case OpGrt   => infix(">")
@@ -162,7 +167,7 @@ abstract class BaseJournalReader extends JournalReader {
   }
   
   def parseLitDesc[D<:Data](litdesc: LitDesc[D]): String = litdesc.litMap match {
-    case BoolLitMap(value) => HL.RED + (if(value) "true" else "false") + HL.RESET
+    case BoolLitMap(value) => HL.RED + (if(value) "UBits(1,1)/*true*/)" else "UBits(0,1)/*false*/") + HL.RESET
     case UIntLitMap(value, width) => {
       val w = width.map(_.toString).getOrElse("?")
       s"${HL.RED}UBits($value, $w)${HL.RESET}"

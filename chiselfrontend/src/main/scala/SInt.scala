@@ -16,7 +16,9 @@ final class SInt(initialNode: Node) extends Bits(initialNode) {
   def copy = new SInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
   // IMPLEMENT SIMPLE ABSTRACT OPERATIONS
-  def pad(that: Bits)(implicit em: EnclosingModule): SInt  = BinaryOp.SInt(OpPadTo,  (this, that), em)
+  def pad(that: Bits)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPadTo,  (this, that), em)
+  def  <<(that: UInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpLShft, (this, that), em)
+  
   def toUInt(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpToUInt, this, None, em)
   def toSInt(implicit em: EnclosingModule): SInt = UnaryOp.SInt(OpIDENT,  this, None, em)
   
@@ -29,6 +31,9 @@ final class SInt(initialNode: Node) extends Bits(initialNode) {
   def *(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMult, (this, that), em)
   def /(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpDiv,  (this, that), em)
   def %(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMod,  (this, that), em)
+  def &(that: SInt)(implicit em: EnclosingModule): SInt = ???
+  def |(that: SInt)(implicit em: EnclosingModule): SInt = ???
+  def ^(that: SInt)(implicit em: EnclosingModule): SInt = ???
 
   // IMPLEMENT OPERATIONS WITH OTHERS
   def +(that: UIntLike)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPlus, (this, that.toSInt), em)
@@ -36,4 +41,7 @@ final class SInt(initialNode: Node) extends Bits(initialNode) {
   def *(that: UIntLike)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMult, (this, that.toSInt), em)
   def /(that: UIntLike)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpDiv,  (this, that.toSInt), em)
   def %(that: UIntLike)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMod,  (this, that.toSInt), em)
+  def &(that: UIntLike)(implicit em: EnclosingModule): SInt = ???
+  def |(that: UIntLike)(implicit em: EnclosingModule): SInt = ???
+  def ^(that: UIntLike)(implicit em: EnclosingModule): SInt = ???
 }

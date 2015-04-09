@@ -7,6 +7,7 @@ case class CreateWire(wiredesc: WireDesc[_<:Data]) extends JournalEntry
 case class CreateReg(regdesc: RegDesc[_<:Data]) extends JournalEntry
 case class CreateAccessor(accdesc: AccessorDesc[_<:Data]) extends JournalEntry
 case class CreateModule(module: Module[_<:Data]) extends JournalEntry
+case class AddExecBlock(code: Journal) extends JournalEntry
 case class Conditionally(cond: Bool, tc: Journal, fc: Journal) extends JournalEntry {NodeCheck.assertSynthesizable(cond)}
 case class ConnectData(sink: Sink[Data], source: Source[Data]) extends JournalEntry {
   NodeCheck.assertConnectable(sink.data)

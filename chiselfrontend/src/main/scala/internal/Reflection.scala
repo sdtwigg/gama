@@ -13,7 +13,7 @@ object Reflection {
 case class NoDataFoundException(containerType: String)
   extends ChiselException(s"Could not find any Data vals in ${containerType}")
 
-trait BundleReflection {
+trait BundleReflectionImpl {
   self: HardwareTuple =>
 
   protected[gama] lazy val subfields: Seq[Tuple2[String, Data]] = {

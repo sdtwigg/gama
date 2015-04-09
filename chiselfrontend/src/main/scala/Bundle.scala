@@ -1,6 +1,8 @@
 package gama
 import internal._
 
+trait BundleReflection extends BundleReflectionImpl {self: HardwareTuple =>}
+
 object Bundle {
   implicit object basicfunctionality extends ConnectSelf.ConnectSelfImpl[Bundle] {
     def verifyConnectSelf(sink: Sink[Bundle], source: Source[Bundle]): Unit = {

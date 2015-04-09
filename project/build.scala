@@ -12,6 +12,8 @@ object BuildSettings {
 object MacroBuild extends Build {
   import BuildSettings._
 
-  lazy val test           = Project("test",           file("test_project"),   settings = buildSettings) dependsOn(chiselfrontend)
+  lazy val test           = Project("test",           file("test_project"),   settings = buildSettings) dependsOn(chiselfrontend, librarychisel)
   lazy val chiselfrontend = Project("chiselfrontend", file("chiselfrontend"), settings = buildSettings)
+  lazy val librarychisel  = Project("librarychisel",  file("librarychisel"),  settings = buildSettings) dependsOn(chiselfrontend)
+
 }
