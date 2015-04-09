@@ -10,9 +10,25 @@ object SInt {
     def muxRetVal(tc: SInt, fc: SInt): SInt = SInt()
   }
 }
-class SInt(initialNode: Node) extends Bits(initialNode) {
+final class SInt(initialNode: Node) extends Bits(initialNode) {
+  // GENERAL ELEMENT REQUIREMENTS
   def :=(source: SInt)(implicit em: EnclosingModule) = ConnectSelf[SInt].connectSelf(Sink(this), Source(source), em)
   def copy = new SInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
+  // IMPLEMENT SIMPLE ABSTRACT OPERATIONS
   def pad(that: Bits)(implicit em: EnclosingModule): SInt  = BinaryOp.SInt(OpPadTo,  (this, that), em)
+
+  // IMPLEMENT OPERATIONS WITH SELF
+  def +(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPlus, (this, that), em)
+  def -(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpSubt, (this, that), em)
+  def *(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMult, (this, that), em)
+  def /(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpDiv,  (this, that), em)
+  def %(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMod,  (this, that), em)
+
+  // IMPLEMENT OPERATIONS WITH OTHERS
+  def +(that: UIntLike)(implicit em: EnclosingModule): SInt = ???
+  def -(that: UIntLike)(implicit em: EnclosingModule): SInt = ???
+  def *(that: UIntLike)(implicit em: EnclosingModule): SInt = ???
+  def /(that: UIntLike)(implicit em: EnclosingModule): SInt = ???
+  def %(that: UIntLike)(implicit em: EnclosingModule): SInt = ???
 }

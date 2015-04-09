@@ -10,7 +10,7 @@ object Bool {
   //import scala.language.implicitConversions
   //implicit def bool2UInt(in: Bool)(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpToUInt, in, Some(1), em) 
 }
-class Bool(initialNode: Node) extends UIntLike(initialNode) {
+final class Bool(initialNode: Node) extends UIntLike(initialNode) {
   def copy = new Bool(SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   def :=(source: Bool)(implicit em: EnclosingModule) = ConnectSelf[Bool].connectSelf(Sink(this), Source(source), em)
 

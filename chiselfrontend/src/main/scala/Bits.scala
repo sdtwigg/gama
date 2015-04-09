@@ -2,6 +2,7 @@ package gama
 import internal._
 
 abstract class Bits(initialNode: Node) extends Element(initialNode) {
+  // pseudo-UNARY OPERATIONS
   def extract(position: Int)(implicit em: EnclosingModule): Bool = ExtractOp.Bool(this, position, em)
   def extract(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = ExtractOp.UInt(this, left_pos, right_pos, em)
 
@@ -11,7 +12,49 @@ abstract class Bits(initialNode: Node) extends Element(initialNode) {
   import scala.language.experimental.macros
   def apply(arg0: Int): Bool = macro macroDef.transformapply1 
   def apply(arg0: Int, arg1: Int): UInt = macro macroDef.transformapply2
-  
+
+  // BINARY OPERATIONS
+  // CONCRETE OPERATIONS
+  def  ##(that: Bits)(implicit em: EnclosingModule): UInt  = BinaryOp.UInt(OpCat,   (this, that), em)
+
+  def ===(that: Bits)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
+
+  // ABSTRACT OPERATIONS
+  def pad(that: Bits)(implicit em: EnclosingModule): Bits
+
+  // DISPATCHED OPERATIONS
+  def +(that: Bits)(implicit em: EnclosingModule): Bits = this match {
+    case u: UIntLike => (u + that)
+    case s: SInt     => (s + that)
+  }
+  def -(that: Bits)(implicit em: EnclosingModule): Bits = this match {
+    case u: UIntLike => (u - that)
+    case s: SInt     => (s - that)
+  }
+  def *(that: Bits)(implicit em: EnclosingModule): Bits = this match {
+    case u: UIntLike => (u * that)
+    case s: SInt     => (s * that)
+  }
+  def /(that: Bits)(implicit em: EnclosingModule): Bits = this match {
+    case u: UIntLike => (u / that)
+    case s: SInt     => (s / that)
+  }
+  def %(that: Bits)(implicit em: EnclosingModule): Bits = this match {
+    case u: UIntLike => (u % that)
+    case s: SInt     => (s % that)
+  }
+
+  // DISPATCH DEPENDENCIES
+  def +(that: UIntLike)(implicit em: EnclosingModule): Bits
+  def -(that: UIntLike)(implicit em: EnclosingModule): Bits
+  def *(that: UIntLike)(implicit em: EnclosingModule): Bits
+  def /(that: UIntLike)(implicit em: EnclosingModule): Bits
+  def %(that: UIntLike)(implicit em: EnclosingModule): Bits
+  def +(that: SInt    )(implicit em: EnclosingModule): Bits
+  def -(that: SInt    )(implicit em: EnclosingModule): Bits
+  def *(that: SInt    )(implicit em: EnclosingModule): Bits
+  def /(that: SInt    )(implicit em: EnclosingModule): Bits
+  def %(that: SInt    )(implicit em: EnclosingModule): Bits
 }
 object Bits {
 /*

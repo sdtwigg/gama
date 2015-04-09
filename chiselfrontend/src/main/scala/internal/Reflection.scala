@@ -10,6 +10,9 @@ object Reflection {
     ru.runtimeMirror(x.getClass.getClassLoader).classSymbol(x.getClass).toType
 }
 
+case class NoDataFoundException(containerType: String)
+  extends ChiselException(s"Could not find any Data vals in ${containerType}")
+
 trait BundleReflection {
   self: HardwareTuple =>
 

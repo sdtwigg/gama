@@ -1,9 +1,6 @@
 package gama
 import internal._
 
-case class NoDataFoundException(containerType: String)
-  extends ChiselException(s"Could not find any Data vals in ${containerType}")
-
 object Bundle {
   implicit object basicfunctionality extends ConnectSelf.ConnectSelfImpl[Bundle] {
     def verifyConnectSelf(sink: Sink[Bundle], source: Source[Bundle]): Unit = {
