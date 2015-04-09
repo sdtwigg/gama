@@ -1,17 +1,27 @@
 package gama
 package internal
 
-sealed abstract class NameSource(private val priority: Int) extends Ordered[NameSource] {
-  def compare(that: NameSource) = priority.compare(that.priority)
+sealed abstract class NameSource {
+  protected def priority: Option[Int] // None indicates highest priority
+  // THIS IS A PARTIAL ORDERING
+  protected[gama] def < (that: NameSource) = (this.priority, that.priority) match {
+    case (None, _)                 => false
+    case (Some(left), Some(right)) => left < right
+    case (Some(_),    None)        => true
+  }
+  protected[gama] def > (that: NameSource) = that < this
 }
-case object NameFromMath  extends NameSource(0) // e.g. when ops folded, like 1 + 1
-case object NameFromTemp  extends NameSource(1) // e.g. T0, R1, A2, M3, W4
+abstract class NameTentative(priority: Int) extends NameSource {def priority = Some(priority)}
+case object NameFromMath  extends NameTentative(0) // e.g. when ops folded, like 1 + 1
+case object NameFromTemp  extends NameTentative(1) // e.g. T0, R1, A2, M3, W4
 
-case object NameFromMacro extends NameSource(2)
-case object NameFromUser  extends NameSource(3)
+case object NameFromMacro extends NameTentative(2)
+case object NameFromUser  extends NameTentative(3)
 
-case object NameFromIO    extends NameSource(10) // Name from an IO setup of some variety
-case object NameFromLit   extends NameSource(11) // Name is a NameLit
+// These names can only be set using forceSetName
+abstract class NameForceOnly extends NameSource {def priority = None}
+case object NameFromIO    extends NameForceOnly // Name from an IO setup of some variety
+case object NameFromLit   extends NameForceOnly // Name is a NameLit
 
 trait Nameable { // MUTABLE STATE: name
   protected[gama] def propogateName(newname: NameTree, newsource: NameSource): Unit
@@ -24,10 +34,10 @@ trait Nameable { // MUTABLE STATE: name
     nameDetails = Some(Tuple2(newname, newsource))
     if(propogate) { propogateName(newname, newsource) }
   }
-  protected[gama] def checkedSetName(newname: NameTree, newsource: NameSource, propogate: Boolean): Unit = {
+  protected[gama] def checkedSetName(newname: NameTree, newsource: NameTentative, propogate: Boolean): Unit = {
     if(nameDetails match {
       case None => true
-      case Some((_, oldsource)) if newsource > oldsource => true
+      case Some((_, oldsource)) if oldsource < newsource => true
       case _ => false
     }) {
       forceSetName(newname, newsource, propogate)
@@ -36,7 +46,7 @@ trait Nameable { // MUTABLE STATE: name
 }
 
 object InternalName {
-  def apply[A](in: A, suggestion: String, priority: NameSource): A = {
+  def apply[A](in: A, suggestion: String, priority: NameTentative): A = {
     in match {
       case x: Data => (x.checkedSetName(NameTerm(suggestion), priority, true)) 
       case _ => 
