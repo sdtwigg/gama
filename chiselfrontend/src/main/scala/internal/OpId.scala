@@ -5,7 +5,13 @@ package internal
 sealed trait OpId
 
 sealed trait OpIdUnary extends OpId
+case object OpIDENT  extends OpIdUnary // internal: IDENTITY OPERATION
+
 case object OpToUInt extends OpIdUnary
+case object OpToSInt extends OpIdUnary
+case object OpAsUInt extends OpIdUnary
+case object OpAsSInt extends OpIdUnary
+
 case object OpNot    extends OpIdUnary
 
 sealed trait OpIdBinary extends OpId

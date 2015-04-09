@@ -17,6 +17,11 @@ final class SInt(initialNode: Node) extends Bits(initialNode) {
   
   // IMPLEMENT SIMPLE ABSTRACT OPERATIONS
   def pad(that: Bits)(implicit em: EnclosingModule): SInt  = BinaryOp.SInt(OpPadTo,  (this, that), em)
+  def toUInt(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpToUInt, this, None, em)
+  def toSInt(implicit em: EnclosingModule): SInt = UnaryOp.SInt(OpIDENT,  this, None, em)
+  
+  def asUInt(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpAsUInt, this, getWidth, em)
+  def asSInt(implicit em: EnclosingModule): SInt = UnaryOp.SInt(OpIDENT,  this, getWidth, em)
 
   // IMPLEMENT OPERATIONS WITH SELF
   def +(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPlus, (this, that), em)

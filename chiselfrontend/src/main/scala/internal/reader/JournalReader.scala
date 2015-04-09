@@ -109,8 +109,15 @@ abstract class BaseJournalReader extends JournalReader {
   // TODO: FOLD OPID INTO OPDESC
   def emitOpId(opid: OpId) = opid match {
     // Unary Ops
+    case OpIDENT  => ""
+    
     case OpToUInt => "toUInt"
+    case OpToSInt => "toSInt"
+    case OpAsUInt => "asUInt"
+    case OpAsSInt => "asSInt"
+    
     case OpNot    => "not"
+
     // Binary Ops
     case OpPlus  => "+"
     case OpSubt  => "-"

@@ -74,6 +74,21 @@ trait Nested2 extends Nested {
   val uint = Reg(UInt(2))
   uint := io.in1 * U(10,16) + 7.U * 4.U + True
   io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
+
+  val test_u2s: SInt = 1.U.toSInt
+  val test_u2u: UInt = 1.U.toUInt
+  val test_uAs: SInt = 1.U.asSInt
+  val test_uAu: UInt = 1.U.asUInt
+  
+  val test_s2s: SInt = 1.S.toSInt
+  val test_s2u: UInt = 1.S.toUInt
+  val test_sAs: SInt = 1.S.asSInt
+  val test_sAu: UInt = 1.S.asUInt
+  
+  val test_b2s: SInt = True.toSInt
+  val test_b2u: UInt = True.toUInt
+  val test_bAs: SInt = True.asSInt
+  val test_bAu: UInt = True.asUInt
 }
 @module @probe class OtherModule extends Module(new DecoupledExample) {
   val uint = Reg(UInt(2))
@@ -81,11 +96,16 @@ trait Nested2 extends Nested {
   val myBundle = Wire(new MyBundle)
   val myChildBundle = Wire(new MyChildBundle)
   val mymux = Mux(True, myChildBundle, myBundle)
+
+  myBundle := myChildBundle
+  myChildBundle := myBundle
   
   val myBundleVec      = Wire(Vec(2, new MyBundle))
   val myChildBundleVec = Wire(Vec(2, new MyChildBundle))
   val vecmux = Mux(True, myBundleVec, myChildBundleVec.asInstanceOf[Vec[MyBundle]])
     // type cast IS required here since Vec's type is invariant
+  
+  val myBundleVecVec   = Wire(Vec(2,Vec(2, new MyBundle)))
 
   //uint := io.in1
   //io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
@@ -124,6 +144,8 @@ trait Nested2 extends Nested {
   val test = Reg(UInt())
   test := io.in1
   io.out := test
+  
+  test := select1
   
   val myAccessor = myNewVec(uint2)
   test := myAccessor

@@ -2,6 +2,12 @@ package gama
 import internal._
 
 abstract class Bits(initialNode: Node) extends Element(initialNode) {
+  // Helper operations used internally and possibly externally
+  def getWidth: Option[Int] = this.node.storage match {
+    case b: RawBits => (b.width)
+    case _ => throw new ChiselException("Catastrophic error: Bits bound to non-RawBits NodeStorage") {}
+  }
+
   // pseudo-UNARY OPERATIONS
   def extract(position: Int)(implicit em: EnclosingModule): Bool = ExtractOp.Bool(this, position, em)
   def extract(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = ExtractOp.UInt(this, left_pos, right_pos, em)
@@ -18,9 +24,16 @@ abstract class Bits(initialNode: Node) extends Element(initialNode) {
   def  ##(that: Bits)(implicit em: EnclosingModule): UInt  = BinaryOp.UInt(OpCat,   (this, that), em)
 
   def ===(that: Bits)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
+  // TODO: EXTEND PROPERLY
 
   // ABSTRACT OPERATIONS
   def pad(that: Bits)(implicit em: EnclosingModule): Bits
+  
+  def toUInt(implicit em: EnclosingModule): UInt
+  def toSInt(implicit em: EnclosingModule): SInt
+  
+  def asUInt(implicit em: EnclosingModule): UInt
+  def asSInt(implicit em: EnclosingModule): SInt
 
   // DISPATCHED OPERATIONS
   def +(that: Bits)(implicit em: EnclosingModule): Bits = this match {

@@ -16,6 +16,13 @@ object UnaryOp {
     )
   }
   
+  def SInt(op: OpIdUnary, input: Element, width: Option[Int], em: EnclosingModule): SInt = {
+    NodeCheck.assertSynthesizable(input)
+    Desc.generate(new SInt(OpNode(SBits(width),em)))(rv =>
+      UnaryOpDesc(op, input, rv, em)
+    )
+  }
+  
   def Bool(op: OpIdUnary, input: Element, em: EnclosingModule): Bool = {
     NodeCheck.assertSynthesizable(input)
     Desc.generate(new Bool(OpNode(UBits(Some(1)),em)))(rv =>
