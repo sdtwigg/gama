@@ -8,7 +8,7 @@ trait Vectorizable[D<:Data] { def muxer: SelfMuxable[D] }
 // Only reason Vectorizable trait exists is so that failing to create a Vec gives a specialized error message
 object Vectorizable {
   implicit def vectorizer[D<:Data: SelfMuxable]: Vectorizable[D] = new Vectorizable[D] {val muxer = implicitly[SelfMuxable[D]]}
-}
+} // TODO: REMOVE DEPENDENCY ON SELFMUXABLE?
 
 abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   self: Vec[D] =>

@@ -1,11 +1,14 @@
 package gama
 package internal
 
+import scala.language.existentials
+
 sealed trait JournalEntry
 case class CreateOp(opdesc: OpDesc) extends JournalEntry
 case class CreateWire(wiredesc: WireDesc[_<:Data]) extends JournalEntry
 case class CreateReg(regdesc: RegDesc[_<:Data]) extends JournalEntry
 case class CreateAccessor(accdesc: AccessorDesc[_<:Data]) extends JournalEntry
+case class CreateMem(mem: Mem.AnyMem) extends JournalEntry
 case class CreateModule(module: Module[_<:Data]) extends JournalEntry
 case class AddExecBlock(code: Journal) extends JournalEntry
 case class Conditionally(cond: Bool, tc: Journal, fc: Journal) extends JournalEntry {NodeCheck.assertSynthesizable(cond)}

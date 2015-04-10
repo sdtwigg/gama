@@ -152,7 +152,11 @@ abstract class BaseJournalReader extends JournalReader {
   }
   
   def emitAccDesc(accdesc: AccessorDesc[_<:Data]): String =
-    s"${emitRef(accdesc.collection)}(${emitRef(accdesc.selector)})"
+    s"${emitAccessibleRef(accdesc.accRef)}(${emitRef(accdesc.selector)})"
+  def emitAccessibleRef(acc: Accessible[_<:Data]): String = acc match {
+    case vec: VecAccessible[_] => (emitRef(vec.collection))
+    case mem: MemAccessible[_] => ??? // assured mem.collection is a Mem[_]
+  }
 
   def emitName(name: Option[NameTree]): String = parseNameTree(name.getOrElse(NameUNKNOWN))
   def parseNameTree(name: NameTree): String = name match {

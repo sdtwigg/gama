@@ -24,11 +24,11 @@ object Element extends ElementObjectImpl
 sealed trait Aggregate extends Data
 
 final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends VecImpl(initialModel) with Aggregate
-  with Accessible[D] with IndexedSeq[D]
+  with VecAccessible[D] with IndexedSeq[D]
 {  
+  def collection = this
   def copy = Vec(size, elemType).asInstanceOf[this.type] // has to be here because of this.type cast
 }
 object Vec extends VecObjectImpl
 
-abstract class HardwareTuple extends Aggregate with HardwareTupleImpl {
-}
+abstract class HardwareTuple extends Aggregate with HardwareTupleImpl
