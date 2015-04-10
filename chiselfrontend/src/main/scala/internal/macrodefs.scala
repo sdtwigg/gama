@@ -59,7 +59,6 @@ protected[gama] object macroAnno {
       case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
         if(!allowInnerClasses) {
           val parentName = tpname.toString
-          innerclasschecker(parentName).traverseTreess(paramss)
           innerclasschecker(parentName).traverseTrees(earlydefns)
           innerclasschecker(parentName).traverseTrees(stats)
         }
