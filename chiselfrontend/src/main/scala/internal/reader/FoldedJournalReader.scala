@@ -16,9 +16,11 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
       case CreateAccessor(accdesc) => descFilter(accdesc)
       case other => true
     })
-    "{\n" +
-    (filteredEntries flatMap(entry => parseJournalEntry(entry).split("\n")) map("  " + _) mkString("\n")) +
-    "\n}"
+    if(filteredEntries.isEmpty) "{}"
+    else
+      "{\n" +
+      (filteredEntries flatMap(entry => parseJournalEntry(entry).split("\n")) map("  " + _) mkString("\n")) +
+      "\n}"
   }
   def ensureNamed(entries: immutable.Seq[JournalEntry]): Unit = {
     def check(target: Nameable, tempprefix: String): Option[Tuple2[Nameable,String]] = {

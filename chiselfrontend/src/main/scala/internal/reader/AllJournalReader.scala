@@ -7,9 +7,11 @@ import scala.collection.{immutable=>immutable}
 sealed abstract class AllJournalReader extends BaseJournalReader {
   def parseJournal(entries: immutable.Seq[JournalEntry]): String = {
     ensureNamed(entries)
-    "{\n" +
-    (entries flatMap(entry => parseJournalEntry(entry).split("\n")) map("  " + _) mkString("\n")) +
-    "\n}"
+    if(entries.isEmpty) "{}"
+    else
+      "{\n" +
+      (entries flatMap(entry => parseJournalEntry(entry).split("\n")) map("  " + _) mkString("\n")) +
+      "\n}"
   }
   def ensureNamed(entries: immutable.Seq[JournalEntry]): Unit = {
     def check(target: Nameable, tempprefix: String): Option[Tuple2[Nameable,String]] = {

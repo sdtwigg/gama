@@ -216,6 +216,16 @@ trait Nested2 extends Nested {
 
   val myBool = Wire(Bool())
   val myBReg  = Reg(Bool()) := myBool && True || myBool || myBool ^ !myBool 
+ 
+  val switchReg = Reg(UInt())
+  switch(switchReg)(Seq(
+    is(uint1){
+      test := 0.U
+    },
+    is(uint2){
+      test := 1.U
+    }
+  ))
 }
 object ExampleModule {
   def apply(): ExampleModule = Module(new ExampleModule)
@@ -250,6 +260,7 @@ object ExampleModule {
   println(getTypeT(myUVecReg))
 
   val myBool = Bool()
+
 }
 object TestModule {
   def apply() = Module(new TestModule)
