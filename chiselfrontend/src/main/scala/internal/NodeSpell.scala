@@ -7,6 +7,7 @@ sealed trait NodeSpell[+Out<:Node] {
   def apply(in: SPEC): Out
   def apply(in: Node): Out = in match {
     case syn: Synthesizable => {throw SynthesizableTransformException}
+    case syn: MemSpec => {throw SynthesizableTransformException} // TODO: CONSIDER: Right type of exception?
     case spec: SPEC => (apply(spec))
   }
 }
@@ -60,4 +61,8 @@ case class OpGenericSpell(em: EnclosingModule) extends NodeSpell[OpNode] {
 case class LitAssignSpell(litnode: LitNode) extends NodeSpell[LitNode] {
   // intentionally ignoring SPEC since literals construction from nether
   def apply(in: SPEC) = litnode
+}
+
+case class MemSpecSpell(em: EnclosingModule) extends NodeSpell[MemSpec] {
+  def apply(in: SPEC) = MemSpec(in.storage, em)
 }

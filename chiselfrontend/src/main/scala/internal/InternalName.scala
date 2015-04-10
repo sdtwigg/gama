@@ -48,7 +48,7 @@ trait Nameable { // MUTABLE STATE: name
 object InternalName {
   def apply[A](in: A, suggestion: String, priority: NameTentative): A = {
     in match {
-      case x: Data => (x.checkedSetName(NameTerm(suggestion), priority, true)) 
+      case x: Nameable => (x.checkedSetName(NameTerm(suggestion), priority, true)) 
       case _ => 
     }
     in

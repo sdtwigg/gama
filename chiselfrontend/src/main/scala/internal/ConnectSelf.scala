@@ -17,5 +17,9 @@ object ConnectSelf {
       sink.data
     }
   }
+
+  implicit def genBundleConnectSelf[B<:Bundle]: ConnectSelf[B] = {
+    new BundleConnectSelfImpl[B]
+  }
 }
 

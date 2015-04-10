@@ -25,6 +25,12 @@ class BundleSelfMuxableImpl[B<:Bundle] extends SelfMuxable[B] {
   }
 }
 
+class BundleConnectSelfImpl[B<:Bundle] extends ConnectSelf.ConnectSelfImpl[B] {
+  def verifyConnectSelf(sink: Sink[B], source: Source[B]): Unit = {
+    Bundle.basicfunctionality.verifyConnectSelf(sink, source)
+  }
+}
+
 case class NeedCopyMethodException(containerType: String)
   extends ChiselException(s"AnonBundle ${containerType} needs an explicit copy method")
 trait Anon {

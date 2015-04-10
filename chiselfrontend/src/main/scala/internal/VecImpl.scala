@@ -45,7 +45,7 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   }
   def apply(index: Int): D = lookup(index)
 
-  def lookupIsConnectable(selector: UInt): Boolean = {
+  def lookupIsConnectable(selector: UIntLike): Boolean = {
     nodes.headOption.getOrElse(mutableElemType) match {
       case _: SPEC => {throw ExpectedNodeException("Synthesizable","SPEC")}
       case _: Connectable => {NodeCheck.assertConnectable(this); true}

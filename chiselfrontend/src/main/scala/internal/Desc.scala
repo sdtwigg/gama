@@ -58,7 +58,7 @@ case class MuxDesc[T<:Data](
 ) extends OpDesc
 
 case class AccessorDesc[+T<:Data](
-  accRef: Accessible[T], selector: UInt,
+  accRef: Accessible[T], selector: UIntLike,
   retVal: T, em: EnclosingModule
 ) extends Desc with AccessorDescImpl[T] with EnclosedDesc
 

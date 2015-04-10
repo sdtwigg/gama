@@ -65,6 +65,8 @@ abstract class BaseJournalReader extends JournalReader {
         s"${HL.CYAN}reg${HL.RESET}   ${emitRefType(regdesc.retVal)}"
       case CreateAccessor(accdesc) =>
         s"${HL.CYAN}acc${HL.RESET}   ${emitRefType(accdesc.retVal)} = ${emitAccDesc(accdesc)}"
+      case CreateMem(mem) =>
+        s"${HL.CYAN}mem${HL.RESET}   ${emitMemDetails(mem)}"
       case CreateModule(module) =>
         s"${HL.CYAN}inst${HL.RESET}  ${emitModuleInst(module)}"
       case AddExecBlock(journal) =>
@@ -75,6 +77,8 @@ abstract class BaseJournalReader extends JournalReader {
         s"${emitRef(sink)} := ${emitRef(source)}"
     }
   }
+  def emitMemDetails(mem: Mem[_<:Data]): String = 
+    s"${emitName(mem.name)}[${mem.depth}]: ${HL.GREEN}${emitType(mem.elemType)}${HL.RESET}"
   def emitModuleInst(module: Module[_<:Data]): String
 
   def emitRef(data: Data): String
@@ -155,7 +159,7 @@ abstract class BaseJournalReader extends JournalReader {
     s"${emitAccessibleRef(accdesc.accRef)}(${emitRef(accdesc.selector)})"
   def emitAccessibleRef(acc: Accessible[_<:Data]): String = acc match {
     case vec: VecAccessible[_] => (emitRef(vec.collection))
-    case mem: MemAccessible[_] => ??? // assured mem.collection is a Mem[_]
+    case mem: MemAccessible[_] => (emitName(mem.collection.name)) // assured mem.collection is a Mem[_]
   }
 
   def emitName(name: Option[NameTree]): String = parseNameTree(name.getOrElse(NameUNKNOWN))

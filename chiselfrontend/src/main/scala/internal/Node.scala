@@ -13,6 +13,9 @@ case class SPEC(storage: NodeStore, direction: Option[DirectionIO]) extends Node
   def resolveDirection = direction
 }
 
+case class MemSpec(storage: NodeStore, em: EnclosingModule) extends Node {def resolveDirection = None}
+  // TODO: CONSIDER: Not clear if this is even necessary
+
 sealed abstract class Synthesizable extends Node {def oem: Option[EnclosingModule]; def resolveDirection: Option[DirectionIO] = None}
 trait EnclosedNode extends Synthesizable   {val em: EnclosingModule; def oem = Some(em)}
 trait UnenclosedNode extends Synthesizable {def oem = None}

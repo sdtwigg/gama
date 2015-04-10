@@ -124,6 +124,24 @@ trait Nested2 extends Nested {
   //io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
 }
 
+@module class MemModule extends Module(new DecoupledExample) {
+  val uint = Reg(UInt(2))
+  val myreg = Reg(new MyChildBundle)
+
+  val myMem = Mem(new MyBundle, 16)
+  myMem(uint) := myMem(uint + 1.U)
+  
+  when(True) {
+    val memread = myMem(0.U)
+    val memwrite = myMem(2.U)
+    memwrite := memread
+    myMem.write(True, memread)
+  }
+
+  myMem(myMem(uint).a).b := uint * 2.U
+  myMem.write(False, myreg)
+}
+
 @module class ExampleModule protected () extends Module(new ExampleIO) {
   val data_width = 32
   val vec_length = 4
@@ -172,6 +190,7 @@ trait Nested2 extends Nested {
   
   val myInnerModule = Module(new InnerModule)
   val myOtherModule = Module(new OtherModule)
+  val myMemModule = Module(new MemModule)
 
   myInnerModule.io.in1 := test
   test := myInnerModule.io.out
