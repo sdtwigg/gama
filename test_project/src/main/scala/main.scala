@@ -56,6 +56,7 @@ trait Nested2 extends Nested {
   val stable = 7
   def bleh = c
   val c = Output(UInt(width=8))
+  val d = Output(UInt(width=8))
 }
 
 @module class InnerModule extends Module(new Nested2 with Anon {

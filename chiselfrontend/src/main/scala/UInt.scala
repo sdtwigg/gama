@@ -14,4 +14,6 @@ object UInt {
 final class UInt(initialNode: Node) extends UIntLike(initialNode) {
   def :=(source: UIntLike)(implicit em: EnclosingModule) = ConnectSelf[UIntLike].connectSelf(Sink(this), Source(source), em)
   def copy = new UInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
+  
+  def unary_~(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpNot, this, this.getWidth, em)
 }

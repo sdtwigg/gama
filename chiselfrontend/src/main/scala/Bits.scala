@@ -21,14 +21,10 @@ abstract class Bits(initialNode: Node) extends Element(initialNode) {
 
   // BINARY OPERATIONS
   // CONCRETE OPERATIONS
-  def  ##(that: Bits)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpCat,   (this, that), em)
+  def  ##(that: Bits)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpCat, (this, that), em)
 
-  def ===(that: Bits)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
-  def !==(that: Bits)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpNotEq, (this, that), em)
-  // TODO: CONSIDER: must these be dispatched and extended? or any conversions applied?
-
-  def andR(implicit em: EnclosingModule): Bool = this === api.S(-1) 
-  def  orR(implicit em: EnclosingModule): Bool = this !== api.U(0) 
+  def andR(implicit em: EnclosingModule): Bool
+  def  orR(implicit em: EnclosingModule): Bool
   def xorR(implicit em: EnclosingModule): Bool = UnaryOp.Bool(OpXorRed, this, em)
 
   // ABSTRACT OPERATIONS
@@ -40,6 +36,8 @@ abstract class Bits(initialNode: Node) extends Element(initialNode) {
   
   def asUInt(implicit em: EnclosingModule): UInt
   def asSInt(implicit em: EnclosingModule): SInt
+  
+  def unary_~(implicit em: EnclosingModule): Bits
 
   // DISPATCHED OPERATIONS
   def +(that: Bits)(implicit em: EnclosingModule): Bits = that match {
@@ -62,18 +60,6 @@ abstract class Bits(initialNode: Node) extends Element(initialNode) {
     case u: UIntLike => (this % u)
     case s: SInt     => (this % s)
   }
-  def &(that: Bits)(implicit em: EnclosingModule): Bits = that match {
-    case u: UIntLike => (this | u)
-    case s: SInt     => (this | s)
-  } // TODO: CONSIDER: always return UIntLike?
-  def |(that: Bits)(implicit em: EnclosingModule): Bits = that match {
-    case u: UIntLike => (this | u)
-    case s: SInt     => (this | s)
-  } // TODO: CONSIDER: always return UIntLike?
-  def ^(that: Bits)(implicit em: EnclosingModule): Bits = that match {
-    case u: UIntLike => (this ^ u)
-    case s: SInt     => (this ^ s)
-  } // TODO: CONSIDER: always return UIntLike?
 
   // DISPATCH DEPENDENCIES
   def +(that: UIntLike)(implicit em: EnclosingModule): Bits
@@ -81,18 +67,12 @@ abstract class Bits(initialNode: Node) extends Element(initialNode) {
   def *(that: UIntLike)(implicit em: EnclosingModule): Bits
   def /(that: UIntLike)(implicit em: EnclosingModule): Bits
   def %(that: UIntLike)(implicit em: EnclosingModule): Bits
-  def &(that: UIntLike)(implicit em: EnclosingModule): Bits // TODO: CONSIDER: always return UIntLike?
-  def |(that: UIntLike)(implicit em: EnclosingModule): Bits // TODO: CONSIDER: always return UIntLike?
-  def ^(that: UIntLike)(implicit em: EnclosingModule): Bits // TODO: CONSIDER: always return UIntLike?
 
   def +(that: SInt    )(implicit em: EnclosingModule): Bits
   def -(that: SInt    )(implicit em: EnclosingModule): Bits
   def *(that: SInt    )(implicit em: EnclosingModule): Bits
   def /(that: SInt    )(implicit em: EnclosingModule): Bits
   def %(that: SInt    )(implicit em: EnclosingModule): Bits
-  def &(that: SInt    )(implicit em: EnclosingModule): Bits // TODO: CONSIDER: always return UIntLike?
-  def |(that: SInt    )(implicit em: EnclosingModule): Bits // TODO: CONSIDER: always return UIntLike?
-  def ^(that: SInt    )(implicit em: EnclosingModule): Bits // TODO: CONSIDER: always return UIntLike?
 }
 object Bits {
 /*

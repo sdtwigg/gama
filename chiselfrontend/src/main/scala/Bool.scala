@@ -15,6 +15,7 @@ final class Bool(initialNode: Node) extends UIntLike(initialNode) {
   def :=(source: Bool)(implicit em: EnclosingModule) = ConnectSelf[Bool].connectSelf(Sink(this), Source(source), em)
 
   def unary_!(implicit em: EnclosingModule): Bool = UnaryOp.Bool(OpNot, this, em)
+  def unary_~(implicit em: EnclosingModule): Bool = unary_!
 
   def &&(that: Bool)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpAnd, (this, that), em)
   def ||(that: Bool)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpOr,  (this, that), em)

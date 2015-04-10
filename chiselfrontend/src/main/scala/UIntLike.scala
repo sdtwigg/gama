@@ -7,7 +7,17 @@ object UIntLike {
   }
 }
 abstract class UIntLike(initialNode: Node) extends Bits(initialNode) {
+  // IMPLEMENT EQUALITY AND OTHER COMPARISONS
+  def ===(that: UIntLike)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
+  def !==(that: UIntLike)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpNotEq, (this, that), em)
+
+  // REFINE SELECT ABSTRACTS
+  def unary_~(implicit em: EnclosingModule): UIntLike
+
   // IMPLEMENT SIMPLE ABSTRACT OPERATIONS
+  def andR(implicit em: EnclosingModule): Bool = ~this === api.U(0)
+  def orR(implicit em: EnclosingModule): Bool =   this !== api.U(0)
+  
   def pad(that: Bits)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpPadTo, (this, that), em)
   def  <<(that: UInt)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpLShft, (this, that), em)
 
@@ -23,9 +33,6 @@ abstract class UIntLike(initialNode: Node) extends Bits(initialNode) {
   def *(that: UIntLike)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpMult, (this, that), em)
   def /(that: UIntLike)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpDiv,  (this, that), em)
   def %(that: UIntLike)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpMod,  (this, that), em)
-  def &(that: UIntLike)(implicit em: EnclosingModule): UInt = ???
-  def |(that: UIntLike)(implicit em: EnclosingModule): UInt = ???
-  def ^(that: UIntLike)(implicit em: EnclosingModule): UInt = ???
 
   def   <(that: UIntLike)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpLess,  (this, that), em)
   def  <=(that: UIntLike)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpLeEq,  (this, that), em)
@@ -38,7 +45,4 @@ abstract class UIntLike(initialNode: Node) extends Bits(initialNode) {
   def *(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMult, (this.toSInt, that), em)
   def /(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpDiv,  (this.toSInt, that), em)
   def %(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMod,  (this.toSInt, that), em)
-  def &(that: SInt)(implicit em: EnclosingModule): SInt = ???
-  def |(that: SInt)(implicit em: EnclosingModule): SInt = ???
-  def ^(that: SInt)(implicit em: EnclosingModule): SInt = ???
 }

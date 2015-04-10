@@ -15,7 +15,14 @@ final class SInt(initialNode: Node) extends Bits(initialNode) {
   def :=(source: SInt)(implicit em: EnclosingModule) = ConnectSelf[SInt].connectSelf(Sink(this), Source(source), em)
   def copy = new SInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
+  // IMPLEMENT EQUALITY AND OTHER COMPARISONS
+  def ===(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
+  def !==(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpNotEq, (this, that), em)
+  
   // IMPLEMENT SIMPLE ABSTRACT OPERATIONS
+  def andR(implicit em: EnclosingModule): Bool = this === api.S(-1)
+  def orR(implicit em: EnclosingModule): Bool  = this !== api.S(0)
+  
   def pad(that: Bits)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPadTo,  (this, that), em)
   def  <<(that: UInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpLShft, (this, that), em)
   
@@ -24,6 +31,8 @@ final class SInt(initialNode: Node) extends Bits(initialNode) {
   
   def asUInt(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpAsUInt, this, getWidth, em)
   def asSInt(implicit em: EnclosingModule): SInt = UnaryOp.SInt(OpIDENT,  this, getWidth, em)
+  
+  def unary_~(implicit em: EnclosingModule): SInt = UnaryOp.SInt(OpNot, this, this.getWidth, em)
 
   // IMPLEMENT OPERATIONS WITH SELF
   def +(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPlus, (this, that), em)
@@ -31,9 +40,6 @@ final class SInt(initialNode: Node) extends Bits(initialNode) {
   def *(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMult, (this, that), em)
   def /(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpDiv,  (this, that), em)
   def %(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMod,  (this, that), em)
-  def &(that: SInt)(implicit em: EnclosingModule): SInt = ???
-  def |(that: SInt)(implicit em: EnclosingModule): SInt = ???
-  def ^(that: SInt)(implicit em: EnclosingModule): SInt = ???
 
   // IMPLEMENT OPERATIONS WITH OTHERS
   def +(that: UIntLike)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPlus, (this, that.toSInt), em)
@@ -41,7 +47,4 @@ final class SInt(initialNode: Node) extends Bits(initialNode) {
   def *(that: UIntLike)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMult, (this, that.toSInt), em)
   def /(that: UIntLike)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpDiv,  (this, that.toSInt), em)
   def %(that: UIntLike)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpMod,  (this, that.toSInt), em)
-  def &(that: UIntLike)(implicit em: EnclosingModule): SInt = ???
-  def |(that: UIntLike)(implicit em: EnclosingModule): SInt = ???
-  def ^(that: UIntLike)(implicit em: EnclosingModule): SInt = ???
 }
