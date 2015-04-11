@@ -1,11 +1,13 @@
 package gama
 import internal._
 
-object UInt {
+trait UIntApplies { // trait so Bits in api can mix this in as well
   def apply(): UInt           = apply(None)
   def apply(width: Int): UInt = apply(Some(width))
   def apply(width: Option[Int]) = new UInt(new SPEC(UBits(width), None))
+}
 
+object UInt extends UIntApplies {
   implicit object basicfunctionality extends SelfMuxable[UInt] with Element.ConnectSelfImpl[UInt] {
     def muxRetVal(tc: UInt, fc: UInt): UInt = UInt()
   }

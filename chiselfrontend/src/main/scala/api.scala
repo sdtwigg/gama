@@ -4,9 +4,14 @@ package object api
 {
   import internal._
 
+  // Helper constructors and TypeDefs
   type AnyModule = Module[_<:Data]
   type AnyVec    = Vec[_<:Data]
+  
+  type Bits = UInt
+  object Bits extends UIntApplies
 
+  // Literals (implicit classes cannot be in separate API)
   object U extends LitUIntObjectImpl
   object S extends LitSIntObjectImpl
   object B extends LitBoolObjectImpl
@@ -19,6 +24,7 @@ package object api
     def B = api.B(target)
   }
 
+  // Macro Annotations (cannot be in separate API)
   import scala.language.experimental.macros
   import scala.annotation.StaticAnnotation
   import scala.annotation.compileTimeOnly
