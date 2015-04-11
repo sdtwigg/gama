@@ -91,8 +91,8 @@ trait Nested2 extends Nested {
     val test_spu = sint + uint
     val test_sps = sint + sint
    
-    val ouint: Bits = uint
-    val osint: Bits = sint
+    val ouint: BaseElem = uint
+    val osint: BaseElem = sint
     val otest_upu = ouint + ouint
     val otest_ups = ouint + osint
     val otest_spu = osint + ouint

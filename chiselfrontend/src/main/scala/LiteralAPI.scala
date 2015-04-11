@@ -16,7 +16,7 @@ trait LitBoolObjectImpl {
 }
 
 // INTEGER LITERALS
-trait LitIntObjectBase[Out<:Bits] {
+trait LitIntObjectBase[Out<:BaseElem] {
   def apply(value: BigInt, width: Int): Out
   def apply(value: BigInt): Out
 }

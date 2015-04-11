@@ -10,7 +10,7 @@ object SInt {
     def muxRetVal(tc: SInt, fc: SInt): SInt = SInt()
   }
 }
-final class SInt(initialNode: Node) extends Bits(initialNode) {
+final class SInt(initialNode: Node) extends BaseElem(initialNode) {
   // GENERAL ELEMENT REQUIREMENTS
   def :=(source: SInt)(implicit em: EnclosingModule) = ConnectSelf[SInt].connectSelf(Sink(this), Source(source), em)
   def copy = new SInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
@@ -23,7 +23,7 @@ final class SInt(initialNode: Node) extends Bits(initialNode) {
   def andR(implicit em: EnclosingModule): Bool = this === api.S(-1)
   def orR(implicit em: EnclosingModule): Bool  = this !== api.S(0)
   
-  def pad(that: Bits)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPadTo,  (this, that), em)
+  def pad(that: BaseElem)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPadTo,  (this, that), em)
   def  <<(that: UInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpLShft, (this, that), em)
   
   def toUInt(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpToUInt, this, None, em)
