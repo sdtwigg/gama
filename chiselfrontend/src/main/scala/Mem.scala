@@ -26,6 +26,7 @@ final class Mem[D<:Data: Storable] private (model: D, val depth: Int, protected[
   protected[gama] def lookupIsConnectable(selector: UIntLike): Boolean = true
   // TODO: REMOVE WHEN ACCESSIBLE REFACTORED? probably no, Accessible works w Mem now
   // TODO: CONSIDER: Return false so writes can only be done through write call. Otherwise can do myMemOfBundle(myAddr).myBundleField := myUpdate, which is strange.
+  // However, that may be a good story for masked writes???
 
   def propogateName(newname: NameTree, newsource: NameSource): Unit = {} 
 

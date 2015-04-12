@@ -8,9 +8,11 @@ sealed trait Accessible[+D<:Data] {
   protected[gama] def elemType: D
   // external API
   def lookup(selector: UIntLike)(implicit em: EnclosingModule): D
+  def read(selector: UIntLike)(implicit em: EnclosingModule): D = lookup(selector)(em)
 
-  def apply(selector: UIntLike, em: EnclosingModule): D
-  def apply(arg0: UIntLike): D
+  def apply(selector: UIntLike, em: EnclosingModule): D = lookup(selector)(em)
+  import scala.language.experimental.macros
+  def apply(arg0: UIntLike): D = macro macroDef.transformapply1
   // implementation details
   protected[gama] def makeAccessor(selector: UIntLike, em: EnclosingModule): D = {
     val spell: NodeSpell[AccessorNode] =
@@ -28,10 +30,6 @@ trait VecAccessible[D<:Data] extends Accessible[D] {
   
   def lookup(selector: UIntLike)(implicit em: EnclosingModule): D =
     makeAccessor(selector, em)
-
-  def apply(selector: UIntLike, em: EnclosingModule): D = lookup(selector)(em)
-  import scala.language.experimental.macros
-  def apply(arg0: UIntLike): D = macro macroDef.transformapply1
 }
 
 case class CrossedMemoryAccessException(acc_em: EnclosingModule, mem_em: EnclosingModule) 
@@ -44,10 +42,6 @@ trait MemAccessible[D<:Data] extends Accessible[D] {
     if(acc_em != collection.em) { throw CrossedMemoryAccessException(acc_em, em) }
     makeAccessor(selector, em)
   }
-
-  def apply(selector: UIntLike, em: EnclosingModule): D = lookup(selector)(em)
-  import scala.language.experimental.macros
-  def apply(arg0: UIntLike): D = macro macroDef.transformapply1
 }
 
 trait AccessorDescImpl[+T<:Data] {
