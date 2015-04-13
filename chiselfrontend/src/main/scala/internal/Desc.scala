@@ -41,8 +41,8 @@ trait UnenclosedDesc extends Desc
 
 sealed abstract class OpDesc extends Desc with OpDescImpl with EnclosedDesc
 case class UnaryOpDesc(
-  op: OpIdUnary, input: Element,
-  retVal: Element, em: EnclosingModule
+  op: OpIdUnary, input: Data,
+  retVal: Data, em: EnclosingModule
 ) extends OpDesc
 case class ExtractOpDesc(
   input: Element, left_pos: Int, right_pos: Int,

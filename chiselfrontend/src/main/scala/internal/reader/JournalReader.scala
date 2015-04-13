@@ -112,8 +112,7 @@ abstract class BaseJournalReader extends JournalReader {
     case MuxDesc(cond, tc, fc, _,_)           => (s"((${emitRef(cond)}) ? (${emitRef(tc)}) : (${emitRef(fc)}))")
   }
 
-  // TODO: FOLD OPID INTO OPDESC
-  def emitUnaryOp(opid: OpIdUnary, input: Element): String = {
+  def emitUnaryOp(opid: OpIdUnary, input: Data): String = {
     val opname = opid match {
       case OpIDENT  => ""
       
@@ -174,7 +173,8 @@ abstract class BaseJournalReader extends JournalReader {
     case NameUNKNOWN => "$$$$UNKNOWN$$$$"
   }
   
-  def parseLitDesc[D<:Data](litdesc: LitDesc[D]): String = litdesc.litMap match {
+  def parseLitDesc[D<:Data](litdesc: LitDesc[D]): String = parseLitMap(litdesc.litMap)
+  def parseLitMap[D<:Data](litmap: LitMap[D]): String = litmap match {
     case BoolLitMap(value) => HL.RED + (if(value) "UBits(1,1)/*true*/)" else "UBits(0,1)/*false*/") + HL.RESET
     case UIntLitMap(value, width) => {
       val w = width.map(_.toString).getOrElse("?")
@@ -183,6 +183,9 @@ abstract class BaseJournalReader extends JournalReader {
     case SIntLitMap(value, width) => {
       val w = width.map(_.toString).getOrElse("?")
       s"${HL.RED}SBits($value, $w)${HL.RESET}"
+    }
+    case VecLitMap(elemmaps) => {
+      "{"+ elemmaps.map(emap=>parseLitMap(emap)).mkString(",") + "}"
     }
   }
 }

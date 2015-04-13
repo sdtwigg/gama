@@ -17,6 +17,7 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   
   private[this] val mutableElemType: D = initialModel.copy
   def elemType: D = mutableElemType.copy
+  // TODO: BETTER DEFINE WHAT elemType is
   protected[gama] val elements: immutable.IndexedSeq[D] = Vector.fill(length)(elemType)
 
   protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type = {
@@ -32,17 +33,7 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   implicit protected val eltmuxer: SelfMuxable[D] = implicitly[Vectorizable[D]].muxer
   def :=[From<:Data](source: Vec[From])(implicit em: EnclosingModule, writer: ConnectTo[Vec[D],Vec[From]]) = writer.connect(Sink(this), Source(source), em)
 
-  // Until Synthesized, elemType (clones) 'hide' all access to elements (see lookup)
-  def lookup(index: Int): D = {
-    // TODO: OBSCURATION MAY BE UNNECESSARY AND WRONG
-    nodes.headOption.getOrElse(mutableElemType) match {
-      case _: SPEC => {
-        if(index>length) throw new java.lang.IndexOutOfBoundsException(index.toString)
-        elemType
-      }
-      case _: Synthesizable => (elements(index))
-    }
-  }
+  def lookup(index: Int): D = elements(index)
   def apply(index: Int): D = lookup(index)
 
   def lookupIsConnectable(selector: UIntLike): Boolean = {

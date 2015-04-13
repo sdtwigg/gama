@@ -171,6 +171,15 @@ trait Nested2 extends Nested {
   val myCVec = Reg(Vec(2,new MyChildBundle))
   myPVec := myCVec
   myCVec := myPVec // these work as designed, somewhat unfortunately
+
+  val freeLitVec = LitVec.U(0,1,2,3,4,5)
+  val enclLitVec = AsHWConstant(LitVec.U(Seq(10,11,12,13,14,15)))
+
+  val muxLitVec = Mux(bool, freeLitVec, enclLitVec)
+  val lituint1a = AsHWConstant(freeLitVec(1))
+  val lituint2a = AsHWConstant(enclLitVec(2))
+  val lituint1b = freeLitVec(uint)
+  val lituint2b = enclLitVec(uint)
 }
 
 @module class ExampleModule protected () extends Module(new ExampleIO) {

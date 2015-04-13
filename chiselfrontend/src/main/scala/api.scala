@@ -15,6 +15,7 @@ package object api
   object U extends LitUIntObjectImpl
   object S extends LitSIntObjectImpl
   object B extends LitBoolObjectImpl
+  object LitVec extends LitVecObjectImpl
   
   implicit class addUStoScalaInt(val target: Int) extends AnyVal {
     def U = api.U(target)
