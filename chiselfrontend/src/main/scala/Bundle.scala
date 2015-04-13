@@ -4,15 +4,16 @@ import internal._
 trait BundleReflection extends BundleReflectionImpl {self: HardwareTuple =>}
 
 object Bundle {
-  implicit object basicfunctionality extends ConnectSelf.ConnectSelfImpl[Bundle] {
-    def verifyConnectSelf(sink: Sink[Bundle], source: Source[Bundle]): Unit = {
+  implicit object basicfunctionality extends ConnectTo.ConnectToImpl[Bundle,Bundle] {
+    def verifyConnect(sink: Sink[Bundle], source: Source[Bundle]): Unit = {
       //TODO: actual checks here...
       // Likely will need to do some sort of matching
     }
   }
 }
 abstract class Bundle extends HardwareTuple with BundleReflection {
-  def :=(source: Bundle)(implicit em: EnclosingModule) = ConnectSelf[Bundle].connectSelf(Sink(this), Source(source), em) 
+  def :=(source: Bundle)(implicit em: EnclosingModule) =
+    ConnectTo[Bundle,Bundle].connect(Sink(this), Source(source), em) 
 }
 
 case class ImproperBundleMuxException(tc: String, fc: String)
@@ -22,12 +23,6 @@ class BundleSelfMuxableImpl[B<:Bundle] extends SelfMuxable[B] {
     if(tc.getClass.isAssignableFrom(fc.getClass)) tc.copy else
     if(fc.getClass.isAssignableFrom(tc.getClass)) fc.copy else
       throw ImproperBundleMuxException(tc.getClass.getName, fc.getClass.getName)
-  }
-}
-
-class BundleConnectSelfImpl[B<:Bundle] extends ConnectSelf.ConnectSelfImpl[B] {
-  def verifyConnectSelf(sink: Sink[B], source: Source[B]): Unit = {
-    Bundle.basicfunctionality.verifyConnectSelf(sink, source)
   }
 }
 

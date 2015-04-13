@@ -35,3 +35,8 @@ case class ConnectableAccessorNode(storage: NodeStore, em: EnclosingModule) exte
 case class NonConnectableAccessorNode(storage: NodeStore, em: EnclosingModule) extends NonConnectable with AccessorNode with EnclosedNode
 // Theoretically, could have a UnenclosedAccessorNode; however, unlikely and so will ignore for now
 //   as for similar reasons could have UnenclosedOpNodes
+
+sealed trait ExtractorNode extends Synthesizable
+case class ConnectableExtractorNode(storage: NodeStore, em: EnclosingModule) extends Connectable with ExtractorNode
+case class NonConnectableExtractorNode(storage: NodeStore, em: EnclosingModule) extends NonConnectable with ExtractorNode with EnclosedNode
+// Is there really a difference between extracting and accessing???

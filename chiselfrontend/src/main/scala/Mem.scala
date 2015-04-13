@@ -1,14 +1,13 @@
 package gama
 import internal._
 
-@annotation.implicitNotFound("""Cannot create Mem[${D}]. 
-Most common reason is that no self-connect operation (ConnectSelf[${D}]) available""")
-trait Storable[D<:Data] { def writer: ConnectSelf[D] }
+@annotation.implicitNotFound("""Cannot create Storable[${D}] for Mem[${D}]. 
+Most common reason is that no self-connect operation (ConnectTo[${D},${D}]) available and thus the memory would not be writable""")
+trait Storable[D<:Data] { def writer: ConnectTo[D,D] }
 // Only reason Storable trait exists is so that failing to create a Vec gives a specialized error message
 object Storable {
-  implicit def storer[D<:Data: ConnectSelf]: Storable[D] = new Storable[D] {val writer = implicitly[ConnectSelf[D]]}
-} // TODO: REMOVE DEPEDENCY ON SELFMUXABLE?
-// TODO: IS THIS EVEN REQUIRED AS CAN STRAIGHT COPY MODEL IN MEM?
+  implicit def storer[D<:Data](implicit ev: ConnectTo[D,D]): Storable[D] = new Storable[D] {val writer = implicitly[ConnectTo[D,D]]}
+}
 
 object Mem {
   def apply[D<:Data: Storable](model: D, depth: Int)(implicit em: EnclosingModule): Mem[D] = {
@@ -31,9 +30,9 @@ final class Mem[D<:Data: Storable] private (model: D, val depth: Int, protected[
   def propogateName(newname: NameTree, newsource: NameSource): Unit = {} 
 
   // external API
-  def write(addr: UIntLike, source: D)(implicit acc_em: EnclosingModule): Unit = {
+  def write[From<:Data](addr: UIntLike, source: From)(implicit acc_em: EnclosingModule, writer: ConnectTo[D, From]): Unit = {
     if(acc_em != em) { throw CrossedMemoryAccessException(acc_em, em) }
     val accessor = makeAccessor(addr, em)
-    implicitly[Storable[D]].writer.connectSelf(Sink(accessor), Source(source), em)
+    writer.connect(Sink(accessor), Source(source), em)
   }
 }

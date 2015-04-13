@@ -142,6 +142,37 @@ trait Nested2 extends Nested {
   myMem.write(False, myreg)
 }
 
+@module class ConnectModule extends Module(new DecoupledExample) {
+  val uint = Reg(UInt())
+  val sint = Reg(SInt())
+  val bool = Reg(Bool())
+  uint := uint
+  sint := sint
+  bool := bool
+  
+  val uintVec = Reg(Vec(2,UInt()))
+  val sintVec = Reg(Vec(2,SInt()))
+  val boolVec = Reg(Vec(2,Bool()))
+
+  uintVec := uintVec
+  sintVec := sintVec
+  boolVec := boolVec
+
+  sintVec := uintVec
+  uintVec := sintVec
+  sintVec := boolVec
+  uintVec := boolVec
+  
+  // These do not compile, as desired
+  //boolVec := uintVec
+  //boolVec := sintVec
+
+  val myPVec = Reg(Vec(2,new MyBundle))
+  val myCVec = Reg(Vec(2,new MyChildBundle))
+  myPVec := myCVec
+  myCVec := myPVec // these work as designed, somewhat unfortunately
+}
+
 @module class ExampleModule protected () extends Module(new ExampleIO) {
   val data_width = 32
   val vec_length = 4
@@ -191,6 +222,7 @@ trait Nested2 extends Nested {
   val myInnerModule = Module(new InnerModule)
   val myOtherModule = Module(new OtherModule)
   val myMemModule = Module(new MemModule)
+  val myConnectModule = Module(new ConnectModule)
 
   myInnerModule.io.in1 := test
   test := myInnerModule.io.out

@@ -30,7 +30,7 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   def nodes = elements.flatMap(_.nodes)
 
   implicit protected val eltmuxer: SelfMuxable[D] = implicitly[Vectorizable[D]].muxer
-  def :=(source: Vec[D])(implicit eltxfer: ConnectSelf[D], em: EnclosingModule) = ConnectSelf[Vec[D]].connectSelf(Sink(this), Source(source), em)
+  def :=[From<:Data](source: Vec[From])(implicit em: EnclosingModule, writer: ConnectTo[Vec[D],Vec[From]]) = writer.connect(Sink(this), Source(source), em)
 
   // Until Synthesized, elemType (clones) 'hide' all access to elements (see lookup)
   def lookup(index: Int): D = {
@@ -77,8 +77,8 @@ trait VecObjectImpl {
       Vec(tc.elements.length, implicitly[SelfMuxable[D]].muxRetVal(tc.elemType, fc.elemType))
     }
   }
-  implicit def connectSelf[D<:Data: ConnectSelf]: ConnectSelf[Vec[D]] = new ConnectSelf.ConnectSelfImpl[Vec[D]] {
-    def verifyConnectSelf(sink: Sink[Vec[D]], source: Source[Vec[D]]) = {
+  implicit def connectTo[To<:Data,From<:Data](implicit eltconnect: ConnectTo[To,From]): ConnectTo[Vec[To],Vec[From]] = new ConnectTo.ConnectToImpl[Vec[To],Vec[From]] {
+    def verifyConnect(sink: Sink[Vec[To]], source: Source[Vec[From]]) = {
       require(source.data.elements.length==sink.data.elements.length, "Cannot assign to/from two vectors of different length")
       // TODO: VERIFY SUBELEMENTS CONNECTION?
       // := already grabs the associated element-level ConnectSelf

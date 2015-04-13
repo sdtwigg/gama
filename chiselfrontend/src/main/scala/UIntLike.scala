@@ -2,7 +2,7 @@ package gama
 import internal._
 
 object UIntLike {
-  implicit object basicfunctionality extends SelfMuxable[UIntLike] with Element.ConnectSelfImpl[UIntLike] {
+  implicit object basicfunctionality extends SelfMuxable[UIntLike] {
     def muxRetVal(tc: UIntLike, fc: UIntLike) = UInt()
   }
 }

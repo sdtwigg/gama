@@ -6,13 +6,14 @@ object SInt {
   def apply(width: Int): SInt = apply(Some(width))
   def apply(width: Option[Int]) = new SInt(new SPEC(SBits(width), None))
 
-  implicit object basicfunctionality extends SelfMuxable[SInt] with Element.ConnectSelfImpl[SInt] {
+  implicit object basicfunctionality extends SelfMuxable[SInt] with Element.ConnectToImpl[SInt,BaseElem] {
     def muxRetVal(tc: SInt, fc: SInt): SInt = SInt()
   }
 }
 final class SInt(initialNode: Node) extends BaseElem(initialNode) {
   // GENERAL ELEMENT REQUIREMENTS
-  def :=(source: SInt)(implicit em: EnclosingModule) = ConnectSelf[SInt].connectSelf(Sink(this), Source(source), em)
+  def :=(source: BaseElem)(implicit em: EnclosingModule): Unit =
+    ConnectTo[SInt,BaseElem].connect(Sink(this), Source(source), em)
   def copy = new SInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
   // IMPLEMENT EQUALITY AND OTHER COMPARISONS
