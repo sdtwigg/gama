@@ -65,6 +65,8 @@ abstract class BaseJournalReader extends JournalReader {
         s"${HL.CYAN}reg${HL.RESET}   ${emitRefType(regdesc.retVal)}"
       case CreateAccessor(accdesc) =>
         s"${HL.CYAN}acc${HL.RESET}   ${emitRefType(accdesc.retVal)} = ${emitAccDesc(accdesc)}"
+      case CreateExtract(extdesc) =>
+        s"${HL.CYAN}extr${HL.RESET}  ${emitRefType(extdesc.retVal)} = ${emitExtDesc(extdesc)}"
       case CreateMem(mem) =>
         s"${HL.CYAN}mem${HL.RESET}   ${emitMemDetails(mem)}"
       case CreateModule(module) =>
@@ -108,7 +110,6 @@ abstract class BaseJournalReader extends JournalReader {
   def emitOpDesc(op: OpDesc): String = op match {
     case UnaryOpDesc(op, input, _,_)          => emitUnaryOp(op, input)
     case BinaryOpDesc(op, (left, right), _,_) => emitBinaryOp(op, left, right)
-    case ExtractOpDesc(input, lp, rp, _,_)    => (s"${emitRef(input)}(${lp}, ${rp})")
     case MuxDesc(cond, tc, fc, _,_)           => (s"((${emitRef(cond)}) ? (${emitRef(tc)}) : (${emitRef(fc)}))")
   }
 
@@ -154,6 +155,8 @@ abstract class BaseJournalReader extends JournalReader {
     }
   }
   
+  def emitExtDesc(extdesc: ExtractDesc): String =
+    s"${emitRef(extdesc.base)}(${extdesc.left_pos},${extdesc.right_pos})"
   def emitAccDesc(accdesc: AccessorDesc[_<:Data]): String =
     s"${emitAccessibleRef(accdesc.accRef)}(${emitRef(accdesc.selector)})"
   def emitAccessibleRef(acc: Accessible[_<:Data]): String = acc match {

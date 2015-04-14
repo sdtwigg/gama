@@ -31,22 +31,6 @@ object UnaryOp {
   }
 }
 
-object ExtractOp {
-  def Bool(input: Element, position: Int, em: EnclosingModule): Bool = {
-    NodeCheck.assertSynthesizable(input)
-    Desc.generate(new Bool(OpNode(UBits(Some(1)),em)))(rv =>
-      ExtractOpDesc(input, position, position, rv, em)
-    )
-  }
-
-  def UInt(input: Element, left_pos: Int, right_pos: Int, em: EnclosingModule): UInt = {
-    NodeCheck.assertSynthesizable(input)
-    Desc.generate(new UInt(OpNode(UBits(Some(math.abs(left_pos-right_pos))),em)))(rv =>
-      ExtractOpDesc(input, left_pos, right_pos, rv, em)
-    )
-  }
-}
-
 object BinaryOp {
   def UInt(op: OpIdBinary, inputs: Tuple2[Element,Element], em: EnclosingModule): UInt = {
     NodeCheck.assertSynthesizable(inputs._1)

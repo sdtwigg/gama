@@ -49,6 +49,13 @@ case class NonConnectableAccessorSpell(em: EnclosingModule) extends NodeSpell[No
   def apply(in: SPEC) = NonConnectableAccessorNode(in.storage, em)
 }
 
+case class ConnectableExtractedSpell(em: EnclosingModule) extends NodeSpell[ConnectableExtractedNode] {
+  def apply(in: SPEC) = ConnectableExtractedNode(in.storage, em)
+}
+case class NonConnectableExtractedSpell(em: EnclosingModule) extends NodeSpell[NonConnectableExtractedNode] {
+  def apply(in: SPEC) = NonConnectableExtractedNode(in.storage, em)
+}
+
 case class OpCopySpell(em: EnclosingModule) extends NodeSpell[OpNode] {
   // Don't expect to use this
   def apply(in: SPEC) = OpNode(in.storage, em)

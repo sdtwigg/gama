@@ -182,6 +182,25 @@ trait Nested2 extends Nested {
   val lituint2b = enclLitVec(uint)
 }
 
+@module class ExtractModule extends Module(new DecoupledExample) {
+  val uintWire = Wire(UInt())
+  uintWire(1) := True
+  val vecReg = Reg(Vec(4,UInt()))
+  vecReg(0.U)(3,0) := 4.U
+  vecReg(1)(3,0) := (uintWire + 1.U).extract(3,0)
+  val uintOp = uintWire + uintWire
+  //uintOp(1) := True // throws exception, as desired
+
+  val myMem = Mem(UInt(), 16)
+  myMem(0.U)(15,0) := 0.U // not sure if this should be allowed
+
+  val myB = Reg(new MyBundle)
+  myB.a(4,3) := myB.b(0).asSInt
+
+  // this should probably get folded somehow? if possible
+  uintWire(15,0)(7,4)(0) := False
+}
+
 @module class ExampleModule protected () extends Module(new ExampleIO) {
   val data_width = 32
   val vec_length = 4
@@ -228,10 +247,11 @@ trait Nested2 extends Nested {
   val added = uint1 + uint2
   test := added
   
-  val myInnerModule = Module(new InnerModule)
-  val myOtherModule = Module(new OtherModule)
-  val myMemModule = Module(new MemModule)
+  val myInnerModule   = Module(new InnerModule)
+  val myOtherModule   = Module(new OtherModule)
+  val myMemModule     = Module(new MemModule)
   val myConnectModule = Module(new ConnectModule)
+  val myExtractModule = Module(new ExtractModule)
 
   myInnerModule.io.in1 := test
   test := myInnerModule.io.out

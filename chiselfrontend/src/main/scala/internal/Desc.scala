@@ -44,10 +44,6 @@ case class UnaryOpDesc(
   op: OpIdUnary, input: Data,
   retVal: Data, em: EnclosingModule
 ) extends OpDesc
-case class ExtractOpDesc(
-  input: Element, left_pos: Int, right_pos: Int,
-  retVal: Element, em: EnclosingModule
-) extends OpDesc
 case class BinaryOpDesc(
   op: OpIdBinary, inputs: Tuple2[Element,Element],
   retVal: Element, em: EnclosingModule
@@ -56,6 +52,11 @@ case class MuxDesc[T<:Data](
   cond: Bool, tc: T, fc: T,
   retVal: T, em: EnclosingModule
 ) extends OpDesc
+
+case class ExtractDesc(
+  base: Element, left_pos: Int, right_pos: Int,
+  retVal: Element, em: EnclosingModule
+) extends Desc with ExtractDescImpl with EnclosedDesc
 
 case class AccessorDesc[+T<:Data](
   accRef: Accessible[T], selector: UIntLike,

@@ -12,8 +12,9 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
     //   Take everything else, including entries with no name (which is problematic at this phase)
     def descFilter: Desc=>Boolean = desc => desc.retVal.nameSource.map(_ > NameFromMath).getOrElse(true)
     val filteredEntries: immutable.Seq[JournalEntry] = entries filter (entry => entry match {
-      case CreateOp(opdesc) => descFilter(opdesc)
+      case CreateOp(opdesc)        => descFilter(opdesc)
       case CreateAccessor(accdesc) => descFilter(accdesc)
+      case CreateExtract(extdesc)  => descFilter(extdesc)
       case other => true
     })
     if(filteredEntries.isEmpty) "{}"
@@ -35,6 +36,7 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
       case CreateWire(wiredesc)    => check(wiredesc.retVal,"W")
       case CreateReg(regdesc)      => check(regdesc.retVal,"R")
       case CreateAccessor(accdesc) => None // fold later
+      case CreateExtract(extdesc)  => None // fold later
       case CreateMem(mem)          => check(mem, "mem")
       case CreateModule(module)    => check(module, "M")
       case AddExecBlock(_)    => None
@@ -54,6 +56,9 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
       }
       case CreateAccessor(accdesc) if(accdesc.retVal.name.isEmpty) => {
         accdesc.retVal.checkedSetName(NameTerm(emitAccDesc(accdesc)), NameFromMath, true)
+      }
+      case CreateExtract(extdesc) if(extdesc.retVal.name.isEmpty) => {
+        extdesc.retVal.checkedSetName(NameTerm(emitExtDesc(extdesc)), NameFromMath, true)
       }
       case _ =>
     })

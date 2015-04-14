@@ -8,6 +8,7 @@ case class CreateOp(opdesc: OpDesc) extends JournalEntry
 case class CreateWire(wiredesc: WireDesc[_<:Data]) extends JournalEntry
 case class CreateReg(regdesc: RegDesc[_<:Data]) extends JournalEntry
 case class CreateAccessor(accdesc: AccessorDesc[_<:Data]) extends JournalEntry
+case class CreateExtract(extdesc: ExtractDesc) extends JournalEntry
 case class CreateMem(mem: Mem[_<:Data]) extends JournalEntry
 case class CreateModule(module: Module[_<:Data]) extends JournalEntry
 case class AddExecBlock(code: Journal) extends JournalEntry

@@ -1,7 +1,7 @@
 package gama
 import internal._
 
-abstract class BaseElem(initialNode: Node) extends Element(initialNode) {
+abstract class BaseElem(initialNode: Node) extends Element(initialNode) with ExtractableImpl{
   // Helper operations used internally and possibly externally
   def getWidth: Option[Int] = this.node.storage match {
     case b: RawBits => (b.width)
@@ -9,8 +9,8 @@ abstract class BaseElem(initialNode: Node) extends Element(initialNode) {
   }
 
   // pseudo-UNARY OPERATIONS
-  def extract(position: Int)(implicit em: EnclosingModule): Bool = ExtractOp.Bool(this, position, em)
-  def extract(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = ExtractOp.UInt(this, left_pos, right_pos, em)
+  def extract(position: Int)(implicit em: EnclosingModule): Bool = doExtract(position, em)
+  def extract(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = doExtract(left_pos, right_pos, em)
 
   def apply(position: Int, em: EnclosingModule): Bool = extract(position)(em)
   def apply(left_pos: Int, right_pos: Int, em: EnclosingModule): UInt = extract(left_pos, right_pos)(em)
