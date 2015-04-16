@@ -28,7 +28,6 @@ object NodeCheck {
     }
   }
   
-
   val assertSynthesizable: DataCheck =
     assertNodeBuilder({case syn: Synthesizable => (true)}, ExpectedNodeException.partial("Synthesizable"))
   

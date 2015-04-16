@@ -39,7 +39,7 @@ object testmain {
   val out =         Decoupled(new MyBundle)
 }
 
-@bundle @probe class MyChildBundle extends MyBundle {
+@bundle class MyChildBundle extends MyBundle {
   var unstable = 5
   val stable = 7
   def bleh = c
@@ -103,7 +103,7 @@ trait Nested2 extends Nested {
   val orR  = uint.orR
   val xorR = uint.xorR
 }
-@module @probe class OtherModule extends Module(new DecoupledExample) {
+@module class OtherModule extends Module(new DecoupledExample) {
   val uint = Reg(UInt(2))
 
   val myBundle = Wire(new MyBundle)
@@ -201,6 +201,25 @@ trait Nested2 extends Nested {
   uintWire(15,0)(7,4)(0) := False
 }
 
+@module class CopyModule extends Module(new Bundle with Anon {
+  
+  val t1_in_uint  = Input( UInt()).copy
+  val t1_out_uint = Output(UInt()).copy
+
+  val t2_in_vecuint  = Vec(4, Input( UInt()) )
+  val t2_out_vecuint = Vec(4, Output(UInt()) )
+
+  val t3_bundle1 = Decoupled(UInt())
+  val t3_bundle2 = Flipped(Decoupled(UInt()))
+  val t3_bundle3 = t3_bundle2.copy
+
+  val t4_vecvec1 = Vec(4, Vec(4, Input(new MyBundle())))
+  val t4_vecvec2 = Vec(4, Decoupled(Vec(4, new MyBundle)))
+  val t4_vecvec3 = t4_vecvec2.copy.copy.copy
+}) {
+  io.t2_out_vecuint(1) := io.t2_in_vecuint(0)
+}
+
 @module class ExampleModule protected () extends Module(new ExampleIO) {
   val data_width = 32
   val vec_length = 4
@@ -252,6 +271,7 @@ trait Nested2 extends Nested {
   val myMemModule     = Module(new MemModule)
   val myConnectModule = Module(new ConnectModule)
   val myExtractModule = Module(new ExtractModule)
+  val mCopyModule     = Module(new CopyModule)
 
   myInnerModule.io.in1 := test
   test := myInnerModule.io.out

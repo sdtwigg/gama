@@ -27,9 +27,9 @@ class BundleSelfMuxableImpl[B<:Bundle] extends SelfMuxable[B] {
 }
 
 case class NeedCopyMethodException(containerType: String)
-  extends ChiselException(s"AnonBundle ${containerType} needs an explicit copy method")
+  extends ChiselException(s"AnonBundle ${containerType} needs an explicit simplecopy method")
 trait Anon {
-  self: HardwareTuple =>
+  self: HardwareTuple with SimpleCopy =>
 
-  def copy: this.type = throw NeedCopyMethodException(this.getClass.getName)
+  def simplecopy: this.type = throw NeedCopyMethodException(this.getClass.getName)
 }

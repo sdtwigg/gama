@@ -102,10 +102,10 @@ protected[gama] object macroAnno {
       case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
         if(mods.hasFlag(ABSTRACT)) { c.abort(c.enclosingPosition, "@bundle annotation can only be used on concrete classes") }
         val termparamss = paramss.map(a=>a.map(b=>getTermName(b)))
-        val myclone = q"override def copy: this.type = (new $tpname(...$termparamss)).asInstanceOf[this.type]"
+        val mysimplecopy = q"override def simplecopy: this.type = (new $tpname(...$termparamss)).asInstanceOf[this.type]"
         val newbody = stats ++ Seq(
           if(getNoArgDefs(stats).contains("copy")) q""
-          else q"override def copy: this.type = (new $tpname(...$termparamss)).asInstanceOf[this.type]"
+          else mysimplecopy 
         )
         q"""
           $mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents {

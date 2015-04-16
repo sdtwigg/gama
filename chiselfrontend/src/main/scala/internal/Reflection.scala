@@ -16,7 +16,7 @@ case class NoDataFoundException(containerType: String)
 trait BundleReflectionImpl {
   self: HardwareTuple =>
 
-  protected[gama] lazy val subfields: Seq[Tuple2[String, Data]] = {
+  lazy val subfields: Map[String, Data] = {
     import scala.reflect.runtime.{universe=>ru}
     import Reflection._
 
@@ -35,7 +35,7 @@ trait BundleReflectionImpl {
     
     val result = dataGetters.map(dataGetter =>
       (dataGetter.name.toString, myMirror.reflectMethod(dataGetter).apply().asInstanceOf[Data])
-    ).sortBy(_._1)
+    ).toMap
     if(result.isEmpty) {throw NoDataFoundException(this.getClass.getName)}
     result
   }

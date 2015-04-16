@@ -15,3 +15,7 @@ object TraversalException {
 
 case class DesignLostException(lostLink: String)
   extends ChiselException(s"Parts of elaborated design Lost to Time and Space, likely due to garbase collection. Link lost at $lostLink. Consult developers guide for details.")
+
+case object StructuralMimicException
+  extends ChiselException(s"Internal mimic failure: Target could not mimic model due to structural discrepancies. (e.g. A Vec of differing lengths, Different HardwareTuple subfields or the same sufield referring to a different datatype in the copy compared to the original.)")
+  // TODO: Better stack trace for this error

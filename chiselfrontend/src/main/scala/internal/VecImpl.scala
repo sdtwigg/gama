@@ -15,17 +15,27 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   // D must be invariant because of assignment (:=), amongst other reasons
   // TODO: INDEXED SEQ MAY BE SUBTLY INCORRECT
   
-  private[this] val mutableElemType: D = initialModel.copy
-  def elemType: D = mutableElemType.copy
+  protected[gama] val elemType: D = initialModel.copy
   // TODO: BETTER DEFINE WHAT elemType is
-  protected[gama] val elements: immutable.IndexedSeq[D] = Vector.fill(length)(elemType)
+  protected[gama] val elements: immutable.IndexedSeq[D] = Vector.fill(length)(elemType.copy)
 
+  private def enforceElementConsistency(): Unit = {
+    elements.foreach(elem => elem.mimic(elemType, asSPEC=false))
+      // false b/c exact mimic required: respective nodes of elements should all be completely identical
+  }
   protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type = {
-    mutableElemType.rebind(xform)
-    elements.foreach(elem => elem.rebind(xform))
-    // TODO: VERIFY ALL VEC ELEMENTS STILL IDENTICAL to elemType
-    // Should be sufficient to check NodeStorage equality and perhaps node type
+    elemType.rebind(xform)
+    enforceElementConsistency()
     this
+  }
+  protected[gama] def mimic(model: Data, asSPEC: Boolean): Unit = {
+    model match {
+      case v: Vec[_] => {
+        elemType.mimic(v.elemType, asSPEC)
+        enforceElementConsistency()
+      }
+      case _ => throw StructuralMimicException
+    }
   }
 
   def nodes = elements.flatMap(_.nodes)
@@ -37,7 +47,7 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   def apply(index: Int): D = lookup(index)
 
   def lookupIsConnectable(selector: UIntLike): Boolean = {
-    nodes.headOption.getOrElse(mutableElemType) match {
+    nodes.headOption.getOrElse(elemType) match {
       case _: SPEC => {throw ExpectedNodeException("Synthesizable","SPEC")}
       case _: Connectable => {NodeCheck.assertConnectable(this); true}
       case _: NonConnectable => {NodeCheck.assertNonConnectable(this); false}

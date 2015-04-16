@@ -12,6 +12,15 @@ abstract class ElementImpl(initialNode: Node) { // MUTABLE STATE: node
     if(!node.isInstanceOf[SPEC]) {throw ImproperElementRebindException}
     _node = that
   }
+  protected[gama] def mimic(model: Data, asSPEC: Boolean): Unit = {
+    model match {
+      case e: Element => {node =
+        if(asSPEC) SPEC(e.node.storage, e.node.resolveDirection)
+        else e.node
+      }
+      case _ => throw StructuralMimicException
+    }
+  }
 
   def nodes = Seq(node)
 

@@ -12,6 +12,8 @@ sealed trait NodeSpell[+Out<:Node] {
   }
 }
 
+// These are all meant to be used to internal adjust a node to conform to some property
+//   like, become a Reg, adjust direction, etc.
 object DirectionSpells {
   import DirectionIO._
   case object SetInput extends NodeSpell[SPEC] {

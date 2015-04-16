@@ -10,9 +10,16 @@ final class Decoupled[+T<:Data] private (model: T) extends HardwareTuple with Bu
   val ready =  Input(Bool())
   def fire(implicit em: EnclosingModule): Bool = valid && ready
 
-  def copy: this.type = new Decoupled(model).asInstanceOf[this.type]
+  def simplecopy: this.type = new Decoupled(model).asInstanceOf[this.type]
 }
 object Decoupled {
   def apply[T<:Data](model: T): Decoupled[T] = new Decoupled(model)
+ 
+  import gama.internal._
+  implicit def selfMuxer[D<:Data: SelfMuxable]: SelfMuxable[Decoupled[D]] = new SelfMuxable[Decoupled[D]] {
+    def muxRetVal(tc: Decoupled[D], fc: Decoupled[D]) = {
+      Decoupled(implicitly[SelfMuxable[D]].muxRetVal(tc.bits, fc.bits))
+    }
+  }
 }
 

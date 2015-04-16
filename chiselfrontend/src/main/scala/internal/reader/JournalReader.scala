@@ -89,7 +89,7 @@ abstract class BaseJournalReader extends JournalReader {
     case vec: Vec[_]   => (s"${emitType(vec.elemType)}[${vec.size}]")
     case hwt: HardwareTuple =>
       "{" +
-      (hwt.subfields map({case (sf: String, elem: Data) => s"${sf}: ${emitType(elem)}"}) mkString(", ")) +
+      (hwt.subfields_ordered map({case (sf: String, elem: Data) => s"${sf}: ${emitType(elem)}"}) mkString(", ")) +
       "}"
   }
   def emitIODirection(elem: Element): String = elem.node match {
