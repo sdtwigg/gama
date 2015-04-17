@@ -214,7 +214,7 @@ trait Nested2 extends Nested {
   val t3_bundle3 = t3_bundle2.copy
 
   val t4_vecvec1 = Vec(4, Vec(4, Input(new MyBundle())))
-  val t4_vecvec2 = Vec(4, Decoupled(Vec(4, new MyBundle)))
+  val t4_vecvec2 = Vec(4, Decoupled(Vec(4, new MyBundle).copy))
   val t4_vecvec3 = t4_vecvec2.copy.copy.copy
 }) {
   io.t2_out_vecuint(1) := io.t2_in_vecuint(0)
