@@ -199,6 +199,8 @@ trait Nested2 extends Nested {
 
   // this should probably get folded somehow? if possible
   uintWire(15,0)(7,4)(0) := False
+
+  val test1 = -Wire(UInt())
 }
 
 @module class CopyModule extends Module(new Bundle with Anon {
@@ -296,7 +298,7 @@ trait Nested2 extends Nested {
   Reg(UInt()) := test + Reg(UInt())
 
   val myBool = Wire(Bool())
-  val myBReg  = Reg(Bool()) := myBool && True || myBool || myBool ^ !myBool 
+  val myBReg  = Reg(Bool()) := myBool && True || myBool || myBool ^^ !myBool 
  
   val switchReg = Reg(UInt())
   switch(switchReg)(Seq(

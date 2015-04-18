@@ -33,6 +33,7 @@ case object OpXor   extends OpIdBinary
 case object OpPadTo extends OpIdBinary
 case object OpCat   extends OpIdBinary
 case object OpLShft extends OpIdBinary
+case object OpRShft extends OpIdBinary
 // Comparison
 case object OpEqual extends OpIdBinary
 case object OpNotEq extends OpIdBinary

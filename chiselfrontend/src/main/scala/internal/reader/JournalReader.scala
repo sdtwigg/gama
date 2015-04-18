@@ -145,6 +145,7 @@ abstract class BaseJournalReader extends JournalReader {
       case OpPadTo => postfix("pad")
       case OpCat   => infix("##")
       case OpLShft => infix("<<")
+      case OpRShft => infix(">>")
       
       case OpEqual => infix("===")
       case OpNotEq => infix("!==")

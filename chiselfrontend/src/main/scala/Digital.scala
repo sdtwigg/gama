@@ -30,6 +30,7 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   // ABSTRACT OPERATIONS
   def pad(that: Digital)(implicit em: EnclosingModule): Digital
   def  <<(that: UInt)(implicit em: EnclosingModule): Digital
+  def  >>(that: UInt)(implicit em: EnclosingModule): Digital
   
   def toUInt(implicit em: EnclosingModule): UInt
   def toSInt(implicit em: EnclosingModule): SInt
@@ -38,6 +39,7 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   def asSInt(implicit em: EnclosingModule): SInt
   
   def unary_~(implicit em: EnclosingModule): Digital
+  def unary_-(implicit em: EnclosingModule): Digital
 
   // DISPATCHED OPERATIONS
   def +(that: Digital)(implicit em: EnclosingModule): Digital = that match {

@@ -20,12 +20,22 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def ===(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
   def !==(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpNotEq, (this, that), em)
   
+  def   <(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpLess,  (this, that), em)
+  def  <=(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpLeEq,  (this, that), em)
+  def   >(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpGrt,   (this, that), em)
+  def  >=(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpGrEq,  (this, that), em)
+  
+  def   &(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpAnd, (this, that), em)
+  def   |(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpOr,  (this, that), em)
+  def   ^(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpXor, (this, that), em)
+  
   // IMPLEMENT SIMPLE ABSTRACT OPERATIONS
   def andR(implicit em: EnclosingModule): Bool = this === api.S(-1)
-  def orR(implicit em: EnclosingModule): Bool  = this !== api.S(0)
+  def  orR(implicit em: EnclosingModule): Bool = this !== api.S(0)
   
   def pad(that: Digital)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPadTo,  (this, that), em)
   def  <<(that: UInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpLShft, (this, that), em)
+  def  >>(that: UInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpRShft, (this, that), em)
   
   def toUInt(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpToUInt, this, None, em)
   def toSInt(implicit em: EnclosingModule): SInt = UnaryOp.SInt(OpIDENT,  this, None, em)
@@ -33,7 +43,8 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def asUInt(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpAsUInt, this, getWidth, em)
   def asSInt(implicit em: EnclosingModule): SInt = UnaryOp.SInt(OpIDENT,  this, getWidth, em)
   
-  def unary_~(implicit em: EnclosingModule): SInt = UnaryOp.SInt(OpNot, this, this.getWidth, em)
+  def unary_~(implicit em: EnclosingModule): SInt = UnaryOp.SInt(OpNot,  this, this.getWidth, em)
+  def unary_-(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpSubt, (api.S(0),this), em)
 
   // IMPLEMENT OPERATIONS WITH SELF
   def +(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPlus, (this, that), em)
