@@ -6,14 +6,14 @@ object SInt {
   def apply(width: Int): SInt = apply(Some(width))
   def apply(width: Option[Int]) = new SInt(new SPEC(SBits(width), None))
 
-  implicit object basicfunctionality extends Muxable[SInt] with Element.ConnectToImpl[SInt,BaseElem] {
+  implicit object basicfunctionality extends Muxable[SInt] with Element.ConnectToImpl[SInt,Digital] {
     def muxRetVal(tc: SInt, fc: SInt): SInt = SInt()
   }
 }
-final class SInt(initialNode: Node) extends BaseElem(initialNode) {
+final class SInt(initialNode: Node) extends Digital(initialNode) {
   // GENERAL ELEMENT REQUIREMENTS
-  def :=(source: BaseElem)(implicit em: EnclosingModule): Unit =
-    ConnectTo[SInt,BaseElem].connect(Sink(this), Source(source), em)
+  def :=(source: Digital)(implicit em: EnclosingModule): Unit =
+    ConnectTo[SInt,Digital].connect(Sink(this), Source(source), em)
   def copy = new SInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
   // IMPLEMENT EQUALITY AND OTHER COMPARISONS
@@ -24,7 +24,7 @@ final class SInt(initialNode: Node) extends BaseElem(initialNode) {
   def andR(implicit em: EnclosingModule): Bool = this === api.S(-1)
   def orR(implicit em: EnclosingModule): Bool  = this !== api.S(0)
   
-  def pad(that: BaseElem)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPadTo,  (this, that), em)
+  def pad(that: Digital)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPadTo,  (this, that), em)
   def  <<(that: UInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpLShft, (this, that), em)
   
   def toUInt(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpToUInt, this, None, em)

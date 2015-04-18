@@ -6,7 +6,7 @@ object UIntLike {
     def muxRetVal(tc: UIntLike, fc: UIntLike) = UInt()
   }
 }
-abstract class UIntLike(initialNode: Node) extends BaseElem(initialNode) {
+abstract class UIntLike(initialNode: Node) extends Digital(initialNode) {
   // IMPLEMENT EQUALITY AND OTHER COMPARISONS
   def ===(that: UIntLike)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
   def !==(that: UIntLike)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpNotEq, (this, that), em)
@@ -23,7 +23,7 @@ abstract class UIntLike(initialNode: Node) extends BaseElem(initialNode) {
   def andR(implicit em: EnclosingModule): Bool = ~this === api.U(0)
   def orR(implicit em: EnclosingModule): Bool =   this !== api.U(0)
   
-  def pad(that: BaseElem)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpPadTo, (this, that), em)
+  def pad(that: Digital)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpPadTo, (this, that), em)
   def  <<(that: UInt)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpLShft, (this, that), em)
 
   def toUInt(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpIDENT,  this, None, em)

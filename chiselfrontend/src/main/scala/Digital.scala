@@ -1,11 +1,11 @@
 package gama
 import internal._
 
-abstract class BaseElem(initialNode: Node) extends Element(initialNode) with ExtractableImpl{
+abstract class Digital(initialNode: Node) extends Element(initialNode) with ExtractableImpl{
   // Helper operations used internally and possibly externally
   def getWidth: Option[Int] = this.node.storage match {
     case b: RawBits => (b.width)
-    case _ => throw new ChiselException("Catastrophic error: BaseElem bound to non-RawBits NodeStorage") {}
+    case _ => throw new ChiselException("Catastrophic error: Digital bound to non-RawBits NodeStorage") {}
   }
 
   // pseudo-UNARY OPERATIONS
@@ -21,15 +21,15 @@ abstract class BaseElem(initialNode: Node) extends Element(initialNode) with Ext
 
   // BINARY OPERATIONS
   // CONCRETE OPERATIONS
-  def  ##(that: BaseElem)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpCat, (this, that), em)
+  def  ##(that: Digital)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpCat, (this, that), em)
 
   def andR(implicit em: EnclosingModule): Bool
   def  orR(implicit em: EnclosingModule): Bool
   def xorR(implicit em: EnclosingModule): Bool = UnaryOp.Bool(OpXorRed, this, em)
 
   // ABSTRACT OPERATIONS
-  def pad(that: BaseElem)(implicit em: EnclosingModule): BaseElem
-  def  <<(that: UInt)(implicit em: EnclosingModule): BaseElem
+  def pad(that: Digital)(implicit em: EnclosingModule): Digital
+  def  <<(that: UInt)(implicit em: EnclosingModule): Digital
   
   def toUInt(implicit em: EnclosingModule): UInt
   def toSInt(implicit em: EnclosingModule): SInt
@@ -37,41 +37,41 @@ abstract class BaseElem(initialNode: Node) extends Element(initialNode) with Ext
   def asUInt(implicit em: EnclosingModule): UInt
   def asSInt(implicit em: EnclosingModule): SInt
   
-  def unary_~(implicit em: EnclosingModule): BaseElem
+  def unary_~(implicit em: EnclosingModule): Digital
 
   // DISPATCHED OPERATIONS
-  def +(that: BaseElem)(implicit em: EnclosingModule): BaseElem = that match {
+  def +(that: Digital)(implicit em: EnclosingModule): Digital = that match {
     case u: UIntLike => (this + u)
     case s: SInt     => (this + s)
   }
-  def -(that: BaseElem)(implicit em: EnclosingModule): BaseElem = that match {
+  def -(that: Digital)(implicit em: EnclosingModule): Digital = that match {
     case u: UIntLike => (this - u)
     case s: SInt     => (this - s)
   }
-  def *(that: BaseElem)(implicit em: EnclosingModule): BaseElem = that match {
+  def *(that: Digital)(implicit em: EnclosingModule): Digital = that match {
     case u: UIntLike => (this * u)
     case s: SInt     => (this * s)
   }
-  def /(that: BaseElem)(implicit em: EnclosingModule): BaseElem = that match {
+  def /(that: Digital)(implicit em: EnclosingModule): Digital = that match {
     case u: UIntLike => (this / u)
     case s: SInt     => (this / s)
   }
-  def %(that: BaseElem)(implicit em: EnclosingModule): BaseElem = that match {
+  def %(that: Digital)(implicit em: EnclosingModule): Digital = that match {
     case u: UIntLike => (this % u)
     case s: SInt     => (this % s)
   }
 
   // DISPATCH DEPENDENCIES
-  def +(that: UIntLike)(implicit em: EnclosingModule): BaseElem
-  def -(that: UIntLike)(implicit em: EnclosingModule): BaseElem
-  def *(that: UIntLike)(implicit em: EnclosingModule): BaseElem
-  def /(that: UIntLike)(implicit em: EnclosingModule): BaseElem
-  def %(that: UIntLike)(implicit em: EnclosingModule): BaseElem
+  def +(that: UIntLike)(implicit em: EnclosingModule): Digital
+  def -(that: UIntLike)(implicit em: EnclosingModule): Digital
+  def *(that: UIntLike)(implicit em: EnclosingModule): Digital
+  def /(that: UIntLike)(implicit em: EnclosingModule): Digital
+  def %(that: UIntLike)(implicit em: EnclosingModule): Digital
 
-  def +(that: SInt    )(implicit em: EnclosingModule): BaseElem
-  def -(that: SInt    )(implicit em: EnclosingModule): BaseElem
-  def *(that: SInt    )(implicit em: EnclosingModule): BaseElem
-  def /(that: SInt    )(implicit em: EnclosingModule): BaseElem
-  def %(that: SInt    )(implicit em: EnclosingModule): BaseElem
+  def +(that: SInt    )(implicit em: EnclosingModule): Digital
+  def -(that: SInt    )(implicit em: EnclosingModule): Digital
+  def *(that: SInt    )(implicit em: EnclosingModule): Digital
+  def /(that: SInt    )(implicit em: EnclosingModule): Digital
+  def %(that: SInt    )(implicit em: EnclosingModule): Digital
 }
 
