@@ -6,7 +6,7 @@ object SInt {
   def apply(width: Int): SInt = apply(Some(width))
   def apply(width: Option[Int]) = new SInt(new SPEC(SBits(width), None))
 
-  implicit object basicfunctionality extends SelfMuxable[SInt] with Element.ConnectToImpl[SInt,BaseElem] {
+  implicit object basicfunctionality extends Muxable[SInt] with Element.ConnectToImpl[SInt,BaseElem] {
     def muxRetVal(tc: SInt, fc: SInt): SInt = SInt()
   }
 }

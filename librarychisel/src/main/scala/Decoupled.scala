@@ -16,9 +16,9 @@ object Decoupled {
   def apply[T<:Data](model: T): Decoupled[T] = new Decoupled(model)
  
   import gama.internal._
-  implicit def selfMuxer[D<:Data: SelfMuxable]: SelfMuxable[Decoupled[D]] = new SelfMuxable[Decoupled[D]] {
+  implicit def selfMuxer[D<:Data: Muxable]: Muxable[Decoupled[D]] = new Muxable[Decoupled[D]] {
     def muxRetVal(tc: Decoupled[D], fc: Decoupled[D]) = {
-      Decoupled(implicitly[SelfMuxable[D]].muxRetVal(tc.bits, fc.bits))
+      Decoupled(implicitly[Muxable[D]].muxRetVal(tc.bits, fc.bits))
     }
   }
 }

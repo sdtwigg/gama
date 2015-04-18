@@ -2,7 +2,7 @@ package gama
 package internal
 
 @annotation.implicitNotFound("Cannot create Mux for type ${D}")
-trait SelfMuxable[D<:Data] {
+trait Muxable[D<:Data] {
   def muxRetVal(tc: D, fc: D): D
   def mux(cond: Bool, tc: D, fc: D, em: EnclosingModule): D = {
     TraversalException(NodeCheck.assertSynthesizable(cond), "cond", "mux")
@@ -15,9 +15,9 @@ trait SelfMuxable[D<:Data] {
       // Can have GenerelizeSpell that HardwareTuples can implement
   }
 }
-object SelfMuxable {
-  implicit def genBundleSelfMuxable[B<:Bundle]: SelfMuxable[B] = {
-    new BundleSelfMuxableImpl[B]
+object Muxable {
+  implicit def genBundleMuxable[B<:Bundle]: Muxable[B] = {
+    new BundleMuxableImpl[B]
   }
 }
 /*

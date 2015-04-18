@@ -8,7 +8,7 @@ trait UIntApplies { // trait so Bits in api can mix this in as well
 }
 
 object UInt extends UIntApplies {
-  implicit object basicfunctionality extends SelfMuxable[UInt] with Element.ConnectToImpl[UInt,BaseElem] {
+  implicit object basicfunctionality extends Muxable[UInt] with Element.ConnectToImpl[UInt,BaseElem] {
     def muxRetVal(tc: UInt, fc: UInt): UInt = UInt()
   }
 }

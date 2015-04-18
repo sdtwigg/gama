@@ -3,11 +3,11 @@ import internal._
 import scala.collection.{immutable=>immutable}
 
 @annotation.implicitNotFound("""Cannot create Vec of elements with common type ${D}.
-Most common reason is that no self-muxing operation (SelfMuxable[${D}]) available""")
-trait Vectorizable[D<:Data] { def muxer: SelfMuxable[D] }
+Most common reason is that no self-muxing operation (Muxable[${D}]) available""")
+trait Vectorizable[D<:Data] { def muxer: Muxable[D] }
 // Only reason Vectorizable trait exists is so that failing to create a Vec gives a specialized error message
 object Vectorizable {
-  implicit def vectorizer[D<:Data: SelfMuxable]: Vectorizable[D] = new Vectorizable[D] {val muxer = implicitly[SelfMuxable[D]]}
+  implicit def vectorizer[D<:Data: Muxable]: Vectorizable[D] = new Vectorizable[D] {val muxer = implicitly[Muxable[D]]}
 } // TODO: REMOVE DEPENDENCY ON SELFMUXABLE?
 
 abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
@@ -40,7 +40,7 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
 
   def nodes = elements.flatMap(_.nodes)
 
-  implicit protected val eltmuxer: SelfMuxable[D] = implicitly[Vectorizable[D]].muxer
+  implicit protected val eltmuxer: Muxable[D] = implicitly[Vectorizable[D]].muxer
   def :=[From<:Data](source: Vec[From])(implicit em: EnclosingModule, writer: ConnectTo[Vec[D],Vec[From]]) = writer.connect(Sink(this), Source(source), em)
 
   def lookup(index: Int): D = elements(index)
@@ -72,10 +72,10 @@ trait VecObjectImpl {
   // Second constructor just prevents unnecessary unpacking and repacking for case of immutable.Seq[D]
 
   // Basically, Vec can only be regenerated, transfered, etc. if constituent elements are regeneratable or transferable
-  implicit def selfMuxer[D<:Data: SelfMuxable]: SelfMuxable[Vec[D]] = new SelfMuxable[Vec[D]] {
+  implicit def selfMuxer[D<:Data: Muxable]: Muxable[Vec[D]] = new Muxable[Vec[D]] {
     def muxRetVal(tc: Vec[D], fc: Vec[D]) = {
       require(tc.elements.length==fc.elements.length, "Cannot mux together two vectors of different length")
-      Vec(tc.elements.length, implicitly[SelfMuxable[D]].muxRetVal(tc.elemType, fc.elemType))
+      Vec(tc.elements.length, implicitly[Muxable[D]].muxRetVal(tc.elemType, fc.elemType))
     }
   }
   implicit def connectTo[To<:Data,From<:Data](implicit eltconnect: ConnectTo[To,From]): ConnectTo[Vec[To],Vec[From]] = new ConnectTo.ConnectToImpl[Vec[To],Vec[From]] {

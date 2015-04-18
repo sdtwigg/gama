@@ -4,7 +4,7 @@ import internal._
 object Bool {
   def apply() = new Bool(SPEC(UBits(Some(1)), None))
 
-  implicit object basicfunctionality extends SelfMuxable[Bool] with Element.ConnectToImpl[Bool,Bool] {
+  implicit object basicfunctionality extends Muxable[Bool] with Element.ConnectToImpl[Bool,Bool] {
     def muxRetVal(tc: Bool, fc: Bool): Bool = Bool()
   }
   //import scala.language.implicitConversions

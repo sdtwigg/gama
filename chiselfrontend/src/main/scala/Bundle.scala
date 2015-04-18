@@ -18,7 +18,7 @@ abstract class Bundle extends HardwareTuple with BundleReflection {
 
 case class ImproperBundleMuxException(tc: String, fc: String)
   extends ChiselException (s"For Mux, either tc($tc) or fc($fc) must directly descend from the other.")
-class BundleSelfMuxableImpl[B<:Bundle] extends SelfMuxable[B] {
+class BundleMuxableImpl[B<:Bundle] extends Muxable[B] {
   def muxRetVal(tc: B, fc: B): B = {
     if(tc.getClass.isAssignableFrom(fc.getClass)) tc.copy else
     if(fc.getClass.isAssignableFrom(tc.getClass)) fc.copy else
