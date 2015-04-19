@@ -31,3 +31,5 @@ class BundleConnectToBundleImpl[B<:Bundle] extends ConnectTo.ConnectToImpl[B, Bu
     Bundle.basicfunctionality.verifyConnect(sink, source)
   }
 }
+
+trait ConnectSelf[D<: Data] extends ConnectTo[D, D]
