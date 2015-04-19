@@ -34,9 +34,5 @@ abstract class ElementImpl(initialNode: Node) { // MUTABLE STATE: node
 }
 
 trait ElementObjectImpl {
-  trait ConnectToImpl[To<:Element,From<:Element] extends ConnectTo.ConnectToImpl[To,From] {
-    def verifyConnect(sink: Sink[To], source: Source[From]): Unit = {}
-  }
 }
-
 

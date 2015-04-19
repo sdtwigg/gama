@@ -4,12 +4,8 @@ import internal._
 trait BundleReflection extends BundleReflectionImpl {self: HardwareTuple =>}
 
 object Bundle {
-  implicit object basicfunctionality extends ConnectTo.ConnectToImpl[Bundle,Bundle] {
-    def verifyConnect(sink: Sink[Bundle], source: Source[Bundle]): Unit = {
-      //TODO: actual checks here...
-      // Likely will need to do some sort of matching
-    }
-  }
+  //implicit object basicfunctionality extends BundleConnectToBundleImpl[Bundle]
+  // This never actually gets used....
 }
 abstract class Bundle extends HardwareTuple with BundleReflection {
   def :=(source: Bundle)(implicit em: EnclosingModule) =
@@ -18,12 +14,19 @@ abstract class Bundle extends HardwareTuple with BundleReflection {
 
 case class ImproperBundleMuxException(tc: String, fc: String)
   extends ChiselException (s"For Mux, either tc($tc) or fc($fc) must directly descend from the other.")
+
+// HELPER TRAIT FOR MAKING MUXABLE BUNDLES
 class BundleMuxableImpl[B<:Bundle] extends Muxable[B] {
   def muxRetVal(tc: B, fc: B): B = {
     if(tc.getClass.isAssignableFrom(fc.getClass)) tc.copy else
     if(fc.getClass.isAssignableFrom(tc.getClass)) fc.copy else
       throw ImproperBundleMuxException(tc.getClass.getName, fc.getClass.getName)
   }
+}
+// HELPER TRAIT FOR CONNECTING A BUNDLE TO ANY OTHER BUNDLE
+class BundleConnectToBundleImpl[B<:Bundle] extends ConnectTo.ConnectToImpl[B, Bundle] {
+  def calcDetails(sink: Sink[B], source: Source[Bundle]): ConnectDetails =
+    UnsafeConnectToDataImpl.calcDetails(sink, source)
 }
 
 case class NeedCopyMethodException(containerType: String)
@@ -33,3 +36,4 @@ trait Anon {
 
   def simplecopy: this.type = throw NeedCopyMethodException(this.getClass.getName)
 }
+

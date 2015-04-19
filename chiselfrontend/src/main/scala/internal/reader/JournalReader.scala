@@ -75,9 +75,16 @@ abstract class BaseJournalReader extends JournalReader {
         s"${parseJournal(journal)}"
       case Conditionally(cond, tc, fc) =>
         s"${HL.CYAN}when${HL.RESET}(${emitRef(cond)}) ${parseJournal(tc)} ${HL.CYAN}else${HL.RESET} ${parseJournal(fc)}"
-      case ConnectData(Sink(sink), Source(source)) =>
-        s"${emitRef(sink)} := ${emitRef(source)}"
+      case ConnectData(Sink(sink), Source(source), details) =>
+        s"${emitRef(sink)} := ${emitRef(source)} ${HL.BLUE}${emitConnectDetails(details)}${HL.RESET}"
     }
+  }
+  def emitConnectDetails(details: ConnectDetails): String = details match {
+    case ConnectAll => "<ALL>"
+    case ConnectVec(elemdetails) => s"${emitConnectDetails(elemdetails)}*"
+    case ConnectTuple(fields) => "(" +
+      (fields map ({case (field, subd) => s"$field:${emitConnectDetails(subd)}"}) mkString(", ")) +
+      ")"
   }
   def emitMemDetails(mem: Mem[_<:Data]): String = 
     s"${emitName(mem.name)}[${mem.depth}]: ${HL.GREEN}${emitType(mem.elemType)}${HL.RESET}"

@@ -79,10 +79,12 @@ trait VecObjectImpl {
     }
   }
   implicit def connectTo[To<:Data,From<:Data](implicit eltconnect: ConnectTo[To,From]): ConnectTo[Vec[To],Vec[From]] = new ConnectTo.ConnectToImpl[Vec[To],Vec[From]] {
-    def verifyConnect(sink: Sink[Vec[To]], source: Source[Vec[From]]) = {
+    def calcDetails(sink: Sink[Vec[To]], source: Source[Vec[From]]): ConnectDetails = {
       require(source.data.elements.length==sink.data.elements.length, "Cannot assign to/from two vectors of different length")
-      // TODO: VERIFY SUBELEMENTS CONNECTION?
-      // := already grabs the associated element-level ConnectSelf
+      eltconnect.calcDetails(Sink(sink.data.elemType), Source(source.data.elemType)) match {
+        case ConnectAll => ConnectAll
+        case other => ConnectVec(other)
+      }
     }
   }
 }

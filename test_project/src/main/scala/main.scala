@@ -110,6 +110,8 @@ trait Nested2 extends Nested {
   val myChildBundle = Wire(new MyChildBundle)
   val mymux = Mux(True, myChildBundle, myBundle)
 
+  myBundle := myBundle
+  myChildBundle := myChildBundle
   myBundle := myChildBundle
   myChildBundle := myBundle
   
@@ -169,6 +171,8 @@ trait Nested2 extends Nested {
 
   val myPVec = Reg(Vec(2,new MyBundle))
   val myCVec = Reg(Vec(2,new MyChildBundle))
+  myPVec := myPVec
+  myCVec := myCVec
   myPVec := myCVec
   myCVec := myPVec // these work as designed, somewhat unfortunately
 
