@@ -29,7 +29,7 @@ protected[gama] object macroAnno {
   def moduleimpl(c: Context)(annottees: c.Tree*): c.Tree = {
     import c.universe._
 
-    val allowInnerClasses: Boolean = c.inferImplicitValue(c.typeOf[gama.internal.unsafeFlags.MIC], silent=true) != EmptyTree
+    val allowInnerClasses: Boolean = c.inferImplicitValue(c.typeOf[gama.unsafe.internal.unsafeFlags.MIC], silent=true) != EmptyTree
     case class innerclasschecker(parentName: String) extends Traverser {
       override def traverse(tree: Tree): Unit = tree match {
         case q"$mods class $tpname[..$tparams] $ctorMods(...$paramss) extends { ..$earlydefns } with ..$parents { $self => ..$stats }" => {
