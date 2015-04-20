@@ -77,6 +77,8 @@ abstract class BaseJournalReader extends JournalReader {
         s"${HL.CYAN}when${HL.RESET}(${emitRef(cond)}) ${parseJournal(tc)} ${HL.CYAN}else${HL.RESET} ${parseJournal(fc)}"
       case ConnectData(Sink(sink), Source(source), details) =>
         s"${emitRef(sink)} := ${emitRef(source)} ${HL.BLUE}${emitConnectDetails(details)}${HL.RESET}"
+      case BiConnectData(Left(left), Right(right), details) =>
+        s"${emitRef(left)} <-> ${emitRef(right)} ${HL.BLUE}${emitBiConnectDetails(details)}${HL.RESET}"
     }
   }
   def emitConnectDetails(details: ConnectDetails): String = details match {
@@ -84,6 +86,14 @@ abstract class BaseJournalReader extends JournalReader {
     case ConnectVec(elemdetails) => s"${emitConnectDetails(elemdetails)}*"
     case ConnectTuple(fields) => "(" +
       (fields map ({case (field, subd) => s"$field:${emitConnectDetails(subd)}"}) mkString(", ")) +
+      ")"
+  }
+  def emitBiConnectDetails(details: BiConnectDetails): String = details match {
+    case BiConnectToLeft  => "<<=="
+    case BiConnectToRight => "==>>"
+    case BiConnectVec(elemdetails) => s"${emitBiConnectDetails(elemdetails)}*"
+    case BiConnectTuple(fields) => "(" +
+      (fields map ({case (field, subd) => s"$field:${emitBiConnectDetails(subd)}"}) mkString(", ")) +
       ")"
   }
   def emitMemDetails(mem: Mem[_<:Data]): String = 

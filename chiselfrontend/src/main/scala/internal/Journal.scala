@@ -17,6 +17,10 @@ case class ConnectData(sink: Sink[Data], source: Source[Data], details: ConnectD
   NodeCheck.assertConnectable(sink.data)
   NodeCheck.assertSynthesizable(source.data)
 }
+case class BiConnectData(left: Left[Data], right: Right[Data], details: BiConnectDetails) extends JournalEntry {
+  NodeCheck.assertConnectable(left.data)
+  NodeCheck.assertConnectable(right.data)
+}
 
 final class Journal {
   private val _entries = scala.collection.mutable.ListBuffer.empty[JournalEntry]

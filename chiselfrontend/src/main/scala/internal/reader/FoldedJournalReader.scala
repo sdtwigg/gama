@@ -42,6 +42,7 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
       case AddExecBlock(_)    => None
       case Conditionally(_,_,_) => None // recall: will recursively see
       case ConnectData(_,_,_) => None
+      case BiConnectData(_,_,_) => None
     })
     itemsToTempName.zipWithIndex.foreach(_ match {
       case ((target: Nameable, prefix: String), idx: Int) => {

@@ -4,12 +4,16 @@ import internal._
 trait BundleReflection extends BundleReflectionImpl {self: HardwareTuple =>}
 
 object Bundle {
-  //implicit object basicfunctionality extends BundleConnectToBundleImpl[Bundle]
-  // This never actually gets used....
+  implicit object basicfunctionality
+    extends BundleConnectToBundleImpl[Bundle]
+    with BundleBiConnectBundleImpl[Bundle,Bundle]
+  // Note strictly needed; however, effectively memoized for use in :=, <>
 }
 abstract class Bundle extends HardwareTuple with BundleReflection {
   def :=(source: Bundle)(implicit em: EnclosingModule) =
-    ConnectTo[Bundle,Bundle].monoConnect(Sink(this), Source(source), em) 
+    Bundle.basicfunctionality.monoConnect(Sink(this), Source(source), em) 
+  def <>(right: Bundle)(implicit em: EnclosingModule) =
+    Bundle.basicfunctionality.biConnect(Left(this), Right(right), em) 
 }
 
 case class ImproperBundleMuxException(tc: String, fc: String)
@@ -23,11 +27,13 @@ class BundleMuxableImpl[B<:Bundle] extends Muxable[B] {
       throw ImproperBundleMuxException(tc.getClass.getName, fc.getClass.getName)
   }
 }
-// HELPER TRAIT FOR CONNECTING A BUNDLE TO ANY OTHER BUNDLE
-class BundleConnectToBundleImpl[B<:Bundle] extends ConnectTo.ConnectToImpl[B, Bundle] {
+// HELPER TRAITS FOR CONNECTING A BUNDLE TO ANY OTHER BUNDLE
+trait BundleConnectToBundleImpl[B<:Bundle] extends ConnectTo.ConnectToImpl[B, Bundle] {
   def monoDetails(sink: Sink[B], source: Source[Bundle]): ConnectDetails =
     UnsafeConnectToDataImpl.monoDetails(sink, source)
-  def biDetails(left: Left[B], right: Right[B]): BiConnectDetails =
+}
+trait BundleBiConnectBundleImpl[LT<:Bundle,RT<:Bundle] extends BiConnect.BiConnectImpl[LT, RT] {
+  def biDetails(left: Left[LT], right: Right[RT]): BiConnectDetails =
     UnsafeConnectToDataImpl.biDetails(left, right)
 }
 
