@@ -1,4 +1,5 @@
 package gama
+package api
 
 trait NodeAPI {
   val Reg = gama.Reg

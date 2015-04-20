@@ -1,4 +1,5 @@
 package gama
+package api
 
 trait ControlFlowAPI {
   val when = gama.when

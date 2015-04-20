@@ -1,4 +1,5 @@
 package gama
+package api
 import internal._
 
 // BOOLEAN LITERALS

@@ -1,4 +1,5 @@
 package gama
+package api
 
 trait HWDataTypesAPI {
   // Core Data Types
