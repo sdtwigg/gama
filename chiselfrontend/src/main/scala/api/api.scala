@@ -1,22 +1,17 @@
 package gama
 package object api
-  extends DirectionAPI with LiteralBoolAPI
+  extends DirectionAPI with LiteralAPI
   with HWDataTypesAPI with NodeAPI with ControlFlowAPI
 {
   import internal._
 
-  // Literals (implicit classes cannot be in separate API)
-  object U extends LitUIntObjectImpl
-  object S extends LitSIntObjectImpl
-  object B extends LitBoolObjectImpl
-  object LitVec extends LitVecObjectImpl
-  
+  // More Literals (implicit classes cannot be in separate API)
   implicit class addUStoScalaInt(val target: Int) extends AnyVal {
-    def U = api.U(target)
-    def S = api.S(target)
+    def U = LiteralUInt(target)
+    def S = LiteralSInt(target)
   }
   implicit class addBtoScalaBool(val target: Boolean) extends AnyVal {
-    def B = api.B(target)
+    def B = LiteralBool(target)
   }
 
   // Macro Annotations (cannot be in separate API)

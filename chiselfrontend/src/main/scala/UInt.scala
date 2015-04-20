@@ -1,13 +1,11 @@
 package gama
 import internal._
 
-trait UIntApplies { // trait so Bits in api can mix this in as well
+object UInt {
   def apply(): UInt           = apply(None)
   def apply(width: Int): UInt = apply(Some(width))
   def apply(width: Option[Int]) = new UInt(new SPEC(UBits(width), None))
-}
-
-object UInt extends UIntApplies {
+  
   implicit object basicfunctionality
     extends Muxable[UInt]
     with Element.ConnectToImpl[UInt,Digital]

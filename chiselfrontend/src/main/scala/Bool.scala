@@ -1,11 +1,9 @@
 package gama
 import internal._
 
-trait BoolApplies {
+object Bool {
   def apply() = new Bool(SPEC(UBits(Some(1)), None))
-}
-
-object Bool extends BoolApplies {
+  
   implicit object basicfunctionality
     extends Muxable[Bool]
     with Element.ConnectToImpl[Bool,Bool]

@@ -1,13 +1,11 @@
 package gama
 import internal._
 
-trait SIntApplies {
+object SInt extends {
   def apply(): SInt           = apply(None)
   def apply(width: Int): SInt = apply(Some(width))
   def apply(width: Option[Int]) = new SInt(new SPEC(SBits(width), None))
-}
-
-object SInt extends SIntApplies{
+  
   implicit object basicfunctionality
     extends Muxable[SInt]
     with Element.ConnectToImpl[SInt,Digital]
@@ -44,8 +42,8 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def   ^(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpXor, (this, that), em)
   
   // IMPLEMENT SIMPLE ABSTRACT OPERATIONS
-  def andR(implicit em: EnclosingModule): Bool = this === api.S(-1)
-  def  orR(implicit em: EnclosingModule): Bool = this !== api.S(0)
+  def andR(implicit em: EnclosingModule): Bool = this === LiteralSInt(-1)
+  def  orR(implicit em: EnclosingModule): Bool = this !== LiteralSInt(0)
   
   def pad(that: Digital)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPadTo,  (this, that), em)
   def  <<(that: UInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpLShft, (this, that), em)
