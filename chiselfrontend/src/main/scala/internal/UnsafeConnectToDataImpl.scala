@@ -14,11 +14,11 @@ object UnsafeConnectToDataImpl extends ConnectTo.ConnectToImpl[Data, Data] with 
       }) // TODO: VERIFY ELEMENT CONNECTION SANE?
       case left_v: Vec[Data @unchecked] => (source.data match {
         case right_v: Vec[Data @unchecked] =>
-          (Vec.connectTo[Data,Data](this).monoDetails(Sink(left_v),Source(right_v)))
+          ( Vec.connectTo[Data,Data](this).monoDetails(Sink(left_v),Source(right_v)) )
         case _ => throw RuntimeMisconnectException(sink.data.getClass.getName,source.data.getClass.getName)
       })
       case left_t: HardwareTuple => (source.data match {
-        case right_t: HardwareTuple => (monoTuple(left_t, right_t)) // in own function since so complicated
+        case right_t: HardwareTuple => ( monoTuple(left_t, right_t) ) // in own function since so complicated
         case _ => throw RuntimeMisconnectException(sink.data.getClass.getName,source.data.getClass.getName)
       })
     }
@@ -40,5 +40,42 @@ object UnsafeConnectToDataImpl extends ConnectTo.ConnectToImpl[Data, Data] with 
     else { ConnectTuple(connect_list) }
   }
   
-  def biDetails(left: Left[Data], right: Right[Data], em: EnclosingModule): BiConnectDetails = ???
+  def biDetails(left: Left[Data], right: Right[Data], em: EnclosingModule): BiConnectDetails = {
+    left.data match {
+      case left_e: Element => (right.data match {
+        case right_e: Element => (BiConnect.elemDetails(left_e.node, right_e.node, em))
+        case _ => throw RuntimeMisconnectException(left.data.getClass.getName,right.data.getClass.getName)
+      }) // TODO: VERIFY ELEMENT CONNECTION SANE?
+      case left_v: Vec[Data @unchecked] => (right.data match {
+        case right_v: Vec[Data @unchecked] =>
+          ( Vec.biConnect[Data,Data](this).biDetails(Left(left_v), Right(right_v), em) )
+        case _ => throw RuntimeMisconnectException(left.data.getClass.getName,right.data.getClass.getName)
+      })
+      case left_t: HardwareTuple => (right.data match {
+        case right_t: HardwareTuple => ( biTuple(left_t, right_t, em) ) // in own function since so complicated
+        case _ => throw RuntimeMisconnectException(left.data.getClass.getName,right.data.getClass.getName)
+      })
+    }
+  }
+  def biTuple(left: HardwareTuple, right: HardwareTuple, em: EnclosingModule): BiConnectDetails = {
+    val candidates = left.subfields_ordered
+    val connect_list: Seq[Tuple2[String,BiConnectDetails]] = candidates.flatMap({case (field, left_elem) => {
+      val right_elem_opt = right.subfields.get(field)
+      val details = right_elem_opt.map(right_elem =>
+        try { biDetails(Left(left_elem), Right(right_elem), em) }
+        catch { case e: ChiselException => {throw TraversalException(field, left.getClass.getName, e)} }
+      )
+      details.map((field, _))
+    }})
+    if( (connect_list.length == left.subfields_ordered.length) &&
+        (connect_list.length == right.subfields.size) &&
+        connect_list.forall(_._2 == BiConnectToLeft)
+    ) { BiConnectToLeft }
+    else if( (connect_list.length == left.subfields_ordered.length) &&
+        (connect_list.length == right.subfields.size) &&
+        connect_list.forall(_._2 == BiConnectToRight)
+    ) { BiConnectToRight }
+    else { BiConnectTuple(connect_list) }
+  }
 }
+// TODO: The runtime walk is similar for both, can probably construct some factory methods for this....

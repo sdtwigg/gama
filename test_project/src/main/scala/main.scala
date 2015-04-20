@@ -234,13 +234,22 @@ trait Nested2 extends Nested {
 }
 
 @module class BiModule extends Module(new Bundle with Anon {
-  val in_uint = Input(UInt())
+  val in_uint  =  Input(UInt())
   val out_uint = Output(UInt())
-  val in_vec = Input(Vec(2, UInt()))
+  val in_vec  =  Input(Vec(2, UInt()))
   val out_vec = Output(Vec(2, UInt()))
+  val in_bp  =  Input(new MyBundle)
+  val out_bp = Output(new MyBundle)
+  val in_bc  =  Input(new MyChildBundle)
+  val out_bc = Output(new MyChildBundle)
+  val in_vbc  =  Input(Vec(2, new MyChildBundle))
+  val out_vbc = Output(Vec(2, new MyChildBundle))
 }) {
   val wire_uint = Wire(UInt())
-  val wire_vec  = Wire(Vec(2,SInt()))
+  val wire_vec  = Wire(Vec(2,UInt()))
+  val wire_bp   = Wire(new MyBundle)
+  val wire_bc   = Wire(new MyChildBundle)
+  val wire_vbp  = Wire(Vec(2, new MyBundle))
 
   ExecBlock {
     io.in_uint  <> wire_uint
@@ -261,6 +270,48 @@ trait Nested2 extends Nested {
     
     io.in_vec  <> io.out_vec
     io.out_vec <> io.in_vec
+  }
+  
+  ExecBlock {
+    io.in_bp  <> wire_bp
+    wire_bp   <> io.in_bp
+    
+    io.out_bp <> wire_bp
+    wire_bp   <> io.out_bp
+    
+    io.in_bp  <> io.out_bp
+    io.out_bp <> io.in_bp
+  }
+
+  ExecBlock {
+    io.in_bc  <> wire_bp
+    wire_bc   <> io.in_bp
+    
+    io.out_bc <> wire_bp
+    wire_bc   <> io.out_bp
+    
+    io.in_bc  <> io.out_bp
+    io.out_bc <> io.in_bp
+  }
+  ExecBlock {
+    io.in_bp  <> wire_bc
+    wire_bp   <> io.in_bc
+    
+    io.out_bp <> wire_bc
+    wire_bp   <> io.out_bc
+    
+    io.in_bp  <> io.out_bc
+    io.out_bp <> io.in_bc
+  }
+  ExecBlock {
+    io.in_vbc  <> wire_vbp
+    wire_vbp   <> io.in_vbc
+    
+    io.out_vbc <> wire_vbp
+    wire_vbp   <> io.out_vbc
+    
+    io.in_vbc  <> io.out_vbc
+    io.out_vbc <> io.in_vbc
   }
 
   val sub1 = Module(new SubModule)
