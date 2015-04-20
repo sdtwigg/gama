@@ -64,8 +64,6 @@ case class VecLitMap[D<:Data](elemmaps: Seq[LitMap[D]]) extends LitMap[Vec[D]]{
   } // TODO: use generalizeWith to remake elemmaps (which should be called initial_elemmaps, I suppose)
   // this generalizeWith assert should ensure other Vecs are the same
 }
-/*
-case class Vec[D](???) extends ListMap[Vec[D]]
-case class Vec(???) extends ListMap[HardwareTuple]
-*/
+
+//case class ??? extends ListMap[HardwareTuple]
 

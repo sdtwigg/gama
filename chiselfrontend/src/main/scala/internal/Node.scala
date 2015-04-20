@@ -45,4 +45,4 @@ case class NonConnectableAccessorNode(storage: NodeStore, em: EnclosingModule) e
 sealed trait ExtractedNode extends Synthesizable
 case class ConnectableExtractedNode(storage: NodeStore, em: EnclosingModule) extends ConnectableNode with ExtractedNode
 case class NonConnectableExtractedNode(storage: NodeStore, em: EnclosingModule) extends NonConnectableNode with ExtractedNode with EnclosedNode
-// Is there really a difference between extracting and accessing???
+// TODO: Is there really a difference between extracting and accessing??
