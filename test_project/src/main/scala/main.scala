@@ -226,6 +226,48 @@ trait Nested2 extends Nested {
   io.t2_out_vecuint(1) := io.t2_in_vecuint(0)
 }
 
+@module class SubModule extends Module(new Bundle with Anon {
+  val in  = Input(UInt())
+  val out = Output(UInt())
+}) {
+  io.in <> io.out
+}
+
+@module class BiModule extends Module(new Bundle with Anon {
+  val in_uint = Input(UInt())
+  val out_uint = Output(UInt())
+}) {
+  val wire_uint = Wire(UInt())
+
+  io.in_uint  <> wire_uint
+  wire_uint   <> io.in_uint
+  
+  io.out_uint <> wire_uint
+  wire_uint   <> io.out_uint
+  
+  io.in_uint  <> io.out_uint
+  io.out_uint <> io.in_uint
+
+  val sub1 = Module(new SubModule)
+  val sub2 = Module(new SubModule)
+
+  io.in_uint  <> sub1.io.in
+  wire_uint   <> sub1.io.in
+  sub1.io.in  <> io.in_uint
+  sub1.io.in  <> wire_uint
+
+  io.out_uint <> sub1.io.out
+  wire_uint   <> sub1.io.out
+  sub1.io.out <> io.out_uint
+  sub1.io.out <> wire_uint
+
+  sub1.io.in  <> sub2.io.out
+  sub1.io.out <> sub2.io.in
+  
+  sub1.io.in  <> sub1.io.out // technically weird, but a good test
+  sub1.io.out <> sub1.io.in  // technically weird, but a good test
+}
+
 @module class ExampleModule protected () extends Module(new ExampleIO) {
   val data_width = 32
   val vec_length = 4
@@ -277,7 +319,8 @@ trait Nested2 extends Nested {
   val myMemModule     = Module(new MemModule)
   val myConnectModule = Module(new ConnectModule)
   val myExtractModule = Module(new ExtractModule)
-  val mCopyModule     = Module(new CopyModule)
+  val myCopyModule    = Module(new CopyModule)
+  val myBiModule      = Module(new BiModule)
 
   myInnerModule.io.in1 := test
   test := myInnerModule.io.out

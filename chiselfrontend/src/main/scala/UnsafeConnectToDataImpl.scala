@@ -40,5 +40,5 @@ object UnsafeConnectToDataImpl extends ConnectTo.ConnectToImpl[Data, Data] with 
     else { ConnectTuple(connect_list) }
   }
   
-  def biDetails(left: Left[Data], right: Right[Data]): BiConnectDetails = ???
+  def biDetails(left: Left[Data], right: Right[Data], em: EnclosingModule): BiConnectDetails = ???
 }

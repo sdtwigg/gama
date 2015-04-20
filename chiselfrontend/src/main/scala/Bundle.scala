@@ -33,8 +33,8 @@ trait BundleConnectToBundleImpl[B<:Bundle] extends ConnectTo.ConnectToImpl[B, Bu
     UnsafeConnectToDataImpl.monoDetails(sink, source)
 }
 trait BundleBiConnectBundleImpl[LT<:Bundle,RT<:Bundle] extends BiConnect.BiConnectImpl[LT, RT] {
-  def biDetails(left: Left[LT], right: Right[RT]): BiConnectDetails =
-    UnsafeConnectToDataImpl.biDetails(left, right)
+  def biDetails(left: Left[LT], right: Right[RT], em: EnclosingModule): BiConnectDetails =
+    UnsafeConnectToDataImpl.biDetails(left, right, em)
 }
 
 case class NeedCopyMethodException(containerType: String)
