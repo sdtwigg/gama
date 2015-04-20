@@ -38,7 +38,8 @@ trait ElementObjectImpl {
     def monoDetails(sink: Sink[To], source: Source[From]): ConnectDetails = ConnectAll
   }
   trait BiConnectImpl[LT<:Element,RT<:Element] extends BiConnect.BiConnectImpl[LT,RT] {
-    def biDetails(left: Left[LT], right: Right[RT]): BiConnectDetails = ???
+    def biDetails(left: Left[LT], right: Right[RT]): BiConnectDetails = 
+      BiConnect.elemDetails(left.data.node, right.data.node)
   }
 }
 

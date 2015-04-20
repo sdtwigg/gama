@@ -19,3 +19,13 @@ case class DesignLostException(lostLink: String)
 case object StructuralMimicException
   extends ChiselException(s"Internal mimic failure: Target could not mimic model due to structural discrepancies. (e.g. A Vec of differing lengths, Different HardwareTuple subfields or the same sufield referring to a different datatype in the copy compared to the original.)")
   // TODO: Better stack trace for this error
+
+case object AmbiguousBiConnectException
+  extends ChiselException("""
+Cannot resolve bidirectional connection attempt. This is likely due to one of the following:
+  1) Either left or right is NonConnectable or not Synthesizable (thus, bidirectional connection impossible).
+  2) Neither left nor right is of type Port and thus no directional hints are available.
+  3) Trying to connect an input to an input (or output to an output) of the same module and thus there is ambiguity.
+  4) Similar to 3), but the associated ports are of different submodules within the same module.
+  5) An improper cross-module connection is being attempted.
+""")
