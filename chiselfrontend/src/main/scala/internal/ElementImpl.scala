@@ -34,5 +34,9 @@ abstract class ElementImpl(initialNode: Node) { // MUTABLE STATE: node
 }
 
 trait ElementObjectImpl {
+  trait ConnectToImpl[To<:Element,From<:Element] extends ConnectTo.ConnectToImpl[To,From] {
+    def monoDetails(sink: Sink[To], source: Source[From]): ConnectDetails = ConnectAll
+    def biDetails(left: Left[To], right: Right[To]): BiConnectDetails = ???
+  }
 }
 

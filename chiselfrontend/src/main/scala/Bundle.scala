@@ -9,7 +9,7 @@ object Bundle {
 }
 abstract class Bundle extends HardwareTuple with BundleReflection {
   def :=(source: Bundle)(implicit em: EnclosingModule) =
-    ConnectTo[Bundle,Bundle].connect(Sink(this), Source(source), em) 
+    ConnectTo[Bundle,Bundle].monoConnect(Sink(this), Source(source), em) 
 }
 
 case class ImproperBundleMuxException(tc: String, fc: String)
@@ -25,8 +25,10 @@ class BundleMuxableImpl[B<:Bundle] extends Muxable[B] {
 }
 // HELPER TRAIT FOR CONNECTING A BUNDLE TO ANY OTHER BUNDLE
 class BundleConnectToBundleImpl[B<:Bundle] extends ConnectTo.ConnectToImpl[B, Bundle] {
-  def calcDetails(sink: Sink[B], source: Source[Bundle]): ConnectDetails =
-    UnsafeConnectToDataImpl.calcDetails(sink, source)
+  def monoDetails(sink: Sink[B], source: Source[Bundle]): ConnectDetails =
+    UnsafeConnectToDataImpl.monoDetails(sink, source)
+  def biDetails(left: Left[B], right: Right[B]): BiConnectDetails =
+    UnsafeConnectToDataImpl.biDetails(left, right)
 }
 
 case class NeedCopyMethodException(containerType: String)

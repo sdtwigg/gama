@@ -2,7 +2,7 @@ package gama
 import internal._
 
 @annotation.implicitNotFound("""Cannot create Storable[${D}] for Mem[${D}]. 
-Most common reason is that no self-connect operation (ConnectTo[${D},${D}]) available and thus the memory would not be writable""")
+Most common reason is that no connect operation (ConnectTo[${D},${D}]) available and thus the memory would not be writable""")
 trait Storable[D<:Data] { def writer: ConnectTo[D,D] }
 // Only reason Storable trait exists is so that failing to create a Vec gives a specialized error message
 object Storable {
@@ -33,6 +33,6 @@ final class Mem[D<:Data: Storable] private (model: D, val depth: Int, protected[
   def write[From<:Data](addr: UIntLike, source: From)(implicit acc_em: EnclosingModule, writer: ConnectTo[D, From]): Unit = {
     if(acc_em != em) { throw CrossedMemoryAccessException(acc_em, em) }
     val accessor = makeAccessor(addr, em)
-    writer.connect(Sink(accessor), Source(source), em)
+    writer.monoConnect(Sink(accessor), Source(source), em)
   }
 }

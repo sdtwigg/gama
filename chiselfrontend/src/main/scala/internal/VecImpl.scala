@@ -41,7 +41,7 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   def nodes = elements.flatMap(_.nodes)
 
   implicit protected val eltmuxer: Muxable[D] = implicitly[Vectorizable[D]].muxer
-  def :=[From<:Data](source: Vec[From])(implicit em: EnclosingModule, writer: ConnectTo[Vec[D],Vec[From]]) = writer.connect(Sink(this), Source(source), em)
+  def :=[From<:Data](source: Vec[From])(implicit em: EnclosingModule, writer: ConnectTo[Vec[D],Vec[From]]) = writer.monoConnect(Sink(this), Source(source), em)
 
   def lookup(index: Int): D = elements(index)
   def apply(index: Int): D = lookup(index)
@@ -79,13 +79,14 @@ trait VecObjectImpl {
     }
   }
   implicit def connectTo[To<:Data,From<:Data](implicit eltconnect: ConnectTo[To,From]): ConnectTo[Vec[To],Vec[From]] = new ConnectTo.ConnectToImpl[Vec[To],Vec[From]] {
-    def calcDetails(sink: Sink[Vec[To]], source: Source[Vec[From]]): ConnectDetails = {
+    def monoDetails(sink: Sink[Vec[To]], source: Source[Vec[From]]): ConnectDetails = {
       require(source.data.elements.length==sink.data.elements.length, "Cannot assign to/from two vectors of different length")
-      eltconnect.calcDetails(Sink(sink.data.elemType), Source(source.data.elemType)) match {
+      eltconnect.monoDetails(Sink(sink.data.elemType), Source(source.data.elemType)) match {
         case ConnectAll => ConnectAll
         case other => ConnectVec(other)
       }
     }
+    def biDetails(left: Left[Vec[To]], right: Right[Vec[To]]): BiConnectDetails = ???
   }
 }
 
