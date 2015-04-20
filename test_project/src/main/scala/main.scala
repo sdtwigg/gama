@@ -236,17 +236,32 @@ trait Nested2 extends Nested {
 @module class BiModule extends Module(new Bundle with Anon {
   val in_uint = Input(UInt())
   val out_uint = Output(UInt())
+  val in_vec = Input(Vec(2, UInt()))
+  val out_vec = Output(Vec(2, UInt()))
 }) {
   val wire_uint = Wire(UInt())
+  val wire_vec  = Wire(Vec(2,SInt()))
 
-  io.in_uint  <> wire_uint
-  wire_uint   <> io.in_uint
-  
-  io.out_uint <> wire_uint
-  wire_uint   <> io.out_uint
-  
-  io.in_uint  <> io.out_uint
-  io.out_uint <> io.in_uint
+  ExecBlock {
+    io.in_uint  <> wire_uint
+    wire_uint   <> io.in_uint
+    
+    io.out_uint <> wire_uint
+    wire_uint   <> io.out_uint
+    
+    io.in_uint  <> io.out_uint
+    io.out_uint <> io.in_uint
+  }
+  ExecBlock {
+    io.in_vec  <> wire_vec
+    wire_vec   <> io.in_vec
+    
+    io.out_vec <> wire_vec
+    wire_vec   <> io.out_vec
+    
+    io.in_vec  <> io.out_vec
+    io.out_vec <> io.in_vec
+  }
 
   val sub1 = Module(new SubModule)
   val sub2 = Module(new SubModule)

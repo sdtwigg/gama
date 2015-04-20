@@ -87,7 +87,16 @@ trait VecObjectImpl {
         case other => ConnectVec(other)
       }
     }
-    def biDetails(left: Left[Vec[To]], right: Right[Vec[To]]): BiConnectDetails = ???
+  }
+  implicit def biConnect[LT<:Data,RT<:Data](implicit eltconnect: BiConnect[LT,RT]): BiConnect[Vec[LT],Vec[RT]] = new BiConnect.BiConnectImpl[Vec[LT],Vec[RT]] {
+    def biDetails(left: Left[Vec[LT]], right: Right[Vec[RT]], em: EnclosingModule): BiConnectDetails = {
+      require(left.data.elements.length==right.data.elements.length, "Cannot assign to/from two vectors of different length")
+      eltconnect.biDetails(Left(left.data.elemType), Right(right.data.elemType), em) match {
+        case BiConnectToLeft  => BiConnectToLeft
+        case BiConnectToRight => BiConnectToRight
+        case other => BiConnectVec(other)
+      }
+    }
   }
 }
 
