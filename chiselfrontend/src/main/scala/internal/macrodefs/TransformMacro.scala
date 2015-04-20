@@ -5,17 +5,25 @@ package macrodefs
 protected[gama] object TransformMacro {
   import scala.reflect.macros.blackbox.Context
 
-  def to_apply1(c: Context)(arg0: c.Tree): c.Tree = {
+  sealed trait CoreTransform {
+    val c: Context
     import c.universe._
-    val myThis = c.prefix.tree
-    val emtype = tq"_root_.gama.EnclosingModule"
-    q"$myThis.apply($arg0, implicitly[$emtype])"
+    def myThis = c.prefix.tree
+    def emtype = tq"_root_.gama.EnclosingModule"
   }
-  def to_apply2(c: Context)(arg0: c.Tree, arg1: c.Tree): c.Tree = {
+
+  class doExtract(val c: Context) extends CoreTransform {
     import c.universe._
-    val myThis = c.prefix.tree
-    val emtype = tq"_root_.gama.EnclosingModule"
-    q"$myThis.apply($arg0, $arg1, implicitly[$emtype])"
+    def onearg(position: c.Tree): c.Tree =
+      q"$myThis.doExtract($position, implicitly[$emtype])"
+    def twoarg(left_pos: c.Tree, right_pos: c.Tree): c.Tree =
+      q"$myThis.doExtract($left_pos, $right_pos, implicitly[$emtype])"
+  }
+  
+  class doLookup(val c: Context) extends CoreTransform {
+    import c.universe._
+    def onearg(selector: c.Tree): c.Tree =
+      q"$myThis.doLookup($selector, implicitly[$emtype])"
   }
 }
 

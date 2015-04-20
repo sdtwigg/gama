@@ -4,9 +4,10 @@ package internal
 trait ExtractableImpl {
   self: Element =>
   // TODO: Very similar to AccessibleImpl... somewhat to consolidate something?
-  protected[gama] def doExtract(position: Int, em: EnclosingModule): Bool =
+  // external -> internal API
+  def doExtract(position: Int, em: EnclosingModule): Bool =
     makeExtract(Bool(), position, position, em)
-  protected[gama] def doExtract(left_pos: Int, right_pos: Int, em: EnclosingModule): UInt =
+  def doExtract(left_pos: Int, right_pos: Int, em: EnclosingModule): UInt =
     makeExtract(UInt(math.abs(left_pos-right_pos)), left_pos, right_pos, em)
 
   protected[gama] def makeExtract[E<:Element](retval: E, left_pos: Int, right_pos: Int, em: EnclosingModule): E = {

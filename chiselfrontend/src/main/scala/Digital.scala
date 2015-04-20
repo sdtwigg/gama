@@ -12,14 +12,15 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   import gama.internal.macrodefs.{TransformMacro => XFORM}
 
   // pseudo-UNARY OPERATIONS
-  def extract(position: Int)(implicit em: EnclosingModule): Bool = doExtract(position, em)
-  def extract(left_pos: Int, right_pos: Int)(implicit em: EnclosingModule): UInt = doExtract(left_pos, right_pos, em)
+  // external -> internal API
+  // doExtract (defined by ExtractableImpl)
+  
+  // External API
+  def extract(position: Int): Bool = macro XFORM.doExtract.onearg
+  def extract(left_pos: Int, right_pos: Int): UInt = macro XFORM.doExtract.twoarg
 
-  def apply(position: Int, em: EnclosingModule): Bool = extract(position)(em)
-  def apply(left_pos: Int, right_pos: Int, em: EnclosingModule): UInt = extract(left_pos, right_pos)(em)
-
-  def apply(arg0: Int): Bool = macro XFORM.to_apply1 
-  def apply(arg0: Int, arg1: Int): UInt = macro XFORM.to_apply2
+  def apply(position: Int): Bool = macro XFORM.doExtract.onearg 
+  def apply(left_pos: Int, right_pos: Int): UInt = macro XFORM.doExtract.twoarg
 
   // BINARY OPERATIONS
   // CONCRETE OPERATIONS

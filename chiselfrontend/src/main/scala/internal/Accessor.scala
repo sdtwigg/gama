@@ -6,13 +6,16 @@ sealed trait Accessible[+D<:Data] {
   // internal API
   protected[gama] def lookupIsConnectable(selector: UIntLike): Boolean
   protected[gama] def elemType: D
-  // external API
-  def lookup(selector: UIntLike)(implicit em: EnclosingModule): D
-  def read(selector: UIntLike)(implicit em: EnclosingModule): D = lookup(selector)(em)
 
-  def apply(selector: UIntLike, em: EnclosingModule): D = lookup(selector)(em)
+  // external -> internal API
+  def doLookup(selector: UIntLike, em: EnclosingModule): D
+  
+  // external API
   import scala.language.experimental.macros
-  def apply(arg0: UIntLike): D = macro macrodefs.TransformMacro.to_apply1
+  def lookup(selector: UIntLike): D = macro macrodefs.TransformMacro.doLookup.onearg
+  def read(selector: UIntLike): D   = macro macrodefs.TransformMacro.doLookup.onearg
+  def apply(selector: UIntLike): D  = macro macrodefs.TransformMacro.doLookup.onearg
+
   // implementation details
   protected[gama] def makeAccessor(selector: UIntLike, em: EnclosingModule): D = {
     val spell: NodeSpell[AccessorNode] =
@@ -28,7 +31,7 @@ trait VecAccessible[D<:Data] extends Accessible[D] {
   self: Vec[D] =>
   def collection: Vec[D]
   
-  def lookup(selector: UIntLike)(implicit em: EnclosingModule): D =
+  def doLookup(selector: UIntLike, em: EnclosingModule): D =
     makeAccessor(selector, em)
 }
 
@@ -38,7 +41,7 @@ trait MemAccessible[D<:Data] extends Accessible[D] {
   self: Mem[D] =>
   def collection: Mem[D]
   
-  def lookup(selector: UIntLike)(implicit acc_em: EnclosingModule): D = {
+  def doLookup(selector: UIntLike, acc_em: EnclosingModule): D = {
     if(acc_em != collection.em) { throw CrossedMemoryAccessException(acc_em, em) }
     makeAccessor(selector, em)
   }
