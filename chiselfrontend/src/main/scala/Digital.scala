@@ -1,12 +1,15 @@
 package gama
 import internal._
 
-abstract class Digital(initialNode: Node) extends Element(initialNode) with ExtractableImpl{
+abstract class Digital(initialNode: Node) extends Element(initialNode) with ExtractableImpl {
   // Helper operations used internally and possibly externally
   def getWidth: Option[Int] = this.node.storage match {
     case b: RawBits => (b.width)
     case _ => throw new ChiselException("Catastrophic error: Digital bound to non-RawBits NodeStorage") {}
   }
+  // Prepare for macro use
+  import scala.language.experimental.macros
+  import gama.internal.macrodefs.{TransformMacro => XFORM}
 
   // pseudo-UNARY OPERATIONS
   def extract(position: Int)(implicit em: EnclosingModule): Bool = doExtract(position, em)
@@ -15,9 +18,8 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   def apply(position: Int, em: EnclosingModule): Bool = extract(position)(em)
   def apply(left_pos: Int, right_pos: Int, em: EnclosingModule): UInt = extract(left_pos, right_pos)(em)
 
-  import scala.language.experimental.macros
-  def apply(arg0: Int): Bool = macro macroDef.transformapply1 
-  def apply(arg0: Int, arg1: Int): UInt = macro macroDef.transformapply2
+  def apply(arg0: Int): Bool = macro XFORM.to_apply1 
+  def apply(arg0: Int, arg1: Int): UInt = macro XFORM.to_apply2
 
   // BINARY OPERATIONS
   // CONCRETE OPERATIONS

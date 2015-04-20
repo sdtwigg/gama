@@ -1,29 +1,8 @@
 package gama
 package internal
+package macrodefs
 
-protected[gama] object macroDef {
-  import scala.reflect.macros.blackbox.Context
-
-  def debug(c: Context)(target: c.Tree): c.Tree = {
-    import c.universe._
-    println(showCode(target))
-    target
-  }
-  def transformapply1(c: Context)(arg0: c.Tree): c.Tree = {
-    import c.universe._
-    val myThis = c.prefix.tree
-    val emtype = tq"_root_.gama.EnclosingModule"
-    q"$myThis.apply($arg0, implicitly[$emtype])"
-  }
-  def transformapply2(c: Context)(arg0: c.Tree, arg1: c.Tree): c.Tree = {
-    import c.universe._
-    val myThis = c.prefix.tree
-    val emtype = tq"_root_.gama.EnclosingModule"
-    q"$myThis.apply($arg0, $arg1, implicitly[$emtype])"
-  }
-}
-
-protected[gama] object macroAnno {
+protected[gama] object AnnoImpl {
   import scala.reflect.macros.whitebox.Context
 
   def moduleimpl(c: Context)(annottees: c.Tree*): c.Tree = {

@@ -19,20 +19,22 @@ package object api
   import scala.annotation.StaticAnnotation
   import scala.annotation.compileTimeOnly
 
+  import internal.macrodefs._
+
   @compileTimeOnly("Enable macro paradise to expand macro annotations")
   class module extends StaticAnnotation {
-    def macroTransform(annottees: Any*): Any = macro macroAnno.moduleimpl
+    def macroTransform(annottees: Any*): Any = macro AnnoImpl.moduleimpl
   }
   @compileTimeOnly("Enable macro paradise to expand macro annotations")
   class bundle extends StaticAnnotation {
-    def macroTransform(annottees: Any*): Any = macro macroAnno.bundleimpl
+    def macroTransform(annottees: Any*): Any = macro AnnoImpl.bundleimpl
   }
   @compileTimeOnly("Enable macro paradise to expand macro annotations")
   class probe extends StaticAnnotation {
-    def macroTransform(annottees: Any*): Any = macro macroAnno.probeimpl
+    def macroTransform(annottees: Any*): Any = macro AnnoImpl.probeimpl
   }
 
   object MACRODEBUG {
-    def apply[T](target: T): T = macro macroDef.debug
+    def apply[T](target: T): T = macro DefMacro.debug
   }
 }

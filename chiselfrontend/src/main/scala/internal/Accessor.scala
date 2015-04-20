@@ -12,7 +12,7 @@ sealed trait Accessible[+D<:Data] {
 
   def apply(selector: UIntLike, em: EnclosingModule): D = lookup(selector)(em)
   import scala.language.experimental.macros
-  def apply(arg0: UIntLike): D = macro macroDef.transformapply1
+  def apply(arg0: UIntLike): D = macro macrodefs.TransformMacro.to_apply1
   // implementation details
   protected[gama] def makeAccessor(selector: UIntLike, em: EnclosingModule): D = {
     val spell: NodeSpell[AccessorNode] =
