@@ -26,23 +26,23 @@ case class MemSpec(storage: NodeStore, em: EnclosingModule) extends Node with Un
 
 sealed abstract class Synthesizable extends Node {def resolveDirection: Option[DirectionIO] = None}
 
-sealed abstract class Connectable extends Synthesizable with EnclosedNode
-case class WireNode(storage: NodeStore, em: EnclosingModule) extends Connectable
-case class RegNode(storage: NodeStore, em: EnclosingModule) extends Connectable
-case class PortNode(storage: NodeStore, direction: DirectionIO, em: EnclosingModule) extends Connectable {override def resolveDirection = Some(direction)}
+sealed abstract class ConnectableNode extends Synthesizable with EnclosedNode
+case class WireNode(storage: NodeStore, em: EnclosingModule) extends ConnectableNode
+case class RegNode(storage: NodeStore, em: EnclosingModule) extends ConnectableNode
+case class PortNode(storage: NodeStore, direction: DirectionIO, em: EnclosingModule) extends ConnectableNode {override def resolveDirection = Some(direction)}
 
-// TODO: NonConnectable may be unnecessary
-sealed abstract class NonConnectable extends Synthesizable
-case class OpNode(storage: NodeStore, em: EnclosingModule)  extends NonConnectable with EnclosedNode
-case class LitNode(storage: NodeStore) extends NonConnectable with UnenclosedNode //formerly had LitNodeDesc
+// TODO: NonConnectableNode may be unnecessary
+sealed abstract class NonConnectableNode extends Synthesizable
+case class OpNode(storage: NodeStore, em: EnclosingModule)  extends NonConnectableNode with EnclosedNode
+case class LitNode(storage: NodeStore) extends NonConnectableNode with UnenclosedNode //formerly had LitNodeDesc
 
 sealed trait AccessorNode extends Synthesizable
-case class ConnectableAccessorNode(storage: NodeStore, em: EnclosingModule) extends Connectable with AccessorNode
-case class NonConnectableAccessorNode(storage: NodeStore, em: EnclosingModule) extends NonConnectable with AccessorNode with EnclosedNode
+case class ConnectableAccessorNode(storage: NodeStore, em: EnclosingModule) extends ConnectableNode with AccessorNode
+case class NonConnectableAccessorNode(storage: NodeStore, em: EnclosingModule) extends NonConnectableNode with AccessorNode with EnclosedNode
 // Theoretically, could have a UnenclosedAccessorNode; however, unlikely and so will ignore for now
 //   as for similar reasons could have UnenclosedOpNodes
 
 sealed trait ExtractedNode extends Synthesizable
-case class ConnectableExtractedNode(storage: NodeStore, em: EnclosingModule) extends Connectable with ExtractedNode
-case class NonConnectableExtractedNode(storage: NodeStore, em: EnclosingModule) extends NonConnectable with ExtractedNode with EnclosedNode
+case class ConnectableExtractedNode(storage: NodeStore, em: EnclosingModule) extends ConnectableNode with ExtractedNode
+case class NonConnectableExtractedNode(storage: NodeStore, em: EnclosingModule) extends NonConnectableNode with ExtractedNode with EnclosedNode
 // Is there really a difference between extracting and accessing???

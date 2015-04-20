@@ -42,6 +42,7 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
 
   implicit protected val eltmuxer: Muxable[D] = implicitly[Vectorizable[D]].muxer
   def :=[From<:Data](source: Vec[From])(implicit em: EnclosingModule, writer: ConnectTo[Vec[D],Vec[From]]) = writer.monoConnect(Sink(this), Source(source), em)
+  def <>[RT<:Data](right: Vec[RT])(implicit em: EnclosingModule, writer: BiConnect[Vec[D],Vec[RT]]) = writer.biConnect(Left(this), Right(right), em)
 
   def lookup(index: Int): D = elements(index)
   def apply(index: Int): D = lookup(index)
@@ -49,8 +50,8 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   def lookupIsConnectable(selector: UIntLike): Boolean = {
     nodes.headOption.getOrElse(elemType) match {
       case _: SPEC => {throw ExpectedNodeException("Synthesizable","SPEC")}
-      case _: Connectable => {NodeCheck.assertConnectable(this); true}
-      case _: NonConnectable => {NodeCheck.assertNonConnectable(this); false}
+      case _: ConnectableNode    => {NodeCheck.assertConnectable(this); true}
+      case _: NonConnectableNode => {NodeCheck.assertNonConnectable(this); false}
     }
   }
   

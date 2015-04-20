@@ -32,7 +32,7 @@ object NodeCheck {
     assertNodeBuilder({case syn: Synthesizable => (true)}, ExpectedNodeException.partial("Synthesizable"))
   
   val assertConnectable: DataCheck =
-    assertNodeBuilder({case syn: Connectable => (true)}, ExpectedNodeException.partial("Connectable"))
+    assertNodeBuilder({case syn: ConnectableNode => (true)}, ExpectedNodeException.partial("ConnectableNode"))
   val assertWireNode: DataCheck =
     assertNodeBuilder({case syn: WireNode => (true)}, ExpectedNodeException.partial("WireNode"))
   val assertRegNode: DataCheck =
@@ -45,7 +45,7 @@ object NodeCheck {
     assertNodeBuilder({case syn: ExtractedNode => (true)}, ExpectedNodeException.partial("ExtractedNode"))
   
   val assertNonConnectable: DataCheck =
-    assertNodeBuilder({case syn: NonConnectable => (true)}, ExpectedNodeException.partial("NonConnectable"))
+    assertNodeBuilder({case syn: NonConnectableNode => (true)}, ExpectedNodeException.partial("NonConnectableNode"))
   val assertOpNode: DataCheck =
     assertNodeBuilder({case syn: OpNode => (true)}, ExpectedNodeException.partial("OpNode"))
   val assertLitNode: DataCheck =

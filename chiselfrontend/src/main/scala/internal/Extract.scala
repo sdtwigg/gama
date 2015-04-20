@@ -11,8 +11,8 @@ trait ExtractableImpl {
 
   protected[gama] def makeExtract[E<:Element](retval: E, left_pos: Int, right_pos: Int, em: EnclosingModule): E = {
     val spell: NodeSpell[ExtractedNode] = node match {
-      case _: Connectable   => (ConnectableExtractedSpell(em))
-      case _: Synthesizable => (NonConnectableExtractedSpell(em))
+      case _: ConnectableNode => (ConnectableExtractedSpell(em))
+      case _: Synthesizable   => (NonConnectableExtractedSpell(em))
       case e => (throw new ExpectedNodeException("Synthesizable","${e.getClass.getSimpleName}"))
     }
     Desc.generate(retval.rebind(spell))(rv => ExtractDesc(this, left_pos, right_pos, rv, em))
