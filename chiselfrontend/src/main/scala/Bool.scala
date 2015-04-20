@@ -20,9 +20,15 @@ final class Bool(initialNode: Node) extends UIntLike(initialNode) {
   def <>(right: Bool)(implicit em: EnclosingModule): Unit =
     BiConnect[Bool,Bool].biConnect(Left(this), Right(right), em)
   def copy = new Bool(SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
+  
+  // external->internal API
+  def do_not(em: EnclosingModule): Bool = UnaryOp.Bool(OpNot, this, em)
 
-  def unary_!(implicit em: EnclosingModule): Bool = UnaryOp.Bool(OpNot, this, em)
-  def unary_~(implicit em: EnclosingModule): Bool = unary_!
+  import scala.language.experimental.macros
+  import gama.internal.macrodefs.{TransformMacro => XFORM}
+  // External API
+  override def unary_~(): Bool = macro XFORM.do_not.paren
+           def unary_!(): Bool = macro XFORM.do_not.paren
 
   def &&(that: Bool)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpAnd, (this, that), em)
   def ||(that: Bool)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpOr,  (this, that), em)

@@ -3,7 +3,7 @@ package gama
 object switch {
   def apply(left: UIntLike)(ises: Seq[SwitchIs])(implicit em: EnclosingModule): Unit = {
     ises.foreach(is => {
-      when.create(left === is.right, is.doWork, em)
+      when.create(left.do_eq(is.right, em), is.doWork, em)
     })
   }
 }

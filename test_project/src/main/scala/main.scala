@@ -333,6 +333,22 @@ trait Nested2 extends Nested {
   sub1.io.out <> sub1.io.in  // technically weird, but a good test
 }
 
+@module class APIModule extends Module(Output(UInt())) {
+  val uint1 = Wire(UInt())
+  val uint2 = Reg(UInt())
+
+  val cat = uint1 ## uint2
+
+  val notuint: UInt = ~uint1
+  val notbool: Bool = ~uint1(0)
+  val notuintlike1: UIntLike = ~uint1
+  val notuintlike2: UIntLike = ~(uint1: UIntLike)
+  val notuintlike3: UIntLike = ~notbool
+
+  val notdigital1: Digital = ~notuint
+  val notdigital2: Digital = ~(notuint: Digital)
+}
+
 @module class ExampleModule protected () extends Module(new ExampleIO) {
   val data_width = 32
   val vec_length = 4
@@ -386,6 +402,7 @@ trait Nested2 extends Nested {
   val myExtractModule = Module(new ExtractModule)
   val myCopyModule    = Module(new CopyModule)
   val myBiModule      = Module(new BiModule)
+  val myAPIModule     = Module(new APIModule)
 
   myInnerModule.io.in1 := test
   test := myInnerModule.io.out

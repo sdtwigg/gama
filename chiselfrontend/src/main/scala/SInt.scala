@@ -28,10 +28,25 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
     BiConnect[SInt,UInt].biConnect(Left(this), Right(right), em)
   def copy = new SInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
-  // IMPLEMENT EQUALITY AND OTHER COMPARISONS
-  def ===(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
-  def !==(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpNotEq, (this, that), em)
+  // external->internal API
+  def do_andR(em: EnclosingModule): Bool = this.do_eq( LiteralSInt(-1), em)
+  def do_orR (em: EnclosingModule): Bool = this.do_neq(LiteralSInt(0), em)
   
+  def do_not(em: EnclosingModule): SInt = UnaryOp.SInt(OpNot,  this, this.getWidth, em)
+  
+  def do_eq (that: SInt, em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
+  def do_neq(that: SInt, em: EnclosingModule): Bool = BinaryOp.Bool(OpNotEq, (this, that), em)
+
+  import scala.language.experimental.macros
+  import gama.internal.macrodefs.{TransformMacro => XFORM}
+  // External API
+  def ===(that: SInt): Bool = macro XFORM.do_eq.thatarg
+  def !==(that: SInt): Bool = macro XFORM.do_neq.thatarg
+
+  override def unary_~(): SInt = macro XFORM.do_not.paren
+ 
+  // TO BE CONVERTED BELOW VVVV 
+  // IMPLEMENT EQUALITY AND OTHER COMPARISONS
   def   <(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpLess,  (this, that), em)
   def  <=(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpLeEq,  (this, that), em)
   def   >(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpGrt,   (this, that), em)
@@ -42,8 +57,6 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def   ^(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpXor, (this, that), em)
   
   // IMPLEMENT SIMPLE ABSTRACT OPERATIONS
-  def andR(implicit em: EnclosingModule): Bool = this === LiteralSInt(-1)
-  def  orR(implicit em: EnclosingModule): Bool = this !== LiteralSInt(0)
   
   def pad(that: Digital)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPadTo,  (this, that), em)
   def  <<(that: UInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpLShft, (this, that), em)
@@ -55,7 +68,6 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def asUInt(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpAsUInt, this, getWidth, em)
   def asSInt(implicit em: EnclosingModule): SInt = UnaryOp.SInt(OpIDENT,  this, getWidth, em)
   
-  def unary_~(implicit em: EnclosingModule): SInt = UnaryOp.SInt(OpNot,  this, this.getWidth, em)
   def unary_-(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpSubt, (api.S(0),this), em)
 
   // IMPLEMENT OPERATIONS WITH SELF

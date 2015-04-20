@@ -8,6 +8,8 @@ trait HWDataTypesAPI {
   // ELEMENT
   type Element = gama.Element
   type Digital = gama.Digital
+  
+  type UIntLike = gama.UIntLike
 
   type UInt = gama.UInt
   val UInt = gama.UInt

@@ -27,5 +27,11 @@ final class UInt(initialNode: Node) extends UIntLike(initialNode) {
     BiConnect[UInt,SInt].biConnect(Left(this), Right(right), em)
   def copy = new UInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
-  def unary_~(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpNot, this, this.getWidth, em)
+  // external->internal API
+  def do_not(em: EnclosingModule): UInt = UnaryOp.UInt(OpNot, this, this.getWidth, em)
+  
+  import scala.language.experimental.macros
+  import gama.internal.macrodefs.{TransformMacro => XFORM}
+  // External API
+  override def unary_~(): UInt = macro XFORM.do_not.paren
 }

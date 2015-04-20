@@ -12,6 +12,25 @@ protected[gama] object TransformMacro {
     def emtype = tq"_root_.gama.EnclosingModule"
   }
 
+  abstract class UnaryOpTransform(opterm: String) extends CoreTransform {
+    import c.universe._
+    def noparen: c.Tree = {
+      val targetf = TermName(opterm)
+      q"$myThis.$targetf(implicitly[$emtype])"
+    }
+    def paren(): c.Tree = {
+      val targetf = TermName(opterm)
+      q"$myThis.$targetf(implicitly[$emtype])"
+    }
+  }
+  abstract class BinaryOpTransform(opterm: String) extends CoreTransform {
+    import c.universe._
+    def thatarg(that: c.Tree): c.Tree = {
+      val targetf = TermName(opterm)
+      q"$myThis.$targetf($that, implicitly[$emtype])"
+    }
+  }
+
   class doExtract(val c: Context) extends CoreTransform {
     import c.universe._
     def onearg(position: c.Tree): c.Tree =
@@ -25,5 +44,15 @@ protected[gama] object TransformMacro {
     def onearg(selector: c.Tree): c.Tree =
       q"$myThis.doLookup($selector, implicitly[$emtype])"
   }
+
+  class do_eq (val c: Context)  extends BinaryOpTransform("do_eq")
+  class do_neq(val c: Context)  extends BinaryOpTransform("do_neq")
+  class do_cat(val c: Context)  extends BinaryOpTransform("do_cat")
+  
+  class do_not(val c: Context) extends  UnaryOpTransform("do_not")
+
+  class do_andR(val c: Context) extends  UnaryOpTransform("do_andR")
+  class do_orR (val c: Context) extends  UnaryOpTransform("do_orR")
+  class do_xorR(val c: Context) extends  UnaryOpTransform("do_xorR")
 }
 
