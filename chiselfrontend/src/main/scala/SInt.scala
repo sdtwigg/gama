@@ -57,8 +57,6 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def   ^(that: SInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpXor, (this, that), em)
   
   // IMPLEMENT SIMPLE ABSTRACT OPERATIONS
-  
-  def pad(that: Digital)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpPadTo,  (this, that), em)
   def  <<(that: UInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpLShft, (this, that), em)
   def  >>(that: UInt)(implicit em: EnclosingModule): SInt = BinaryOp.SInt(OpRShft, (this, that), em)
   

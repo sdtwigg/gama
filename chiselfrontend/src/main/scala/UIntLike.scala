@@ -37,8 +37,6 @@ abstract class UIntLike(initialNode: Node) extends Digital(initialNode) {
   def   ^(that: UIntLike)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpXor, (this, that), em)
 
   // IMPLEMENT SIMPLE ABSTRACT OPERATIONS
-  
-  def pad(that: Digital)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpPadTo, (this, that), em)
   def  <<(that: UInt)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpLShft, (this, that), em)
   def  >>(that: UInt)(implicit em: EnclosingModule): UInt = BinaryOp.UInt(OpRShft, (this, that), em)
 

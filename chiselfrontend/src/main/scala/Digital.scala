@@ -11,20 +11,11 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   import scala.language.experimental.macros
   import gama.internal.macrodefs.{TransformMacro => XFORM}
 
-  // pseudo-UNARY OPERATIONS
   // external -> internal API
+  // pseudo-UNARY OPERATIONS
   // doExtract (defined by ExtractableImpl)
   
-  // External API
-  def extract(position: Int): Bool = macro XFORM.doExtract.onearg
-  def extract(left_pos: Int, right_pos: Int): UInt = macro XFORM.doExtract.twoarg
-
-  def apply(position: Int): Bool = macro XFORM.doExtract.onearg 
-  def apply(left_pos: Int, right_pos: Int): UInt = macro XFORM.doExtract.twoarg
-
   // BINARY OPERATIONS
-  // external->internal API
-  // CONCRETE OPERATIONS
   def do_cat(that: Digital, em: EnclosingModule): UInt = BinaryOp.UInt(OpCat, (this, that), em)
   
   def do_andR(em: EnclosingModule): Bool
@@ -34,6 +25,13 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   def do_not(em: EnclosingModule): Digital
  
   // External API
+  // pseudo-UNARY OPERATIONS
+  def extract(position: Int): Bool = macro XFORM.doExtract.onearg
+  def extract(left_pos: Int, right_pos: Int): UInt = macro XFORM.doExtract.twoarg
+
+  def apply(position: Int): Bool = macro XFORM.doExtract.onearg 
+  def apply(left_pos: Int, right_pos: Int): UInt = macro XFORM.doExtract.twoarg
+  
   // CONCRETE OPERATIONS
   def  ##(that: Digital): UInt = macro XFORM.do_cat.thatarg
 
@@ -45,7 +43,6 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
 
   // TO BE CONVERTED VVVV
   // ABSTRACT OPERATIONS
-  def pad(that: Digital)(implicit em: EnclosingModule): Digital
   def  <<(that: UInt)(implicit em: EnclosingModule): Digital
   def  >>(that: UInt)(implicit em: EnclosingModule): Digital
   

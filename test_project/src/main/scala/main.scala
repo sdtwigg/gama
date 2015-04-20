@@ -370,8 +370,6 @@ trait Nested2 extends Nested {
   val myNewVec  = Wire(Vec(2, UInt(4)))
 
   val myUnknownVec = Wire(Vec(2, UInt()))
-  myUnknownVec(0) := uint1 pad myUnknownVec(0)
-  myUnknownVec(1) := uint2 pad myUnknownVec(1)
 
   val myMux    = Mux(select1, uint1, myNewVec(1))
   val myVecMux = Mux(select1, myNewVec, myUnknownVec)
