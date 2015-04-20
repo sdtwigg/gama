@@ -1,6 +1,5 @@
 package test
 
-import gama._
 import gama.api._
 import gama.library._
 

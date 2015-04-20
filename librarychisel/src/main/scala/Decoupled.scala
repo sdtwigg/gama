@@ -1,7 +1,6 @@
 package gama
 package library
 
-import gama._
 import gama.api._
 
 final class Decoupled[+T<:Data] private (model: T) extends HardwareTuple with BundleReflection {

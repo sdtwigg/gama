@@ -1,11 +1,13 @@
 package gama
 import internal._
 
-object SInt {
+trait SIntApplies {
   def apply(): SInt           = apply(None)
   def apply(width: Int): SInt = apply(Some(width))
   def apply(width: Option[Int]) = new SInt(new SPEC(SBits(width), None))
+}
 
+object SInt extends SIntApplies{
   implicit object basicfunctionality
     extends Muxable[SInt]
     with Element.ConnectToImpl[SInt,Digital]
@@ -17,6 +19,7 @@ object SInt {
     extends Element.BiConnectImpl[SInt,UInt]
   // TODO: Is this actually ok? Not always clear what is going on....
 }
+
 final class SInt(initialNode: Node) extends Digital(initialNode) {
   // GENERAL ELEMENT REQUIREMENTS
   def :=(source: Digital)(implicit em: EnclosingModule): Unit =

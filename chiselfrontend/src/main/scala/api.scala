@@ -1,15 +1,9 @@
 package gama
 package object api
   extends DirectionAPI with LiteralBoolAPI
+  with HWDataTypesAPI with NodeAPI with ControlFlowAPI
 {
   import internal._
-
-  // Helper constructors and TypeDefs
-  type AnyModule = Module[_<:Data]
-  type AnyVec    = Vec[_<:Data]
-  
-  type Bits = UInt
-  object Bits extends UIntApplies
 
   // Literals (implicit classes cannot be in separate API)
   object U extends LitUIntObjectImpl
