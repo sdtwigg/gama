@@ -39,7 +39,7 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
       case CreateExtract(extdesc)  => None // fold later
       case CreateMem(mem)          => check(mem, "mem")
       case CreateModule(module)    => check(module, "M")
-      case AddExecBlock(_)    => None
+      case AddBlock(_)    => None
       case Conditionally(_,_,_) => None // recall: will recursively see
       case ConnectData(_,_,_) => None
       case BiConnectData(_,_,_) => None

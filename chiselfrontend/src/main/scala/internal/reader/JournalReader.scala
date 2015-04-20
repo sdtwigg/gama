@@ -71,7 +71,7 @@ abstract class BaseJournalReader extends JournalReader {
         s"${HL.CYAN}mem${HL.RESET}   ${emitMemDetails(mem)}"
       case CreateModule(module) =>
         s"${HL.CYAN}inst${HL.RESET}  ${emitModuleInst(module)}"
-      case AddExecBlock(journal) =>
+      case AddBlock(journal) =>
         s"${parseJournal(journal)}"
       case Conditionally(cond, tc, fc) =>
         s"${HL.CYAN}when${HL.RESET}(${emitRef(cond)}) ${parseJournal(tc)} ${HL.CYAN}else${HL.RESET} ${parseJournal(fc)}"

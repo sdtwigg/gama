@@ -5,5 +5,5 @@ trait ControlFlowAPI {
   val when = gama.when
   val switch = gama.switch
   val is = gama.is
-  val ExecBlock = gama.ExecBlock
+  val block = gama.block
 }

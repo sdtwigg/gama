@@ -1,6 +1,5 @@
 package gama
 package api
-import internal._
 
 trait LiteralAPI {
   val U = LiteralUInt

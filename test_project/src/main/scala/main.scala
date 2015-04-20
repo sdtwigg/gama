@@ -66,7 +66,7 @@ trait Nested2 extends Nested {
   uint := io.in1 * U(10,16) + 7.U * 4.U + True
   io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
 
-  ExecBlock {
+  block {
     val test_u2s: SInt = 1.U.toSInt
     val test_u2u: UInt = 1.U.toUInt
     val test_uAs: SInt = 1.U.asSInt
@@ -84,7 +84,7 @@ trait Nested2 extends Nested {
   }
 
   val sint = Reg(SInt())
-  ExecBlock {
+  block {
     val test_upu = uint + uint
     val test_ups = uint + sint
     val test_spu = sint + uint
@@ -250,7 +250,7 @@ trait Nested2 extends Nested {
   val wire_bc   = Wire(new MyChildBundle)
   val wire_vbp  = Wire(Vec(2, new MyBundle))
 
-  ExecBlock {
+  block {
     io.in_uint  <> wire_uint
     wire_uint   <> io.in_uint
     
@@ -260,7 +260,7 @@ trait Nested2 extends Nested {
     io.in_uint  <> io.out_uint
     io.out_uint <> io.in_uint
   }
-  ExecBlock {
+  block {
     io.in_vec  <> wire_vec
     wire_vec   <> io.in_vec
     
@@ -271,7 +271,7 @@ trait Nested2 extends Nested {
     io.out_vec <> io.in_vec
   }
   
-  ExecBlock {
+  block {
     io.in_bp  <> wire_bp
     wire_bp   <> io.in_bp
     
@@ -282,7 +282,7 @@ trait Nested2 extends Nested {
     io.out_bp <> io.in_bp
   }
 
-  ExecBlock {
+  block {
     io.in_bc  <> wire_bp
     wire_bc   <> io.in_bp
     
@@ -292,7 +292,7 @@ trait Nested2 extends Nested {
     io.in_bc  <> io.out_bp
     io.out_bc <> io.in_bp
   }
-  ExecBlock {
+  block {
     io.in_bp  <> wire_bc
     wire_bp   <> io.in_bc
     
@@ -302,7 +302,7 @@ trait Nested2 extends Nested {
     io.in_bp  <> io.out_bc
     io.out_bp <> io.in_bc
   }
-  ExecBlock {
+  block {
     io.in_vbc  <> wire_vbp
     wire_vbp   <> io.in_vbc
     

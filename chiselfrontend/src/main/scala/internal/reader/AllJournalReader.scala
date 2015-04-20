@@ -29,7 +29,7 @@ sealed abstract class AllJournalReader extends BaseJournalReader {
       case CreateExtract(extdesc)  => check(extdesc.retVal,"E")
       case CreateMem(mem)          => check(mem, "mem")
       case CreateModule(module)    => None // handled above
-      case AddExecBlock(_)    => None
+      case AddBlock(_)    => None
       case Conditionally(_,_,_) => None // recall: will recursively see
       case ConnectData(_,_,_) => None
       case BiConnectData(_,_,_) => None
