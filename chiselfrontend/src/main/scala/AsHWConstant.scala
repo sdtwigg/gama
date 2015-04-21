@@ -2,7 +2,14 @@ package gama
 import internal._
 
 object AsHWConstant {
-  def apply[D<:Data](in: D)(implicit em: EnclosingModule): D = {
+  import scala.language.experimental.macros
+  import gama.internal.macrodefs.{TransformMacro => XFORM}
+
+  // External API
+  def apply[D<:Data](in: D): D = macro XFORM.doConstant.xform[D]
+
+  // external->internal API
+  def doConstant[D<:Data](in: D, em: EnclosingModule): D = {
     NodeCheck.assertSynthesizable(in)
     Desc.generate(in.copy.rebind(OpCopySpell(em)))(rv =>
       UnaryOpDesc(OpIDENT, in, rv, em)

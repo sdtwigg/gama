@@ -45,6 +45,29 @@ protected[gama] object TransformMacro {
       q"$myThis.doLookup($selector, implicitly[$emtype])"
   }
   
+  class doConstant(val c: Context) extends CoreTransform {
+    import c.universe._
+    def xform[D<:Data: c.WeakTypeTag](in: c.Tree): c.Tree = {
+      val TP = c.weakTypeOf[D]
+      q"$myThis.doConstant[$TP]($in, implicitly[$emtype])"
+    }
+  }
+  class doNodeXFORM(val c: Context) extends CoreTransform {
+    import c.universe._
+    def xform[D<:Data: c.WeakTypeTag](model: c.Tree): c.Tree = {
+      val TP = c.weakTypeOf[D]
+      q"$myThis.doNodeXFORM[$TP]($model, implicitly[$emtype])"
+    }
+  }
+  class doMux(val c: Context) extends CoreTransform {
+    import c.universe._
+    def xform[RT<:Data: c.WeakTypeTag](cond: c.Tree, tc: c.Tree, fc: c.Tree): c.Tree = {
+      val TP = c.weakTypeOf[RT]
+      val muxerType = tq"_root_.gama.internal.Muxable[$TP]"
+      q"$myThis.doMux[$TP]($cond, $tc, $fc, implicitly[$muxerType], implicitly[$emtype])"
+    }
+  }
+  
   // Unary transforms
   class do_andR(val c: Context) extends  UnaryOpTransform("do_andR")
   class do_orR (val c: Context) extends  UnaryOpTransform("do_orR")
