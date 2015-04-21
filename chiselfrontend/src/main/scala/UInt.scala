@@ -29,6 +29,6 @@ final class UInt(initialNode: Node) extends UIntLike(initialNode) {
     BiConnect[UInt,SInt].biConnect(Left(this), Right(right), em)
   def copy = new UInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
-  // external->internal API
+  // implementation for parent abstracts
   def do_not(em: EnclosingModule): Self = UnaryOp.UInt(OpNot, this, this.getWidth, em)
 }

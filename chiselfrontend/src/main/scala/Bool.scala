@@ -25,13 +25,17 @@ final class Bool(initialNode: Node) extends UIntLike(initialNode) {
   
   // external->internal API
   def do_not(em: EnclosingModule): Self = UnaryOp.Bool(OpNot, this, em)
+  
+  def do_andB(that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpAnd, (this, that), em)
+  def do_orB (that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpOr,  (this, that), em)
+  def do_xorB(that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpXor, (this, that), em)
 
   import scala.language.experimental.macros
   import gama.internal.macrodefs.{TransformMacro => XFORM}
   // External API
   def unary_!(): Bool = macro XFORM.do_not.paren
 
-  def &&(that: Bool)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpAnd, (this, that), em)
-  def ||(that: Bool)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpOr,  (this, that), em)
-  def ^^(that: Bool)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpXor, (this, that), em)
+  def &&(that: Bool): Bool = macro XFORM.do_andB.thatarg
+  def ||(that: Bool): Bool = macro XFORM.do_orB.thatarg
+  def ^^(that: Bool): Bool = macro XFORM.do_xorB.thatarg
 }

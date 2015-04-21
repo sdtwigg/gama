@@ -15,10 +15,14 @@ protected[gama] object TransformMacro {
   abstract class UnaryOpTransform(opterm: String) extends CoreTransform {
     import c.universe._
     def noparen: c.Tree = {
+      println(opterm)
+      println(c.enclosingPosition)
       val targetf = TermName(opterm)
       q"$myThis.$targetf(implicitly[$emtype])"
     }
     def paren(): c.Tree = {
+      println(opterm)
+      println(c.enclosingPosition)
       val targetf = TermName(opterm)
       q"$myThis.$targetf(implicitly[$emtype])"
     }
@@ -26,6 +30,8 @@ protected[gama] object TransformMacro {
   abstract class BinaryOpTransform(opterm: String) extends CoreTransform {
     import c.universe._
     def thatarg(that: c.Tree): c.Tree = {
+      println(opterm)
+      println(c.enclosingPosition)
       val targetf = TermName(opterm)
       q"$myThis.$targetf($that, implicitly[$emtype])"
     }
@@ -44,15 +50,46 @@ protected[gama] object TransformMacro {
     def onearg(selector: c.Tree): c.Tree =
       q"$myThis.doLookup($selector, implicitly[$emtype])"
   }
-
-  class do_eq (val c: Context)  extends BinaryOpTransform("do_eq")
-  class do_neq(val c: Context)  extends BinaryOpTransform("do_neq")
-  class do_cat(val c: Context)  extends BinaryOpTransform("do_cat")
   
-  class do_not(val c: Context) extends  UnaryOpTransform("do_not")
-
+  // Unary transforms
   class do_andR(val c: Context) extends  UnaryOpTransform("do_andR")
   class do_orR (val c: Context) extends  UnaryOpTransform("do_orR")
   class do_xorR(val c: Context) extends  UnaryOpTransform("do_xorR")
+  
+  class do_not(val c: Context) extends  UnaryOpTransform("do_not")
+  class do_neg(val c: Context) extends  UnaryOpTransform("do_neg")
+  
+  class do_toUInt(val c: Context) extends  UnaryOpTransform("do_toUInt")
+  class do_toSInt(val c: Context) extends  UnaryOpTransform("do_toSInt")
+  class do_asUInt(val c: Context) extends  UnaryOpTransform("do_asUInt")
+  class do_asSInt(val c: Context) extends  UnaryOpTransform("do_asSInt")
+
+  // Binary transforms
+  class do_cat  (val c: Context)  extends BinaryOpTransform("do_cat")
+  class do_lshft(val c: Context)  extends BinaryOpTransform("do_lshft")
+  class do_rshft(val c: Context)  extends BinaryOpTransform("do_rshft")
+  
+  class do_add(val c: Context)  extends BinaryOpTransform("do_add")
+  class do_sub(val c: Context)  extends BinaryOpTransform("do_sub")
+  class do_mul(val c: Context)  extends BinaryOpTransform("do_mul")
+  class do_div(val c: Context)  extends BinaryOpTransform("do_div")
+  class do_mod(val c: Context)  extends BinaryOpTransform("do_mod")
+  
+  class do_eq (val c: Context)  extends BinaryOpTransform("do_eq")
+  class do_neq(val c: Context)  extends BinaryOpTransform("do_neq")
+  
+  class do_lt (val c: Context)  extends BinaryOpTransform("do_lt")
+  class do_lte(val c: Context)  extends BinaryOpTransform("do_lte")
+  class do_gt (val c: Context)  extends BinaryOpTransform("do_gt")
+  class do_gte(val c: Context)  extends BinaryOpTransform("do_gte")
+  
+  class do_and(val c: Context)  extends BinaryOpTransform("do_and")
+  class do_or (val c: Context)  extends BinaryOpTransform("do_or")
+  class do_xor(val c: Context)  extends BinaryOpTransform("do_xor")
+  
+  // Boolean extensions
+  class do_andB(val c: Context)  extends BinaryOpTransform("do_andB")
+  class do_orB (val c: Context)  extends BinaryOpTransform("do_orB")
+  class do_xorB(val c: Context)  extends BinaryOpTransform("do_xorB")
 }
 
