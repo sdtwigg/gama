@@ -20,5 +20,6 @@ import gama.library._
 
   val extendedtest = ~(-((((uint1 ## uint2) - (uint1)) << 2.U)(7,4)(2,1)(1)))
   val part2 = ((extendedtest >> 1.U) * 2.U / 3.U % 5.U).andR
-  val extendedtest2 = ((~(-((((uint1 ## uint2) - (uint1)) << 2.U)(7,4)(2,1)(1))) >> 1.U) * 2.U / 3.U % 5.U).andR 
+  //val extendedtest2 = ((~(-((((uint1 ## uint2) - (uint1)) << 2.U)(7,4)(2,1)(1))) >> 1.U) * 2.U / 3.U % 5.U).andR
+  val test = MACRODEBUG{ uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 }
 }
