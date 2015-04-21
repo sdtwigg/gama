@@ -15,14 +15,10 @@ protected[gama] object TransformMacro {
   abstract class UnaryOpTransform(opterm: String) extends CoreTransform {
     import c.universe._
     def noparen: c.Tree = {
-      println(opterm)
-      println(c.enclosingPosition)
       val targetf = TermName(opterm)
       q"$myThis.$targetf(implicitly[$emtype])"
     }
     def paren(): c.Tree = {
-      println(opterm)
-      println(c.enclosingPosition)
       val targetf = TermName(opterm)
       q"$myThis.$targetf(implicitly[$emtype])"
     }
@@ -30,8 +26,6 @@ protected[gama] object TransformMacro {
   abstract class BinaryOpTransform(opterm: String) extends CoreTransform {
     import c.universe._
     def thatarg(that: c.Tree): c.Tree = {
-      println(opterm)
-      println(c.enclosingPosition)
       val targetf = TermName(opterm)
       q"$myThis.$targetf($that, implicitly[$emtype])"
     }
