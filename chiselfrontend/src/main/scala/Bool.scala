@@ -23,13 +23,6 @@ final class Bool(initialNode: Node) extends UIntLike(initialNode) {
     BiConnect[Bool,Bool].biConnect(Left(this), Right(right), em)
   def copy = new Bool(SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
-  // external->internal API
-  def do_not(em: EnclosingModule): Self = UnaryOp.Bool(OpNot, this, em)
-  
-  def do_andB(that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpAnd, (this, that), em)
-  def do_orB (that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpOr,  (this, that), em)
-  def do_xorB(that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpXor, (this, that), em)
-
   import scala.language.experimental.macros
   import gama.internal.macrodefs.{TransformMacro => XFORM}
   // External API
@@ -38,4 +31,11 @@ final class Bool(initialNode: Node) extends UIntLike(initialNode) {
   def &&(that: Bool): Bool = macro XFORM.do_andB.thatarg
   def ||(that: Bool): Bool = macro XFORM.do_orB.thatarg
   def ^^(that: Bool): Bool = macro XFORM.do_xorB.thatarg
+  
+  // external->internal API
+  def do_not(em: EnclosingModule): Self = UnaryOp.Bool(OpNot, this, em)
+  
+  def do_andB(that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpAnd, (this, that), em)
+  def do_orB (that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpOr,  (this, that), em)
+  def do_xorB(that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpXor, (this, that), em)
 }

@@ -31,6 +31,21 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
     BiConnect[SInt,UInt].biConnect(Left(this), Right(right), em)
   def copy = new SInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
+  import scala.language.experimental.macros
+  import gama.internal.macrodefs.{TransformMacro => XFORM}
+  // External API
+  def ===(that: SInt): Bool = macro XFORM.do_eq.thatarg
+  def !==(that: SInt): Bool = macro XFORM.do_neq.thatarg
+
+  def   <(that: SInt): Bool = macro XFORM.do_lt.thatarg
+  def  <=(that: SInt): Bool = macro XFORM.do_lte.thatarg
+  def   >(that: SInt): Bool = macro XFORM.do_gt.thatarg
+  def  >=(that: SInt): Bool = macro XFORM.do_gte.thatarg
+  
+  def   &(that: SInt): SInt = macro XFORM.do_and.thatarg
+  def   |(that: SInt): SInt = macro XFORM.do_or.thatarg
+  def   ^(that: SInt): SInt = macro XFORM.do_xor.thatarg
+  
   // external->internal API
   // New operations
   def do_eq (that: SInt, em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
@@ -72,19 +87,4 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def do_mul(that: UIntLike, em: EnclosingModule): MultiSelf = BinaryOp.SInt(OpMult, (this, that.do_toSInt(em)), em)
   def do_div(that: UIntLike, em: EnclosingModule): MultiSelf = BinaryOp.SInt(OpDiv,  (this, that.do_toSInt(em)), em)
   def do_mod(that: UIntLike, em: EnclosingModule): MultiSelf = BinaryOp.SInt(OpMod,  (this, that.do_toSInt(em)), em)
-
-  import scala.language.experimental.macros
-  import gama.internal.macrodefs.{TransformMacro => XFORM}
-  // External API
-  def ===(that: SInt): Bool = macro XFORM.do_eq.thatarg
-  def !==(that: SInt): Bool = macro XFORM.do_neq.thatarg
-
-  def   <(that: SInt): Bool = macro XFORM.do_lt.thatarg
-  def  <=(that: SInt): Bool = macro XFORM.do_lte.thatarg
-  def   >(that: SInt): Bool = macro XFORM.do_gt.thatarg
-  def  >=(that: SInt): Bool = macro XFORM.do_gte.thatarg
-  
-  def   &(that: SInt): SInt = macro XFORM.do_and.thatarg
-  def   |(that: SInt): SInt = macro XFORM.do_or.thatarg
-  def   ^(that: SInt): SInt = macro XFORM.do_xor.thatarg
 }

@@ -13,6 +13,52 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   // Prepare for macro use
   import scala.language.experimental.macros
   import gama.internal.macrodefs.{TransformMacro => XFORM}
+  
+  // External API
+  // pseudo-UNARY OPERATIONS
+  def extract(position: Int): Bool = macro XFORM.doExtract.onearg
+  def extract(left_pos: Int, right_pos: Int): UInt = macro XFORM.doExtract.twoarg
+
+  def apply(position: Int): Bool = macro XFORM.doExtract.onearg 
+  def apply(left_pos: Int, right_pos: Int): UInt = macro XFORM.doExtract.twoarg
+  
+  // UNARY OPERATIONS
+  def andR: Bool = macro XFORM.do_andR.noparen
+  def  orR: Bool = macro XFORM.do_orR.noparen
+  def xorR: Bool = macro XFORM.do_xorR.noparen
+  
+  def unary_~(): Self      = macro XFORM.do_not.paren
+  def unary_-(): MultiSelf = macro XFORM.do_neg.paren
+  
+  def toUInt: UInt = macro XFORM.do_toUInt.noparen
+  def toSInt: SInt = macro XFORM.do_toSInt.noparen
+  
+  def asUInt: UInt = macro XFORM.do_asUInt.noparen
+  def asSInt: SInt = macro XFORM.do_asSInt.noparen
+  
+  // BINARY OPERATIONS
+  def  ##(that: Digital): UInt   = macro XFORM.do_cat.thatarg
+  def  <<(that: UInt): MultiSelf = macro XFORM.do_lshft.thatarg
+  def  >>(that: UInt): MultiSelf = macro XFORM.do_rshft.thatarg
+  
+  def +(that: UIntLike): MultiSelf = macro XFORM.do_add.thatarg
+  def -(that: UIntLike): MultiSelf = macro XFORM.do_sub.thatarg
+  def *(that: UIntLike): MultiSelf = macro XFORM.do_mul.thatarg
+  def /(that: UIntLike): MultiSelf = macro XFORM.do_div.thatarg
+  def %(that: UIntLike): MultiSelf = macro XFORM.do_mod.thatarg
+
+  def +(that: SInt): SInt = macro XFORM.do_add.thatarg
+  def -(that: SInt): SInt = macro XFORM.do_sub.thatarg
+  def *(that: SInt): SInt = macro XFORM.do_mul.thatarg
+  def /(that: SInt): SInt = macro XFORM.do_div.thatarg
+  def %(that: SInt): SInt = macro XFORM.do_mod.thatarg
+ 
+  // Dispatch for these
+  def +(that: Digital): Digital = macro XFORM.do_add.thatarg
+  def -(that: Digital): Digital = macro XFORM.do_sub.thatarg
+  def *(that: Digital): Digital = macro XFORM.do_mul.thatarg
+  def /(that: Digital): Digital = macro XFORM.do_div.thatarg
+  def %(that: Digital): Digital = macro XFORM.do_mod.thatarg
 
   // external -> internal API
   // pseudo-UNARY OPERATIONS
@@ -70,50 +116,5 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
     case s: SInt     => (this.do_mod(s, em))
   }
  
-  // External API
-  // pseudo-UNARY OPERATIONS
-  def extract(position: Int): Bool = macro XFORM.doExtract.onearg
-  def extract(left_pos: Int, right_pos: Int): UInt = macro XFORM.doExtract.twoarg
-
-  def apply(position: Int): Bool = macro XFORM.doExtract.onearg 
-  def apply(left_pos: Int, right_pos: Int): UInt = macro XFORM.doExtract.twoarg
-  
-  // UNARY OPERATIONS
-  def andR: Bool = macro XFORM.do_andR.noparen
-  def  orR: Bool = macro XFORM.do_orR.noparen
-  def xorR: Bool = macro XFORM.do_xorR.noparen
-  
-  def unary_~(): Self      = macro XFORM.do_not.paren
-  def unary_-(): MultiSelf = macro XFORM.do_neg.paren
-  
-  def toUInt: UInt = macro XFORM.do_toUInt.noparen
-  def toSInt: SInt = macro XFORM.do_toSInt.noparen
-  
-  def asUInt: UInt = macro XFORM.do_asUInt.noparen
-  def asSInt: SInt = macro XFORM.do_asSInt.noparen
-  
-  // BINARY OPERATIONS
-  def  ##(that: Digital): UInt   = macro XFORM.do_cat.thatarg
-  def  <<(that: UInt): MultiSelf = macro XFORM.do_lshft.thatarg
-  def  >>(that: UInt): MultiSelf = macro XFORM.do_rshft.thatarg
-  
-  def +(that: UIntLike): MultiSelf = macro XFORM.do_add.thatarg
-  def -(that: UIntLike): MultiSelf = macro XFORM.do_sub.thatarg
-  def *(that: UIntLike): MultiSelf = macro XFORM.do_mul.thatarg
-  def /(that: UIntLike): MultiSelf = macro XFORM.do_div.thatarg
-  def %(that: UIntLike): MultiSelf = macro XFORM.do_mod.thatarg
-
-  def +(that: SInt): SInt = macro XFORM.do_add.thatarg
-  def -(that: SInt): SInt = macro XFORM.do_sub.thatarg
-  def *(that: SInt): SInt = macro XFORM.do_mul.thatarg
-  def /(that: SInt): SInt = macro XFORM.do_div.thatarg
-  def %(that: SInt): SInt = macro XFORM.do_mod.thatarg
- 
-  // Dispatch for these
-  def +(that: Digital): Digital = macro XFORM.do_add.thatarg
-  def -(that: Digital): Digital = macro XFORM.do_sub.thatarg
-  def *(that: Digital): Digital = macro XFORM.do_mul.thatarg
-  def /(that: Digital): Digital = macro XFORM.do_div.thatarg
-  def %(that: Digital): Digital = macro XFORM.do_mod.thatarg
 }
 
