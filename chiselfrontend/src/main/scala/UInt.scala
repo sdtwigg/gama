@@ -19,6 +19,8 @@ object UInt {
 }
 // Placing object first lets the class find the implicits in the object
 final class UInt(initialNode: Node) extends UIntLike(initialNode) {
+  protected type Self = UInt
+
   def :=(source: Digital)(implicit em: EnclosingModule): Unit =
     ConnectTo[UInt,Digital].monoConnect(Sink(this), Source(source), em)
   def <>(right: UInt)(implicit em: EnclosingModule): Unit =
@@ -28,10 +30,5 @@ final class UInt(initialNode: Node) extends UIntLike(initialNode) {
   def copy = new UInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
   // external->internal API
-  def do_not(em: EnclosingModule): UInt = UnaryOp.UInt(OpNot, this, this.getWidth, em)
-  
-  import scala.language.experimental.macros
-  import gama.internal.macrodefs.{TransformMacro => XFORM}
-  // External API
-  override def unary_~(): UInt = macro XFORM.do_not.paren
+  def do_not(em: EnclosingModule): Self = UnaryOp.UInt(OpNot, this, this.getWidth, em)
 }

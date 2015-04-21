@@ -7,11 +7,11 @@ object UIntLike {
   }
 }
 abstract class UIntLike(initialNode: Node) extends Digital(initialNode) {
+  protected type Self <: UIntLike
+
   // external -> internal API
   def do_andR(em: EnclosingModule): Bool = this.do_eq( LiteralUInt(0) ,em).do_not(em)
   def do_orR (em: EnclosingModule): Bool = this.do_neq(LiteralUInt(0), em)
-  
-  def do_not(em: EnclosingModule): UIntLike
   
   def do_eq (that: UIntLike, em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
   def do_neq(that: UIntLike, em: EnclosingModule): Bool = BinaryOp.Bool(OpNotEq, (this, that), em)
@@ -22,8 +22,6 @@ abstract class UIntLike(initialNode: Node) extends Digital(initialNode) {
   def ===(that: UIntLike): Bool = macro XFORM.do_eq.thatarg
   def !==(that: UIntLike): Bool = macro XFORM.do_neq.thatarg
   
-  override def unary_~(): UIntLike = macro XFORM.do_not.paren
-
   // TO BE CONVERTED VVVV
   // IMPLEMENT BITWISE OPs, inc. EQUALITY AND OTHER COMPARISONS
   

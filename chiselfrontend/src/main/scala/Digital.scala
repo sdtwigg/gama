@@ -2,6 +2,8 @@ package gama
 import internal._
 
 abstract class Digital(initialNode: Node) extends Element(initialNode) with ExtractableImpl {
+  protected type Self <: Digital
+
   // Helper operations used internally and possibly externally
   def getWidth: Option[Int] = this.node.storage match {
     case b: RawBits => (b.width)
@@ -22,7 +24,7 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   def do_orR (em: EnclosingModule): Bool
   def do_xorR(em: EnclosingModule): Bool = UnaryOp.Bool(OpXorRed, this, em)
   
-  def do_not(em: EnclosingModule): Digital
+  def do_not(em: EnclosingModule): Self
  
   // External API
   // pseudo-UNARY OPERATIONS
@@ -39,7 +41,7 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   def  orR: Bool = macro XFORM.do_orR.noparen
   def xorR: Bool = macro XFORM.do_xorR.noparen
   
-  def unary_~(): Digital = macro XFORM.do_not.paren
+  def unary_~(): Self = macro XFORM.do_not.paren
 
   // TO BE CONVERTED VVVV
   // ABSTRACT OPERATIONS

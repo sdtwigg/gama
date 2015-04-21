@@ -15,6 +15,8 @@ object Bool {
   //implicit def bool2UInt(in: Bool)(implicit em: EnclosingModule): UInt = UnaryOp.UInt(OpToUInt, in, Some(1), em) 
 }
 final class Bool(initialNode: Node) extends UIntLike(initialNode) {
+  protected type Self = Bool
+
   def :=(source: Bool)(implicit em: EnclosingModule): Unit =
     ConnectTo[Bool,Bool].monoConnect(Sink(this), Source(source), em)
   def <>(right: Bool)(implicit em: EnclosingModule): Unit =
@@ -22,13 +24,12 @@ final class Bool(initialNode: Node) extends UIntLike(initialNode) {
   def copy = new Bool(SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
   // external->internal API
-  def do_not(em: EnclosingModule): Bool = UnaryOp.Bool(OpNot, this, em)
+  def do_not(em: EnclosingModule): Self = UnaryOp.Bool(OpNot, this, em)
 
   import scala.language.experimental.macros
   import gama.internal.macrodefs.{TransformMacro => XFORM}
   // External API
-  override def unary_~(): Bool = macro XFORM.do_not.paren
-           def unary_!(): Bool = macro XFORM.do_not.paren
+  def unary_!(): Bool = macro XFORM.do_not.paren
 
   def &&(that: Bool)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpAnd, (this, that), em)
   def ||(that: Bool)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpOr,  (this, that), em)

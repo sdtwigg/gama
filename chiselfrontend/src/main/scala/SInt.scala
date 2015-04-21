@@ -19,6 +19,8 @@ object SInt extends {
 }
 
 final class SInt(initialNode: Node) extends Digital(initialNode) {
+  protected type Self = SInt
+
   // GENERAL ELEMENT REQUIREMENTS
   def :=(source: Digital)(implicit em: EnclosingModule): Unit =
     ConnectTo[SInt,Digital].monoConnect(Sink(this), Source(source), em)
@@ -32,7 +34,7 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def do_andR(em: EnclosingModule): Bool = this.do_eq( LiteralSInt(-1), em)
   def do_orR (em: EnclosingModule): Bool = this.do_neq(LiteralSInt(0), em)
   
-  def do_not(em: EnclosingModule): SInt = UnaryOp.SInt(OpNot,  this, this.getWidth, em)
+  def do_not(em: EnclosingModule): Self = UnaryOp.SInt(OpNot,  this, this.getWidth, em)
   
   def do_eq (that: SInt, em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
   def do_neq(that: SInt, em: EnclosingModule): Bool = BinaryOp.Bool(OpNotEq, (this, that), em)
@@ -43,8 +45,6 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def ===(that: SInt): Bool = macro XFORM.do_eq.thatarg
   def !==(that: SInt): Bool = macro XFORM.do_neq.thatarg
 
-  override def unary_~(): SInt = macro XFORM.do_not.paren
- 
   // TO BE CONVERTED BELOW VVVV 
   // IMPLEMENT EQUALITY AND OTHER COMPARISONS
   def   <(that: SInt)(implicit em: EnclosingModule): Bool = BinaryOp.Bool(OpLess,  (this, that), em)
