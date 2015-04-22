@@ -20,13 +20,13 @@ case class  ConnectVec(elemdetails: ConnectDetails) extends ConnectDetails
 @annotation.implicitNotFound("Cannot connect data of type ${From} to data of type ${To}. No implicit ConnectTo[${To},${From}] resolvable.")
 trait ConnectTo[To<:Data, -From<:Data] {
   def monoDetails(sink: Sink[To], source: Source[From]): ConnectDetails
-  def monoConnect(sink: Sink[To], source: Source[From], em: EnclosingModule): Unit
+  def monoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo): Unit
 }
 object ConnectTo {
   def apply[To<:Data,From<:Data](implicit ev: ConnectTo[To, From]) = ev
   trait ConnectToImpl[To<:Data,From<:Data] extends ConnectTo[To,From] {
-    def monoConnect(sink: Sink[To], source: Source[From], em: EnclosingModule): Unit =
-      em.getActiveJournal.append(ConnectData(sink, source, monoDetails(sink,source)))
+    def monoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo): Unit =
+      info.em.getActiveJournal.append(ConnectData(sink, source, monoDetails(sink,source)))
   } // should this just be ConnectTo?
 
   implicit def genBundleConnectToBundle[B<:Bundle]: ConnectTo[B,Bundle] = new BundleConnectToBundleImpl[B]{}

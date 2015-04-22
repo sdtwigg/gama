@@ -35,9 +35,9 @@ final class Bool(initialNode: Node) extends UIntLike(initialNode) {
   
   // external->internal API
   def doConnectTo(source: Bool, info: EnclosureInfo) = 
-    ConnectTo[Bool,Bool].monoConnect(Sink(this), Source(source), info.em)
+    ConnectTo[Bool,Bool].monoConnect(Sink(this), Source(source), info)
   def doBiConnect(right: Bool, info: EnclosureInfo): Unit =
-    BiConnect[Bool,Bool].biConnect(Left(this), Right(right), info.em)
+    BiConnect[Bool,Bool].biConnect(Left(this), Right(right), info)
   
   def do_not(info: EnclosureInfo): Self = UnaryOp.Bool(OpNot, this, info)
   

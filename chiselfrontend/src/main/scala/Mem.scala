@@ -39,6 +39,6 @@ final class Mem[D<:Data] private (protected[gama] val elemType: D, val depth: In
   def write[From<:Data](addr: UIntLike, source: From)(implicit acc_em: EnclosingModule, writer: ConnectTo[D, From]): Unit = {
     if(acc_em != info.em) { throw CrossedMemoryAccessException(acc_em, info.em) }
     val accessor = makeAccessor(addr, EnclosureInfo(info.em, None)) // TODO: GET INFO
-    writer.monoConnect(Sink(accessor), Source(source), info.em)
+    writer.monoConnect(Sink(accessor), Source(source), info)
   }
 }

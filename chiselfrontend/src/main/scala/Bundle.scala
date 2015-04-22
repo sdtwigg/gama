@@ -19,9 +19,9 @@ abstract class Bundle extends HardwareTuple with BundleReflection {
 
   // external->internal API
   def doConnectTo(source: Bundle, info: EnclosureInfo): Unit =
-    Bundle.basicfunctionality.monoConnect(Sink(this), Source(source), info.em)
+    Bundle.basicfunctionality.monoConnect(Sink(this), Source(source), info)
   def doBiConnect(right: Bundle, info: EnclosureInfo): Unit =
-    Bundle.basicfunctionality.biConnect(Left(this), Right(right), info.em)
+    Bundle.basicfunctionality.biConnect(Left(this), Right(right), info)
 }
 
 case class ImproperBundleMuxException(tc: String, fc: String)
@@ -41,8 +41,8 @@ trait BundleConnectToBundleImpl[B<:Bundle] extends ConnectTo.ConnectToImpl[B, Bu
     UnsafeConnectToDataImpl.monoDetails(sink, source)
 }
 trait BundleBiConnectBundleImpl[LT<:Bundle,RT<:Bundle] extends BiConnect.BiConnectImpl[LT, RT] {
-  def biDetails(left: Left[LT], right: Right[RT], em: EnclosingModule): BiConnectDetails =
-    UnsafeConnectToDataImpl.biDetails(left, right, em)
+  def biDetails(left: Left[LT], right: Right[RT], info: EnclosureInfo): BiConnectDetails =
+    UnsafeConnectToDataImpl.biDetails(left, right, info)
 }
 
 case class NeedCopyMethodException(containerType: String)

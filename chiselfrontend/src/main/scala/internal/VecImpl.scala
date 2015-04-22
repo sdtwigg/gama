@@ -29,9 +29,9 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
 
   // external->internal API
   def doConnectTo[VFrom<:Data](source: VFrom, info: EnclosureInfo)(implicit writer: ConnectTo[Vec[D],VFrom]): Unit =
-    writer.monoConnect(Sink(this), Source(source), info.em)
+    writer.monoConnect(Sink(this), Source(source), info)
   def doBiConnect[RT<:Data](right: RT, info: EnclosureInfo)(implicit writer: BiConnect[Vec[D],RT]): Unit =
-    writer.biConnect(Left(this), Right(right), info.em)
+    writer.biConnect(Left(this), Right(right), info)
   
   // IMPLEMENTATION BELOW
   protected[gama] val elemType: D = initialModel.copy
@@ -101,9 +101,9 @@ trait VecObjectImpl {
     }
   }
   implicit def biConnect[LT<:Data,RT<:Data](implicit eltconnect: BiConnect[LT,RT]): BiConnect[Vec[LT],Vec[RT]] = new BiConnect.BiConnectImpl[Vec[LT],Vec[RT]] {
-    def biDetails(left: Left[Vec[LT]], right: Right[Vec[RT]], em: EnclosingModule): BiConnectDetails = {
+    def biDetails(left: Left[Vec[LT]], right: Right[Vec[RT]], info: EnclosureInfo): BiConnectDetails = {
       require(left.data.elements.length==right.data.elements.length, "Cannot assign to/from two vectors of different length")
-      eltconnect.biDetails(Left(left.data.elemType), Right(right.data.elemType), em) match {
+      eltconnect.biDetails(Left(left.data.elemType), Right(right.data.elemType), info) match {
         case BiConnectToLeft  => BiConnectToLeft
         case BiConnectToRight => BiConnectToRight
         case other => BiConnectVec(other)

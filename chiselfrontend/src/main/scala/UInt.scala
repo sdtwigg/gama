@@ -36,11 +36,11 @@ final class UInt(initialNode: Node) extends UIntLike(initialNode) {
 
   // external->internal API
   def doConnectTo(source: Digital, info: EnclosureInfo) = 
-    ConnectTo[UInt,Digital].monoConnect(Sink(this), Source(source), info.em)
+    ConnectTo[UInt,Digital].monoConnect(Sink(this), Source(source), info)
   def doBiConnect(right: UInt, info: EnclosureInfo): Unit =
-    BiConnect[UInt,UInt].biConnect(Left(this), Right(right), info.em)
+    BiConnect[UInt,UInt].biConnect(Left(this), Right(right), info)
   def doBiConnect(right: SInt, info: EnclosureInfo): Unit =
-    BiConnect[UInt,SInt].biConnect(Left(this), Right(right), info.em)
+    BiConnect[UInt,SInt].biConnect(Left(this), Right(right), info)
   // TODO: See above
 
   

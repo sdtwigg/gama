@@ -22,23 +22,23 @@ case class  BiConnectVec(elemdetails: BiConnectDetails) extends BiConnectDetails
 //   so restriction may be unnecessary
 @annotation.implicitNotFound("Cannot bidirectionally connect data between type ${LT} and type ${RT}. No implicit BiConnect[${LT},${RT}] resolvable.")
 trait BiConnect[LT<:Data, RT<:Data] {
-  def biDetails(left: Left[LT], right: Right[RT], em: EnclosingModule): BiConnectDetails
-  def biConnect(left: Left[LT], right: Right[RT], em: EnclosingModule): Unit
+  def biDetails(left: Left[LT], right: Right[RT], info: EnclosureInfo): BiConnectDetails
+  def biConnect(left: Left[LT], right: Right[RT], info: EnclosureInfo): Unit
 }
   // Note: em for biDetails is required to resolve when connecting same module's input to output
   //   if inside the module
 object BiConnect {
   def apply[LT<:Data,RT<:Data](implicit ev: BiConnect[LT, RT]) = ev
   trait BiConnectImpl[LT<:Data,RT<:Data] extends BiConnect[LT,RT] {
-    def biConnect(left: Left[LT], right: Right[RT], em: EnclosingModule): Unit =
-      em.getActiveJournal.append(BiConnectData(left, right, biDetails(left,right, em)))
+    def biConnect(left: Left[LT], right: Right[RT], info: EnclosureInfo): Unit =
+      info.em.getActiveJournal.append(BiConnectData(left, right, biDetails(left,right, info)))
   } // should this just be BiConnect?
 
   implicit def genBundleBiConnectBundle[LT<:Bundle,RT<:Bundle]: BiConnect[LT,RT] = new BundleBiConnectBundleImpl[LT,RT]{}
 
-  def elemDetails(left: Node, right: Node, em: EnclosingModule): BiConnectDetails = {
+  def elemDetails(left: Node, right: Node, info: EnclosureInfo): BiConnectDetails = {
     import DirectionIO.{Input, Output} // Using these extensively here so save some typing....
-    val context_m: Module[_] = em.enclosure
+    val context_m: Module[_] = info.em.enclosure
     val left_m: Module[_]  = left.oem.getOrElse(throw AmbiguousBiConnectException).enclosure
     val right_m: Module[_] = right.oem.getOrElse(throw AmbiguousBiConnectException).enclosure
 

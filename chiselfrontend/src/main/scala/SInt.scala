@@ -50,11 +50,11 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   // external->internal API
   // New operations
   def doConnectTo(source: Digital, info: EnclosureInfo) = 
-    ConnectTo[SInt,Digital].monoConnect(Sink(this), Source(source), info.em)
+    ConnectTo[SInt,Digital].monoConnect(Sink(this), Source(source), info)
   def doBiConnect(right: SInt, info: EnclosureInfo): Unit =
-    BiConnect[SInt,SInt].biConnect(Left(this), Right(right), info.em)
+    BiConnect[SInt,SInt].biConnect(Left(this), Right(right), info)
   def doBiConnect(right: UInt, info: EnclosureInfo): Unit =
-    BiConnect[SInt,UInt].biConnect(Left(this), Right(right), info.em)
+    BiConnect[SInt,UInt].biConnect(Left(this), Right(right), info)
   // TODO: See above
   
   def do_eq (that: SInt, info: EnclosureInfo): Bool = BinaryOp.Bool(OpEqual, (this, that), info)
