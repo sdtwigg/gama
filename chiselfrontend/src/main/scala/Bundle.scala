@@ -10,9 +10,9 @@ object Bundle {
   // Note strictly needed; however, effectively memoized for use in :=, <>
 }
 abstract class Bundle extends HardwareTuple with BundleReflection {
-  def :=(source: Bundle)(implicit em: EnclosingModule) =
+  def :=(source: Bundle)(implicit em: EnclosingModule): Unit =
     Bundle.basicfunctionality.monoConnect(Sink(this), Source(source), em) 
-  def <>(right: Bundle)(implicit em: EnclosingModule) =
+  def <>(right: Bundle)(implicit em: EnclosingModule): Unit =
     Bundle.basicfunctionality.biConnect(Left(this), Right(right), em) 
 }
 

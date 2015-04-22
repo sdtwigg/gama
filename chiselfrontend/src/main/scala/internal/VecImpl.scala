@@ -41,8 +41,8 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   def nodes = elements.flatMap(_.nodes)
 
   implicit protected val eltmuxer: Muxable[D] = implicitly[Vectorizable[D]].muxer
-  def :=[From<:Data](source: Vec[From])(implicit em: EnclosingModule, writer: ConnectTo[Vec[D],Vec[From]]) = writer.monoConnect(Sink(this), Source(source), em)
-  def <>[RT<:Data](right: Vec[RT])(implicit em: EnclosingModule, writer: BiConnect[Vec[D],Vec[RT]]) = writer.biConnect(Left(this), Right(right), em)
+  def :=[VFrom<:Data](source: VFrom)(implicit em: EnclosingModule, writer: ConnectTo[Vec[D],VFrom]): Unit = writer.monoConnect(Sink(this), Source(source), em)
+  def <>[RT<:Data](right: RT)(implicit em: EnclosingModule, writer: BiConnect[Vec[D],RT]): Unit = writer.biConnect(Left(this), Right(right), em)
 
   def lookup(index: Int): D = elements(index)
   def apply(index: Int): D = lookup(index)
