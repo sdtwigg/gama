@@ -64,7 +64,6 @@ protected[gama] object AnnoImpl {
   def bundleimpl(c: Context)(annottees: c.Tree*): c.Tree = {
     import c.universe._
     import Flag._
-    //TODO: EMIT ERROR IF THIS CLASS IS NOT CONCRETE
 
     def getTermName(in: ValDef): TermName = in match {case q"$mods val $tname: $tpt = $expr" => tname}
     def getNoArgDefs(in: Seq[Tree]): Seq[String] = { //clever trick from delegate example
