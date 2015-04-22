@@ -58,15 +58,15 @@ abstract class BaseJournalReader extends JournalReader {
   def parseJournalEntry(entry: JournalEntry): String = {
     entry match {
       case CreateOp(opdesc) =>
-        s"${HL.CYAN}const${HL.RESET} ${emitRefType(opdesc.retVal)} = ${emitOpDesc(opdesc)}"
+        s"${HL.CYAN}const${HL.RESET} ${emitRefType(opdesc.retVal)} = ${emitOpDesc(opdesc)}  ${emitEncInfo(opdesc.info)}"
       case CreateWire(wiredesc) =>
-        s"${HL.CYAN}wire${HL.RESET}  ${emitRefType(wiredesc.retVal)}"
+        s"${HL.CYAN}wire${HL.RESET}  ${emitRefType(wiredesc.retVal)}  ${emitEncInfo(wiredesc.info)}"
       case CreateReg(regdesc) =>
-        s"${HL.CYAN}reg${HL.RESET}   ${emitRefType(regdesc.retVal)}"
+        s"${HL.CYAN}reg${HL.RESET}   ${emitRefType(regdesc.retVal)}  ${emitEncInfo(regdesc.info)}"
       case CreateAccessor(accdesc) =>
-        s"${HL.CYAN}acc${HL.RESET}   ${emitRefType(accdesc.retVal)} = ${emitAccDesc(accdesc)}"
+        s"${HL.CYAN}acc${HL.RESET}   ${emitRefType(accdesc.retVal)} = ${emitAccDesc(accdesc)}  ${emitEncInfo(accdesc.info)}"
       case CreateExtract(extdesc) =>
-        s"${HL.CYAN}extr${HL.RESET}  ${emitRefType(extdesc.retVal)} = ${emitExtDesc(extdesc)}"
+        s"${HL.CYAN}extr${HL.RESET}  ${emitRefType(extdesc.retVal)} = ${emitExtDesc(extdesc)}  ${emitEncInfo(extdesc.info)}"
       case CreateMem(mem) =>
         s"${HL.CYAN}mem${HL.RESET}   ${emitMemDetails(mem)}"
       case CreateModule(module) =>
@@ -81,6 +81,12 @@ abstract class BaseJournalReader extends JournalReader {
         s"${emitRef(left)} <-> ${emitRef(right)} ${HL.YELLOW}${emitBiConnectDetails(details)}${HL.RESET}"
     }
   }
+  def emitEncInfo(info: EnclosureInfo): String = {
+    info.debug.map(uinfo => {
+      s"${HL.BLUE}/* ${uinfo.file} @ ${uinfo.line} */${HL.RESET}"
+    }).getOrElse("")
+  }
+
   def emitConnectDetails(details: ConnectDetails): String = details match {
     case ConnectAll => "<ALL>"
     case ConnectVec(elemdetails) => s"${emitConnectDetails(elemdetails)}*"

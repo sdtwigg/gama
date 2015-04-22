@@ -8,7 +8,7 @@ sealed trait Accessible[+D<:Data] {
   protected[gama] def elemType: D
 
   // external -> internal API
-  def doLookup(selector: UIntLike, em: EnclosingModule): D
+  def doLookup(selector: UIntLike, info: EnclosureInfo): D
   
   // external API
   import scala.language.experimental.macros
@@ -17,12 +17,12 @@ sealed trait Accessible[+D<:Data] {
   def apply(selector: UIntLike): D  = macro macrodefs.TransformMacro.doLookup.onearg
 
   // implementation details
-  protected[gama] def makeAccessor(selector: UIntLike, em: EnclosingModule): D = {
+  protected[gama] def makeAccessor(selector: UIntLike, info: EnclosureInfo): D = {
     val spell: NodeSpell[AccessorNode] =
-      if(lookupIsConnectable(selector)) ConnectableAccessorSpell(em)
-      else NonConnectableAccessorSpell(em)
+      if(lookupIsConnectable(selector)) ConnectableAccessorSpell(info.em)
+      else NonConnectableAccessorSpell(info.em)
     Desc.generate(elemType.copy.rebind(spell))(rv =>
-      AccessorDesc[D](this, selector, rv, em)
+      AccessorDesc[D](this, selector, rv, info)
     )
   }
 }
@@ -31,8 +31,8 @@ trait VecAccessible[D<:Data] extends Accessible[D] {
   self: Vec[D] =>
   def collection: Vec[D]
   
-  def doLookup(selector: UIntLike, em: EnclosingModule): D =
-    makeAccessor(selector, em)
+  def doLookup(selector: UIntLike, info: EnclosureInfo): D =
+    makeAccessor(selector, info)
 }
 
 case class CrossedMemoryAccessException(acc_em: EnclosingModule, mem_em: EnclosingModule) 
@@ -41,9 +41,9 @@ trait MemAccessible[D<:Data] extends Accessible[D] {
   self: Mem[D] =>
   def collection: Mem[D]
   
-  def doLookup(selector: UIntLike, acc_em: EnclosingModule): D = {
-    if(acc_em != collection.em) { throw CrossedMemoryAccessException(acc_em, em) }
-    makeAccessor(selector, em)
+  def doLookup(selector: UIntLike, info: EnclosureInfo): D = {
+    if(info.em != collection.em) { throw CrossedMemoryAccessException(info.em, em) }
+    makeAccessor(selector, info)
   }
 }
 

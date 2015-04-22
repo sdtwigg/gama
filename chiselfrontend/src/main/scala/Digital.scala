@@ -65,55 +65,55 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   // doExtract (defined by ExtractableImpl)
   
   // UNARY OPERATIONS
-  def do_andR(em: EnclosingModule): Bool
-  def do_orR (em: EnclosingModule): Bool
-  def do_xorR(em: EnclosingModule): Bool = UnaryOp.Bool(OpXorRed, this, em)
+  def do_andR(info: EnclosureInfo): Bool
+  def do_orR (info: EnclosureInfo): Bool
+  def do_xorR(info: EnclosureInfo): Bool = UnaryOp.Bool(OpXorRed, this, info)
   
-  def do_not(em: EnclosingModule): Self
-  def do_neg(em: EnclosingModule): MultiSelf
+  def do_not(info: EnclosureInfo): Self
+  def do_neg(info: EnclosureInfo): MultiSelf
   
-  def do_toUInt(em: EnclosingModule): UInt
-  def do_toSInt(em: EnclosingModule): SInt
-  def do_asUInt(em: EnclosingModule): UInt
-  def do_asSInt(em: EnclosingModule): SInt
+  def do_toUInt(info: EnclosureInfo): UInt
+  def do_toSInt(info: EnclosureInfo): SInt
+  def do_asUInt(info: EnclosureInfo): UInt
+  def do_asSInt(info: EnclosureInfo): SInt
   
   // BINARY OPERATIONS
-  def do_cat(that: Digital, em: EnclosingModule): UInt = BinaryOp.UInt(OpCat, (this, that), em)
-  def do_lshft(that: UInt, em: EnclosingModule): MultiSelf
-  def do_rshft(that: UInt, em: EnclosingModule): MultiSelf
+  def do_cat(that: Digital, info: EnclosureInfo): UInt = BinaryOp.UInt(OpCat, (this, that), info)
+  def do_lshft(that: UInt, info: EnclosureInfo): MultiSelf
+  def do_rshft(that: UInt, info: EnclosureInfo): MultiSelf
   
-  def do_add(that: UIntLike, em: EnclosingModule): MultiSelf
-  def do_sub(that: UIntLike, em: EnclosingModule): MultiSelf
-  def do_mul(that: UIntLike, em: EnclosingModule): MultiSelf
-  def do_div(that: UIntLike, em: EnclosingModule): MultiSelf
-  def do_mod(that: UIntLike, em: EnclosingModule): MultiSelf
+  def do_add(that: UIntLike, info: EnclosureInfo): MultiSelf
+  def do_sub(that: UIntLike, info: EnclosureInfo): MultiSelf
+  def do_mul(that: UIntLike, info: EnclosureInfo): MultiSelf
+  def do_div(that: UIntLike, info: EnclosureInfo): MultiSelf
+  def do_mod(that: UIntLike, info: EnclosureInfo): MultiSelf
 
-  def do_add(that: SInt, em: EnclosingModule): SInt
-  def do_sub(that: SInt, em: EnclosingModule): SInt
-  def do_mul(that: SInt, em: EnclosingModule): SInt
-  def do_div(that: SInt, em: EnclosingModule): SInt
-  def do_mod(that: SInt, em: EnclosingModule): SInt
+  def do_add(that: SInt, info: EnclosureInfo): SInt
+  def do_sub(that: SInt, info: EnclosureInfo): SInt
+  def do_mul(that: SInt, info: EnclosureInfo): SInt
+  def do_div(that: SInt, info: EnclosureInfo): SInt
+  def do_mod(that: SInt, info: EnclosureInfo): SInt
   
   // DISPATCHED OPERATIONS
-  def do_add(that: Digital, em: EnclosingModule): Digital = that match {
-    case u: UIntLike => (this.do_add(u, em))
-    case s: SInt     => (this.do_add(s, em))
+  def do_add(that: Digital, info: EnclosureInfo): Digital = that match {
+    case u: UIntLike => (this.do_add(u, info))
+    case s: SInt     => (this.do_add(s, info))
   }
-  def do_sub(that: Digital, em: EnclosingModule): Digital = that match {
-    case u: UIntLike => (this.do_sub(u, em))
-    case s: SInt     => (this.do_sub(s, em))
+  def do_sub(that: Digital, info: EnclosureInfo): Digital = that match {
+    case u: UIntLike => (this.do_sub(u, info))
+    case s: SInt     => (this.do_sub(s, info))
   }
-  def do_mul(that: Digital, em: EnclosingModule): Digital = that match {
-    case u: UIntLike => (this.do_mul(u, em))
-    case s: SInt     => (this.do_mul(s, em))
+  def do_mul(that: Digital, info: EnclosureInfo): Digital = that match {
+    case u: UIntLike => (this.do_mul(u, info))
+    case s: SInt     => (this.do_mul(s, info))
   }
-  def do_div(that: Digital, em: EnclosingModule): Digital = that match {
-    case u: UIntLike => (this.do_div(u, em))
-    case s: SInt     => (this.do_div(s, em))
+  def do_div(that: Digital, info: EnclosureInfo): Digital = that match {
+    case u: UIntLike => (this.do_div(u, info))
+    case s: SInt     => (this.do_div(s, info))
   }
-  def do_mod(that: Digital, em: EnclosingModule): Digital = that match {
-    case u: UIntLike => (this.do_mod(u, em))
-    case s: SInt     => (this.do_mod(s, em))
+  def do_mod(that: Digital, info: EnclosureInfo): Digital = that match {
+    case u: UIntLike => (this.do_mod(u, info))
+    case s: SInt     => (this.do_mod(s, info))
   }
  
 }

@@ -30,5 +30,5 @@ final class UInt(initialNode: Node) extends UIntLike(initialNode) {
   def copy = new UInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
   // implementation for parent abstracts
-  def do_not(em: EnclosingModule): Self = UnaryOp.UInt(OpNot, this, this.getWidth, em)
+  def do_not(info: EnclosureInfo): Self = UnaryOp.UInt(OpNot, this, this.getWidth, info)
 }

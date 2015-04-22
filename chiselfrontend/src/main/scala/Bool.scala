@@ -33,9 +33,9 @@ final class Bool(initialNode: Node) extends UIntLike(initialNode) {
   def ^^(that: Bool): Bool = macro XFORM.do_xorB.thatarg
   
   // external->internal API
-  def do_not(em: EnclosingModule): Self = UnaryOp.Bool(OpNot, this, em)
+  def do_not(info: EnclosureInfo): Self = UnaryOp.Bool(OpNot, this, info)
   
-  def do_andB(that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpAnd, (this, that), em)
-  def do_orB (that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpOr,  (this, that), em)
-  def do_xorB(that: Bool, em: EnclosingModule): Bool = BinaryOp.Bool(OpXor, (this, that), em)
+  def do_andB(that: Bool, info: EnclosureInfo): Bool = BinaryOp.Bool(OpAnd, (this, that), info)
+  def do_orB (that: Bool, info: EnclosureInfo): Bool = BinaryOp.Bool(OpOr,  (this, that), info)
+  def do_xorB(that: Bool, info: EnclosureInfo): Bool = BinaryOp.Bool(OpXor, (this, that), info)
 }

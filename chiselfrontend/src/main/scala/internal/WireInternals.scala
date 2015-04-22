@@ -2,8 +2,8 @@ package gama
 package internal
 
 object WireInternals {
-  def apply[D<:Data](model: D, em: EnclosingModule): D = {
-    Desc.generate(model.copy.rebind(WireSpell(em)))(rv => WireDesc(rv, em))
+  def apply[D<:Data](model: D, info: EnclosureInfo): D = {
+    Desc.generate(model.copy.rebind(WireSpell(info.em)))(rv => WireDesc(rv, info))
   }
 }
 

@@ -1,8 +1,8 @@
 package gama
 package internal 
 object RegInternals {
-  def apply[D<:Data](model: D, em: EnclosingModule): D = {
-    Desc.generate(model.copy.rebind(RegSpell(em)))(rv => RegDesc(rv, em))
+  def apply[D<:Data](model: D, info: EnclosureInfo): D = {
+    Desc.generate(model.copy.rebind(RegSpell(info.em)))(rv => RegDesc(rv, info))
   }
 }
 

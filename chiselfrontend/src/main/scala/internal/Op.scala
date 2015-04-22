@@ -9,48 +9,48 @@ trait OpDescImpl {
 
 // OpDesc Here:
 object UnaryOp {
-  def UInt(op: OpIdUnary, input: Element, width: Option[Int], em: EnclosingModule): UInt = {
+  def UInt(op: OpIdUnary, input: Element, width: Option[Int], info: EnclosureInfo): UInt = {
     NodeCheck.assertSynthesizable(input)
-    Desc.generate(new UInt(OpNode(UBits(width),em)))(rv =>
-      UnaryOpDesc(op, input, rv, em)
+    Desc.generate(new UInt(OpNode(UBits(width),info.em)))(rv =>
+      UnaryOpDesc(op, input, rv, info)
     )
   }
   
-  def SInt(op: OpIdUnary, input: Element, width: Option[Int], em: EnclosingModule): SInt = {
+  def SInt(op: OpIdUnary, input: Element, width: Option[Int], info: EnclosureInfo): SInt = {
     NodeCheck.assertSynthesizable(input)
-    Desc.generate(new SInt(OpNode(SBits(width),em)))(rv =>
-      UnaryOpDesc(op, input, rv, em)
+    Desc.generate(new SInt(OpNode(SBits(width),info.em)))(rv =>
+      UnaryOpDesc(op, input, rv, info)
     )
   }
   
-  def Bool(op: OpIdUnary, input: Element, em: EnclosingModule): Bool = {
+  def Bool(op: OpIdUnary, input: Element, info: EnclosureInfo): Bool = {
     NodeCheck.assertSynthesizable(input)
-    Desc.generate(new Bool(OpNode(UBits(Some(1)),em)))(rv =>
-      UnaryOpDesc(op, input, rv, em)
+    Desc.generate(new Bool(OpNode(UBits(Some(1)),info.em)))(rv =>
+      UnaryOpDesc(op, input, rv, info)
     )
   }
 }
 
 object BinaryOp {
-  def UInt(op: OpIdBinary, inputs: Tuple2[Element,Element], em: EnclosingModule): UInt = {
+  def UInt(op: OpIdBinary, inputs: Tuple2[Element,Element], info: EnclosureInfo): UInt = {
     NodeCheck.assertSynthesizable(inputs._1)
     NodeCheck.assertSynthesizable(inputs._2)
-    Desc.generate(new UInt(OpNode(UBits(None),em)))(rv =>
-      BinaryOpDesc(op, inputs, rv, em)
+    Desc.generate(new UInt(OpNode(UBits(None),info.em)))(rv =>
+      BinaryOpDesc(op, inputs, rv, info)
     )
   }
-  def SInt(op: OpIdBinary, inputs: Tuple2[Element,Element], em: EnclosingModule): SInt = {
+  def SInt(op: OpIdBinary, inputs: Tuple2[Element,Element], info: EnclosureInfo): SInt = {
     NodeCheck.assertSynthesizable(inputs._1)
     NodeCheck.assertSynthesizable(inputs._2)
-    Desc.generate(new SInt(OpNode(SBits(None),em)))(rv =>
-      BinaryOpDesc(op, inputs, rv, em)
+    Desc.generate(new SInt(OpNode(SBits(None),info.em)))(rv =>
+      BinaryOpDesc(op, inputs, rv, info)
     )
   }
-  def Bool(op: OpIdBinary, inputs: Tuple2[Element,Element], em: EnclosingModule): Bool = {
+  def Bool(op: OpIdBinary, inputs: Tuple2[Element,Element], info: EnclosureInfo): Bool = {
     NodeCheck.assertSynthesizable(inputs._1)
     NodeCheck.assertSynthesizable(inputs._2)
-    Desc.generate(new Bool(OpNode(UBits(Some(1)),em)))(rv => 
-      BinaryOpDesc(op, inputs, rv, em)
+    Desc.generate(new Bool(OpNode(UBits(Some(1)),info.em)))(rv => 
+      BinaryOpDesc(op, inputs, rv, info)
     )
   }
 }

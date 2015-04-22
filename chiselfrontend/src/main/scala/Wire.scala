@@ -9,6 +9,6 @@ object Wire {
   def apply[D<:Data](model: D): D = macro XFORM.doNodeXFORM.xform[D]
 
   // external->internal API
-  def doNodeXFORM[D<:Data](model: D, em: EnclosingModule): D = WireInternals(model, em)
+  def doNodeXFORM[D<:Data](model: D, info: EnclosureInfo): D = WireInternals(model, info)
 }
 

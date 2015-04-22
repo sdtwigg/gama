@@ -9,54 +9,59 @@ protected[gama] object TransformMacro {
     val c: Context
     import c.universe._
     def myThis = c.prefix.tree
-    def emtype = tq"_root_.gama.EnclosingModule"
+    def constructInfo = {
+      val emtype = tq"_root_.gama.EnclosingModule"
+      val sfile = c.enclosingPosition.source.file.name.toString
+      val sline = c.enclosingPosition.line.toString
+      q"_root_.gama.EnclosureInfo(implicitly[$emtype], _root_.scala.Some(_root_.gama.UserspaceInfo($sfile,$sline)))"
+    }
   }
 
   abstract class UnaryOpTransform(opterm: String) extends CoreTransform {
     import c.universe._
     def noparen: c.Tree = {
       val targetf = TermName(opterm)
-      q"$myThis.$targetf(implicitly[$emtype])"
+      q"$myThis.$targetf($constructInfo)"
     }
     def paren(): c.Tree = {
       val targetf = TermName(opterm)
-      q"$myThis.$targetf(implicitly[$emtype])"
+      q"$myThis.$targetf($constructInfo)"
     }
   }
   abstract class BinaryOpTransform(opterm: String) extends CoreTransform {
     import c.universe._
     def thatarg(that: c.Tree): c.Tree = {
       val targetf = TermName(opterm)
-      q"$myThis.$targetf($that, implicitly[$emtype])"
+      q"$myThis.$targetf($that, $constructInfo)"
     }
   }
 
   class doExtract(val c: Context) extends CoreTransform {
     import c.universe._
     def onearg(position: c.Tree): c.Tree =
-      q"$myThis.doExtract($position, implicitly[$emtype])"
+      q"$myThis.doExtract($position, $constructInfo)"
     def twoarg(left_pos: c.Tree, right_pos: c.Tree): c.Tree =
-      q"$myThis.doExtract($left_pos, $right_pos, implicitly[$emtype])"
+      q"$myThis.doExtract($left_pos, $right_pos, $constructInfo)"
   }
   
   class doLookup(val c: Context) extends CoreTransform {
     import c.universe._
     def onearg(selector: c.Tree): c.Tree =
-      q"$myThis.doLookup($selector, implicitly[$emtype])"
+      q"$myThis.doLookup($selector, $constructInfo)"
   }
   
   class doConstant(val c: Context) extends CoreTransform {
     import c.universe._
     def xform[D<:Data: c.WeakTypeTag](in: c.Tree): c.Tree = {
       val TP = c.weakTypeOf[D]
-      q"$myThis.doConstant[$TP]($in, implicitly[$emtype])"
+      q"$myThis.doConstant[$TP]($in, $constructInfo)"
     }
   }
   class doNodeXFORM(val c: Context) extends CoreTransform {
     import c.universe._
     def xform[D<:Data: c.WeakTypeTag](model: c.Tree): c.Tree = {
       val TP = c.weakTypeOf[D]
-      q"$myThis.doNodeXFORM[$TP]($model, implicitly[$emtype])"
+      q"$myThis.doNodeXFORM[$TP]($model, $constructInfo)"
     }
   }
   class doMux(val c: Context) extends CoreTransform {
@@ -64,7 +69,7 @@ protected[gama] object TransformMacro {
     def xform[RT<:Data: c.WeakTypeTag](cond: c.Tree, tc: c.Tree, fc: c.Tree): c.Tree = {
       val TP = c.weakTypeOf[RT]
       val muxerType = tq"_root_.gama.internal.Muxable[$TP]"
-      q"$myThis.doMux[$TP]($cond, $tc, $fc, implicitly[$muxerType], implicitly[$emtype])"
+      q"$myThis.doMux[$TP]($cond, $tc, $fc, implicitly[$muxerType], $constructInfo)"
     }
   }
   

@@ -5,18 +5,18 @@ trait ExtractableImpl {
   self: Element =>
   // TODO: Very similar to AccessibleImpl... somewhat to consolidate something?
   // external -> internal API
-  def doExtract(position: Int, em: EnclosingModule): Bool =
-    makeExtract(Bool(), position, position, em)
-  def doExtract(left_pos: Int, right_pos: Int, em: EnclosingModule): UInt =
-    makeExtract(UInt(math.abs(left_pos-right_pos)), left_pos, right_pos, em)
+  def doExtract(position: Int, info: EnclosureInfo): Bool =
+    makeExtract(Bool(), position, position, info)
+  def doExtract(left_pos: Int, right_pos: Int, info: EnclosureInfo): UInt =
+    makeExtract(UInt(math.abs(left_pos-right_pos)), left_pos, right_pos, info)
 
-  protected[gama] def makeExtract[E<:Element](retval: E, left_pos: Int, right_pos: Int, em: EnclosingModule): E = {
+  protected[gama] def makeExtract[E<:Element](retval: E, left_pos: Int, right_pos: Int, info: EnclosureInfo): E = {
     val spell: NodeSpell[ExtractedNode] = node match {
-      case _: ConnectableNode => (ConnectableExtractedSpell(em))
-      case _: Synthesizable   => (NonConnectableExtractedSpell(em))
+      case _: ConnectableNode => (ConnectableExtractedSpell(info.em))
+      case _: Synthesizable   => (NonConnectableExtractedSpell(info.em))
       case e => (throw new ExpectedNodeException("Synthesizable","${e.getClass.getSimpleName}"))
     }
-    Desc.generate(retval.rebind(spell))(rv => ExtractDesc(this, left_pos, right_pos, rv, em))
+    Desc.generate(retval.rebind(spell))(rv => ExtractDesc(this, left_pos, right_pos, rv, info))
     // TODO: something special if this.node is also an ExtractedNode?
     // TODO: Disallow these updates for select types? ie. SubConnectable, Connectable, NonConnectable
   }

@@ -32,7 +32,7 @@ final class Mem[D<:Data: Storable] private (model: D, val depth: Int, protected[
   // external API
   def write[From<:Data](addr: UIntLike, source: From)(implicit acc_em: EnclosingModule, writer: ConnectTo[D, From]): Unit = {
     if(acc_em != em) { throw CrossedMemoryAccessException(acc_em, em) }
-    val accessor = makeAccessor(addr, em)
+    val accessor = makeAccessor(addr, EnclosureInfo(em, None)) // TODO: GET INFO
     writer.monoConnect(Sink(accessor), Source(source), em)
   }
 }

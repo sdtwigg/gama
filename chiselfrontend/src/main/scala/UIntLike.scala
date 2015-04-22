@@ -27,42 +27,42 @@ abstract class UIntLike(initialNode: Node) extends Digital(initialNode) {
 
   // external -> internal API
   // New operations
-  def do_eq (that: UIntLike, em: EnclosingModule): Bool = BinaryOp.Bool(OpEqual, (this, that), em)
-  def do_neq(that: UIntLike, em: EnclosingModule): Bool = BinaryOp.Bool(OpNotEq, (this, that), em)
+  def do_eq (that: UIntLike, info: EnclosureInfo): Bool = BinaryOp.Bool(OpEqual, (this, that), info)
+  def do_neq(that: UIntLike, info: EnclosureInfo): Bool = BinaryOp.Bool(OpNotEq, (this, that), info)
   
-  def do_lt (that: UIntLike, em: EnclosingModule): Bool = BinaryOp.Bool(OpLess,  (this, that), em)
-  def do_lte(that: UIntLike, em: EnclosingModule): Bool = BinaryOp.Bool(OpLeEq,  (this, that), em)
-  def do_gt (that: UIntLike, em: EnclosingModule): Bool = BinaryOp.Bool(OpGrt,   (this, that), em)
-  def do_gtw(that: UIntLike, em: EnclosingModule): Bool = BinaryOp.Bool(OpGrEq,  (this, that), em)
+  def do_lt (that: UIntLike, info: EnclosureInfo): Bool = BinaryOp.Bool(OpLess,  (this, that), info)
+  def do_lte(that: UIntLike, info: EnclosureInfo): Bool = BinaryOp.Bool(OpLeEq,  (this, that), info)
+  def do_gt (that: UIntLike, info: EnclosureInfo): Bool = BinaryOp.Bool(OpGrt,   (this, that), info)
+  def do_gtw(that: UIntLike, info: EnclosureInfo): Bool = BinaryOp.Bool(OpGrEq,  (this, that), info)
   
-  def do_and(that: UIntLike, em: EnclosingModule): UInt = BinaryOp.UInt(OpAnd, (this, that), em)
-  def do_or (that: UIntLike, em: EnclosingModule): UInt = BinaryOp.UInt(OpOr,  (this, that), em)
-  def do_xor(that: UIntLike, em: EnclosingModule): UInt = BinaryOp.UInt(OpXor, (this, that), em)
+  def do_and(that: UIntLike, info: EnclosureInfo): UInt = BinaryOp.UInt(OpAnd, (this, that), info)
+  def do_or (that: UIntLike, info: EnclosureInfo): UInt = BinaryOp.UInt(OpOr,  (this, that), info)
+  def do_xor(that: UIntLike, info: EnclosureInfo): UInt = BinaryOp.UInt(OpXor, (this, that), info)
   
   // Implementations for parent abstracts
-  def do_andR(em: EnclosingModule): Bool = this.do_eq( LiteralUInt(0), em).do_not(em)
-  def do_orR (em: EnclosingModule): Bool = this.do_neq(LiteralUInt(0), em)
+  def do_andR(info: EnclosureInfo): Bool = this.do_eq( LiteralUInt(0), info).do_not(info)
+  def do_orR (info: EnclosureInfo): Bool = this.do_neq(LiteralUInt(0), info)
   
-  def do_neg(em: EnclosingModule): MultiSelf = BinaryOp.UInt(OpSubt, (api.U(0),this), em) 
+  def do_neg(info: EnclosureInfo): MultiSelf = BinaryOp.UInt(OpSubt, (api.U(0),this), info) 
   
-  def do_toUInt(em: EnclosingModule): UInt = UnaryOp.UInt(OpIDENT,  this, None, em)
-  def do_toSInt(em: EnclosingModule): SInt = UnaryOp.SInt(OpToSInt, this, None, em)
-  def do_asUInt(em: EnclosingModule): UInt = UnaryOp.UInt(OpIDENT,  this, getWidth, em)
-  def do_asSInt(em: EnclosingModule): SInt = UnaryOp.SInt(OpAsSInt, this, getWidth, em)
+  def do_toUInt(info: EnclosureInfo): UInt = UnaryOp.UInt(OpIDENT,  this, None, info)
+  def do_toSInt(info: EnclosureInfo): SInt = UnaryOp.SInt(OpToSInt, this, None, info)
+  def do_asUInt(info: EnclosureInfo): UInt = UnaryOp.UInt(OpIDENT,  this, getWidth, info)
+  def do_asSInt(info: EnclosureInfo): SInt = UnaryOp.SInt(OpAsSInt, this, getWidth, info)
   
   // BINARY OPERATIONS
-  def do_lshft(that: UInt, em: EnclosingModule): MultiSelf = BinaryOp.UInt(OpLShft, (this, that), em)
-  def do_rshft(that: UInt, em: EnclosingModule): MultiSelf = BinaryOp.UInt(OpRShft, (this, that), em)
+  def do_lshft(that: UInt, info: EnclosureInfo): MultiSelf = BinaryOp.UInt(OpLShft, (this, that), info)
+  def do_rshft(that: UInt, info: EnclosureInfo): MultiSelf = BinaryOp.UInt(OpRShft, (this, that), info)
   
-  def do_add(that: UIntLike, em: EnclosingModule): MultiSelf = BinaryOp.UInt(OpPlus, (this, that), em)
-  def do_sub(that: UIntLike, em: EnclosingModule): MultiSelf = BinaryOp.UInt(OpSubt, (this, that), em)
-  def do_mul(that: UIntLike, em: EnclosingModule): MultiSelf = BinaryOp.UInt(OpMult, (this, that), em)
-  def do_div(that: UIntLike, em: EnclosingModule): MultiSelf = BinaryOp.UInt(OpDiv,  (this, that), em)
-  def do_mod(that: UIntLike, em: EnclosingModule): MultiSelf = BinaryOp.UInt(OpMod,  (this, that), em)
+  def do_add(that: UIntLike, info: EnclosureInfo): MultiSelf = BinaryOp.UInt(OpPlus, (this, that), info)
+  def do_sub(that: UIntLike, info: EnclosureInfo): MultiSelf = BinaryOp.UInt(OpSubt, (this, that), info)
+  def do_mul(that: UIntLike, info: EnclosureInfo): MultiSelf = BinaryOp.UInt(OpMult, (this, that), info)
+  def do_div(that: UIntLike, info: EnclosureInfo): MultiSelf = BinaryOp.UInt(OpDiv,  (this, that), info)
+  def do_mod(that: UIntLike, info: EnclosureInfo): MultiSelf = BinaryOp.UInt(OpMod,  (this, that), info)
 
-  def do_add(that: SInt, em: EnclosingModule): SInt = BinaryOp.SInt(OpPlus, (this.do_toSInt(em), that), em)
-  def do_sub(that: SInt, em: EnclosingModule): SInt = BinaryOp.SInt(OpSubt, (this.do_toSInt(em), that), em)
-  def do_mul(that: SInt, em: EnclosingModule): SInt = BinaryOp.SInt(OpMult, (this.do_toSInt(em), that), em)
-  def do_div(that: SInt, em: EnclosingModule): SInt = BinaryOp.SInt(OpDiv,  (this.do_toSInt(em), that), em)
-  def do_mod(that: SInt, em: EnclosingModule): SInt = BinaryOp.SInt(OpMod,  (this.do_toSInt(em), that), em)
+  def do_add(that: SInt, info: EnclosureInfo): SInt = BinaryOp.SInt(OpPlus, (this.do_toSInt(info), that), info)
+  def do_sub(that: SInt, info: EnclosureInfo): SInt = BinaryOp.SInt(OpSubt, (this.do_toSInt(info), that), info)
+  def do_mul(that: SInt, info: EnclosureInfo): SInt = BinaryOp.SInt(OpMult, (this.do_toSInt(info), that), info)
+  def do_div(that: SInt, info: EnclosureInfo): SInt = BinaryOp.SInt(OpDiv,  (this.do_toSInt(info), that), info)
+  def do_mod(that: SInt, info: EnclosureInfo): SInt = BinaryOp.SInt(OpMod,  (this.do_toSInt(info), that), info)
 }

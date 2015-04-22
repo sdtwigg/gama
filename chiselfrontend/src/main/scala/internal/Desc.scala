@@ -26,13 +26,13 @@ sealed abstract class Desc {
   validateRetVal()
 }
 trait EnclosedDesc extends Desc   {
-  val em: EnclosingModule
+  val info: EnclosureInfo
   def genJournalEntry: Option[JournalEntry]
   // Note: can be enclosed but still not emit a JournalEntry, eg. PortDesc 
   
   def doWork(): Unit = {
     for(entry <- genJournalEntry) yield {
-      em.getActiveJournal.append(entry)
+      info.em.getActiveJournal.append(entry)
     }
   }
 
@@ -42,31 +42,31 @@ trait UnenclosedDesc extends Desc
 sealed abstract class OpDesc extends Desc with OpDescImpl with EnclosedDesc
 case class UnaryOpDesc(
   op: OpIdUnary, input: Data,
-  retVal: Data, em: EnclosingModule
+  retVal: Data, info: EnclosureInfo
 ) extends OpDesc
 case class BinaryOpDesc(
   op: OpIdBinary, inputs: Tuple2[Element,Element],
-  retVal: Element, em: EnclosingModule
+  retVal: Element, info: EnclosureInfo
 ) extends OpDesc
 case class MuxDesc[T<:Data](
   cond: Bool, tc: T, fc: T,
-  retVal: T, em: EnclosingModule
+  retVal: T, info: EnclosureInfo
 ) extends OpDesc
 
 case class ExtractDesc(
   base: Element, left_pos: Int, right_pos: Int,
-  retVal: Element, em: EnclosingModule
+  retVal: Element, info: EnclosureInfo
 ) extends Desc with ExtractDescImpl with EnclosedDesc
 
 case class AccessorDesc[+T<:Data](
   accRef: Accessible[T], selector: UIntLike,
-  retVal: T, em: EnclosingModule
+  retVal: T, info: EnclosureInfo
 ) extends Desc with AccessorDescImpl[T] with EnclosedDesc
 
-case class RegDesc[+T<:Data](retVal: T, em: EnclosingModule)
+case class RegDesc[+T<:Data](retVal: T, info: EnclosureInfo)
  extends Desc with RegDescImpl[T] with EnclosedDesc
 
-case class WireDesc[+T<:Data](retVal: T, em: EnclosingModule)
+case class WireDesc[+T<:Data](retVal: T, info: EnclosureInfo)
  extends Desc with WireDescImpl[T] with EnclosedDesc
 
 case class LitDesc[T<:Data](retVal: T, litMap: LitMap[T])

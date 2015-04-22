@@ -9,6 +9,6 @@ object Reg {
   def apply[D<:Data](model: D): D = macro XFORM.doNodeXFORM.xform[D]
 
   // external->internal API
-  def doNodeXFORM[D<:Data](model: D, em: EnclosingModule): D = RegInternals(model, em)
+  def doNodeXFORM[D<:Data](model: D, info: EnclosureInfo): D = RegInternals(model, info)
 }
 
