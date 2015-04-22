@@ -10,17 +10,23 @@ object Storable {
 }
 
 object Mem {
-  def apply[D<:Data: Storable](model: D, depth: Int)(implicit em: EnclosingModule): Mem[D] = {
-    val newmemory = new Mem(model.copy.rebind(MemSpecSpell(em)), depth, em)
-    em.getActiveJournal.append(CreateMem(newmemory))
+  import scala.language.experimental.macros
+  import gama.internal.macrodefs.{TransformMacro => XFORM}
+  
+  // External API
+  def apply[D<:Data](model: D, depth: Int): Mem[D] = macro XFORM.doMem.xform[D]
+
+  // external->internal API
+  def doMem[D<:Data](model: D, depth: Int, storer: Storable[D], info: EnclosureInfo): Mem[D] = {
+    val newmemory = new Mem(model.copy.rebind(MemSpecSpell(info.em)), depth, storer, info)
+    info.em.getActiveJournal.append(CreateMem(newmemory))
 
     newmemory
   }
 } // TODO: MEMORY WRITE MASKS?
 
-final class Mem[D<:Data: Storable] private (model: D, val depth: Int, protected[gama] val em: EnclosingModule) extends MemAccessible[D] with Nameable {
+final class Mem[D<:Data] private (protected[gama] val elemType: D, val depth: Int, storer: Storable[D], protected[gama] val info: EnclosureInfo) extends MemAccessible[D] with Nameable {
   def collection = this
-  protected[gama] def elemType: D = model // TODO: BIND TO A SEALED, NON-SYNTH NODE?
   
   protected[gama] def lookupIsConnectable(selector: UIntLike): Boolean = true
   // TODO: REMOVE WHEN ACCESSIBLE REFACTORED? probably no, Accessible works w Mem now
@@ -31,8 +37,8 @@ final class Mem[D<:Data: Storable] private (model: D, val depth: Int, protected[
 
   // external API
   def write[From<:Data](addr: UIntLike, source: From)(implicit acc_em: EnclosingModule, writer: ConnectTo[D, From]): Unit = {
-    if(acc_em != em) { throw CrossedMemoryAccessException(acc_em, em) }
-    val accessor = makeAccessor(addr, EnclosureInfo(em, None)) // TODO: GET INFO
-    writer.monoConnect(Sink(accessor), Source(source), em)
+    if(acc_em != info.em) { throw CrossedMemoryAccessException(acc_em, info.em) }
+    val accessor = makeAccessor(addr, EnclosureInfo(info.em, None)) // TODO: GET INFO
+    writer.monoConnect(Sink(accessor), Source(source), info.em)
   }
 }

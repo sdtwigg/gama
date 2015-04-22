@@ -42,7 +42,7 @@ trait MemAccessible[D<:Data] extends Accessible[D] {
   def collection: Mem[D]
   
   def doLookup(selector: UIntLike, info: EnclosureInfo): D = {
-    if(info.em != collection.em) { throw CrossedMemoryAccessException(info.em, em) }
+    if(info.em != collection.info.em) { throw CrossedMemoryAccessException(info.em, collection.info.em) }
     makeAccessor(selector, info)
   }
 }

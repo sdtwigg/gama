@@ -68,7 +68,7 @@ abstract class BaseJournalReader extends JournalReader {
       case CreateExtract(extdesc) =>
         s"${HL.CYAN}extr${HL.RESET}  ${emitRefType(extdesc.retVal)} = ${emitExtDesc(extdesc)}  ${emitEncInfo(extdesc.info)}"
       case CreateMem(mem) =>
-        s"${HL.CYAN}mem${HL.RESET}   ${emitMemDetails(mem)}"
+        s"${HL.CYAN}mem${HL.RESET}   ${emitMemDetails(mem)}  ${emitEncInfo(mem.info)}"
       case CreateModule(module) =>
         s"${HL.CYAN}inst${HL.RESET}  ${emitModuleInst(module)}"
       case AddBlock(journal) =>

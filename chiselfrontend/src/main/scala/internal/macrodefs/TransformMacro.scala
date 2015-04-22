@@ -72,6 +72,14 @@ protected[gama] object TransformMacro {
       q"$myThis.doMux[$TP]($cond, $tc, $fc, implicitly[$muxerType], $constructInfo)"
     }
   }
+  class doMem(val c: Context) extends CoreTransform {
+    import c.universe._
+    def xform[RT<:Data: c.WeakTypeTag](model: c.Tree, depth: c.Tree): c.Tree = {
+      val TP = c.weakTypeOf[RT]
+      val storerType = tq"_root_.gama.Storable[$TP]"
+      q"$myThis.doMem[$TP]($model, $depth, implicitly[$storerType], $constructInfo)"
+    }
+  }
   
   // Unary transforms
   class do_andR(val c: Context) extends  UnaryOpTransform("do_andR")
