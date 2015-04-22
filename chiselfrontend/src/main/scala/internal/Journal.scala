@@ -13,11 +13,11 @@ case class CreateMem(mem: Mem[_<:Data]) extends JournalEntry
 case class CreateModule(module: Module[_<:Data]) extends JournalEntry
 case class AddBlock(code: Journal) extends JournalEntry
 case class Conditionally(cond: Bool, tc: Journal, fc: Journal) extends JournalEntry {NodeCheck.assertSynthesizable(cond)}
-case class ConnectData(sink: Sink[Data], source: Source[Data], details: ConnectDetails) extends JournalEntry {
+case class ConnectData(sink: Sink[Data], source: Source[Data], details: ConnectDetails, info: EnclosureInfo) extends JournalEntry {
   NodeCheck.assertConnectable(sink.data)
   NodeCheck.assertSynthesizable(source.data)
 }
-case class BiConnectData(left: Left[Data], right: Right[Data], details: BiConnectDetails) extends JournalEntry {
+case class BiConnectData(left: Left[Data], right: Right[Data], details: BiConnectDetails, info: EnclosureInfo) extends JournalEntry {
   NodeCheck.assertConnectable(left.data)
   NodeCheck.assertConnectable(right.data)
 }

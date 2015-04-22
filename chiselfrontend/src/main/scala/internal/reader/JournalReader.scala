@@ -75,10 +75,10 @@ abstract class BaseJournalReader extends JournalReader {
         s"${parseJournal(journal)}"
       case Conditionally(cond, tc, fc) =>
         s"${HL.CYAN}when${HL.RESET}(${emitRef(cond)}) ${parseJournal(tc)} ${HL.CYAN}else${HL.RESET} ${parseJournal(fc)}"
-      case ConnectData(Sink(sink), Source(source), details) =>
-        s"${emitRef(sink)} := ${emitRef(source)} ${HL.YELLOW}${emitConnectDetails(details)}${HL.RESET}"
-      case BiConnectData(Left(left), Right(right), details) =>
-        s"${emitRef(left)} <-> ${emitRef(right)} ${HL.YELLOW}${emitBiConnectDetails(details)}${HL.RESET}"
+      case ConnectData(Sink(sink), Source(source), details, info) =>
+        s"${emitRef(sink)} := ${emitRef(source)} ${HL.YELLOW}${emitConnectDetails(details)}${HL.RESET}  ${emitEncInfo(info)}"
+      case BiConnectData(Left(left), Right(right), details, info) =>
+        s"${emitRef(left)} <-> ${emitRef(right)} ${HL.YELLOW}${emitBiConnectDetails(details)}${HL.RESET}  ${emitEncInfo(info)}"
     }
   }
   def emitEncInfo(info: EnclosureInfo): String = {

@@ -26,7 +26,7 @@ object ConnectTo {
   def apply[To<:Data,From<:Data](implicit ev: ConnectTo[To, From]) = ev
   trait ConnectToImpl[To<:Data,From<:Data] extends ConnectTo[To,From] {
     def monoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo): Unit =
-      info.em.getActiveJournal.append(ConnectData(sink, source, monoDetails(sink,source)))
+      info.em.getActiveJournal.append(ConnectData(sink, source, monoDetails(sink,source), info))
   } // should this just be ConnectTo?
 
   implicit def genBundleConnectToBundle[B<:Bundle]: ConnectTo[B,Bundle] = new BundleConnectToBundleImpl[B]{}
