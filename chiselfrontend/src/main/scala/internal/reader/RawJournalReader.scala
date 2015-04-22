@@ -6,9 +6,7 @@ import scala.collection.{immutable=>immutable}
 
 sealed abstract class RawJournalReader extends BaseJournalReader {
   def parseJournal(entries: immutable.Seq[JournalEntry]): String = {
-    "{\n" +
-    (entries flatMap(entry => parseJournalEntry(entry).split("\n")) map("  " + _) mkString("\n")) +
-    "\n}"
+    (entries flatMap(entry => parseJournalEntry(entry).split("\n")) map("  " + _) mkString("{\n","\n","\n}"))
   }
 
   // These aren't really readable but this is for raw debugging so

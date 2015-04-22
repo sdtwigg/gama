@@ -9,9 +9,7 @@ sealed abstract class AllJournalReader extends BaseJournalReader {
     ensureNamed(entries)
     if(entries.isEmpty) "{}"
     else
-      "{\n" +
-      (entries flatMap(entry => parseJournalEntry(entry).split("\n")) map("  " + _) mkString("\n")) +
-      "\n}"
+      (entries flatMap(entry => parseJournalEntry(entry).split("\n")) map("  " + _) mkString("{\n", "\n", "\n}"))
   }
   def ensureNamed(entries: immutable.Seq[JournalEntry]): Unit = {
     def check(target: Nameable, tempprefix: String): Option[Tuple2[Nameable,String]] = {

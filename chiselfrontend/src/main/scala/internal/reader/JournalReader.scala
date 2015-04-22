@@ -90,17 +90,15 @@ abstract class BaseJournalReader extends JournalReader {
   def emitConnectDetails(details: ConnectDetails): String = details match {
     case ConnectAll => "<ALL>"
     case ConnectVec(elemdetails) => s"${emitConnectDetails(elemdetails)}*"
-    case ConnectTuple(fields) => "(" +
-      (fields map ({case (field, subd) => s"$field:${emitConnectDetails(subd)}"}) mkString(", ")) +
-      ")"
+    case ConnectTuple(fields) =>
+      (fields map ({case (field, subd) => s"$field:${emitConnectDetails(subd)}"}) mkString("(",", ",")"))
   }
   def emitBiConnectDetails(details: BiConnectDetails): String = details match {
     case BiConnectToLeft  => "<<=="
     case BiConnectToRight => "==>>"
     case BiConnectVec(elemdetails) => s"${emitBiConnectDetails(elemdetails)}*"
-    case BiConnectTuple(fields) => "(" +
-      (fields map ({case (field, subd) => s"$field:${emitBiConnectDetails(subd)}"}) mkString(", ")) +
-      ")"
+    case BiConnectTuple(fields) =>
+      (fields map ({case (field, subd) => s"$field:${emitBiConnectDetails(subd)}"}) mkString("(",", ",")"))
   }
   def emitMemDetails(mem: Mem[_<:Data]): String = 
     s"${emitName(mem.name)}[${mem.depth}]: ${HL.GREEN}${emitType(mem.elemType)}${HL.RESET}"
@@ -111,9 +109,7 @@ abstract class BaseJournalReader extends JournalReader {
     case elem: Element => (s"${emitIODirection(elem)}${emitNodeStore(elem.node.storage)}")
     case vec: Vec[_]   => (s"${emitType(vec.elemType)}[${vec.size}]")
     case hwt: HardwareTuple =>
-      "{" +
-      (hwt.subfields_ordered map({case (sf: String, elem: Data) => s"${sf}: ${emitType(elem)}"}) mkString(", ")) +
-      "}"
+      (hwt.subfields_ordered map({case (sf: String, elem: Data) => s"${sf}: ${emitType(elem)}"}) mkString("{",", ","}"))
   }
   def emitIODirection(elem: Element): String = elem.node match {
     case PortNode(_, direction, _) => direction match {
@@ -212,7 +208,7 @@ abstract class BaseJournalReader extends JournalReader {
       s"${HL.RED}SBits($value, $w)${HL.RESET}"
     }
     case VecLitMap(elemmaps) => {
-      "{"+ elemmaps.map(emap=>parseLitMap(emap)).mkString(",") + "}"
+      elemmaps.map(emap=>parseLitMap(emap)).mkString("{",",","}")
     }
   }
 }
