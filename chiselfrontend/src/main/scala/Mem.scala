@@ -1,6 +1,10 @@
 package gama
 import internal._
 
+// Activate Scala Language Features
+import scala.language.experimental.macros
+import gama.internal.macrodefs.{TransformMacro => XFORM}
+
 @annotation.implicitNotFound("""Cannot create Storable[${D}] for Mem[${D}]. 
 Most common reason is that no connect operation (ConnectTo[${D},${D}]) available and thus the memory would not be writable""")
 trait Storable[D<:Data] { def writer: ConnectTo[D,D] }
@@ -10,9 +14,6 @@ object Storable {
 }
 
 object Mem {
-  import scala.language.experimental.macros
-  import gama.internal.macrodefs.{TransformMacro => XFORM}
-  
   // External API
   def apply[D<:Data](model: D, depth: Int): Mem[D] = macro XFORM.doMem.xform[D]
 
@@ -28,6 +29,18 @@ object Mem {
 final class Mem[D<:Data] private (protected[gama] val elemType: D, val depth: Int, storer: Storable[D], protected[gama] val info: EnclosureInfo) extends MemAccessible[D] with Nameable {
   def collection = this
   
+  // External API
+  def write(addr: UIntLike, source: Data): Unit = macro XFORM.doMemWrite.twoarg
+  // TODO: CONSIDER: Note how doMemWrite will introduce an implicit
+  //   is this OK?
+  
+  // external->internal API
+  def doMemWrite[From<:Data](addr: UIntLike, source: From, acc_info: EnclosureInfo)(implicit writer: ConnectTo[D, From]): Unit = {
+    if(acc_info.em != info.em) { throw CrossedMemoryAccessException(acc_info.em, info.em) }
+    val accessor = makeAccessor(addr, acc_info)
+    writer.monoConnect(Sink(accessor), Source(source), acc_info)
+  }
+
   protected[gama] def lookupIsConnectable(selector: UIntLike): Boolean = true
   // TODO: REMOVE WHEN ACCESSIBLE REFACTORED? probably no, Accessible works w Mem now
   // TODO: CONSIDER: Return false so writes can only be done through write call. Otherwise can do myMemOfBundle(myAddr).myBundleField := myUpdate, which is strange.
@@ -35,10 +48,4 @@ final class Mem[D<:Data] private (protected[gama] val elemType: D, val depth: In
 
   def propogateName(newname: NameTree, newsource: NameSource): Unit = {} 
 
-  // external API
-  def write[From<:Data](addr: UIntLike, source: From)(implicit acc_em: EnclosingModule, writer: ConnectTo[D, From]): Unit = {
-    if(acc_em != info.em) { throw CrossedMemoryAccessException(acc_em, info.em) }
-    val accessor = makeAccessor(addr, EnclosureInfo(info.em, None)) // TODO: GET INFO
-    writer.monoConnect(Sink(accessor), Source(source), info)
-  }
 }

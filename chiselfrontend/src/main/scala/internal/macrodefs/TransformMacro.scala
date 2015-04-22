@@ -65,6 +65,12 @@ protected[gama] object TransformMacro {
       q"$myThis.doBiConnect($right, $constructInfo)"
   }
   
+  class doMemWrite(val c: Context) extends CoreTransform {
+    import c.universe._
+    def twoarg(addr: c.Tree, source: c.Tree): c.Tree =
+      q"$myThis.doMemWrite($addr, $source, $constructInfo)"
+  }
+  
   class doConstant(val c: Context) extends CoreTransform {
     import c.universe._
     def xform[D<:Data: c.WeakTypeTag](in: c.Tree): c.Tree = {
