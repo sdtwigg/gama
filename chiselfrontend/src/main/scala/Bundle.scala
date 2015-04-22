@@ -7,13 +7,21 @@ object Bundle {
   implicit object basicfunctionality
     extends BundleConnectToBundleImpl[Bundle]
     with BundleBiConnectBundleImpl[Bundle,Bundle]
-  // Note strictly needed; however, effectively memoized for use in :=, <>
+  // Not strictly needed; however, effectively memoized for use in :=, <>
 }
 abstract class Bundle extends HardwareTuple with BundleReflection {
-  def :=(source: Bundle)(implicit em: EnclosingModule): Unit =
-    Bundle.basicfunctionality.monoConnect(Sink(this), Source(source), em) 
-  def <>(right: Bundle)(implicit em: EnclosingModule): Unit =
-    Bundle.basicfunctionality.biConnect(Left(this), Right(right), em) 
+  import scala.language.experimental.macros
+  import gama.internal.macrodefs.{TransformMacro => XFORM}
+
+  // External API
+  def :=(source: Bundle): Unit = macro XFORM.doConnectTo.sourcearg
+  def <>(right:  Bundle): Unit = macro XFORM.doBiConnect.rightarg
+
+  // external->internal API
+  def doConnectTo(source: Bundle, info: EnclosureInfo): Unit =
+    Bundle.basicfunctionality.monoConnect(Sink(this), Source(source), info.em)
+  def doBiConnect(right: Bundle, info: EnclosureInfo): Unit =
+    Bundle.basicfunctionality.biConnect(Left(this), Right(right), info.em)
 }
 
 case class ImproperBundleMuxException(tc: String, fc: String)

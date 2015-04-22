@@ -1,5 +1,9 @@
 package gama
 import internal._
+  
+// Activate Scala Language Features
+import scala.language.experimental.macros
+import gama.internal.macrodefs.{TransformMacro => XFORM}
 
 object Bool {
   def apply() = new Bool(SPEC(UBits(Some(1)), None))
@@ -16,16 +20,13 @@ object Bool {
 }
 final class Bool(initialNode: Node) extends UIntLike(initialNode) {
   protected type Self = Bool
-
-  def :=(source: Bool)(implicit em: EnclosingModule): Unit =
-    ConnectTo[Bool,Bool].monoConnect(Sink(this), Source(source), em)
-  def <>(right: Bool)(implicit em: EnclosingModule): Unit =
-    BiConnect[Bool,Bool].biConnect(Left(this), Right(right), em)
-  def copy = new Bool(SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
-  import scala.language.experimental.macros
-  import gama.internal.macrodefs.{TransformMacro => XFORM}
+  def copy = new Bool(SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
+
   // External API
+  def :=(source: Bool): Unit = macro XFORM.doConnectTo.sourcearg
+  def <>(right:  Bool): Unit = macro XFORM.doBiConnect.rightarg
+  
   def unary_!(): Bool = macro XFORM.do_not.paren
 
   def &&(that: Bool): Bool = macro XFORM.do_andB.thatarg
@@ -33,6 +34,11 @@ final class Bool(initialNode: Node) extends UIntLike(initialNode) {
   def ^^(that: Bool): Bool = macro XFORM.do_xorB.thatarg
   
   // external->internal API
+  def doConnectTo(source: Bool, info: EnclosureInfo) = 
+    ConnectTo[Bool,Bool].monoConnect(Sink(this), Source(source), info.em)
+  def doBiConnect(right: Bool, info: EnclosureInfo): Unit =
+    BiConnect[Bool,Bool].biConnect(Left(this), Right(right), info.em)
+  
   def do_not(info: EnclosureInfo): Self = UnaryOp.Bool(OpNot, this, info)
   
   def do_andB(that: Bool, info: EnclosureInfo): Bool = BinaryOp.Bool(OpAnd, (this, that), info)

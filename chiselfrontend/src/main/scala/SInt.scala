@@ -1,5 +1,9 @@
 package gama
 import internal._
+  
+// Activate Scala Language Features
+import scala.language.experimental.macros
+import gama.internal.macrodefs.{TransformMacro => XFORM}
 
 object SInt extends {
   def apply(): SInt           = apply(None)
@@ -21,19 +25,16 @@ object SInt extends {
 final class SInt(initialNode: Node) extends Digital(initialNode) {
   protected type Self = SInt
   protected type MultiSelf = SInt // Can hold multiple bits
-
-  // GENERAL ELEMENT REQUIREMENTS
-  def :=(source: Digital)(implicit em: EnclosingModule): Unit =
-    ConnectTo[SInt,Digital].monoConnect(Sink(this), Source(source), em)
-  def <>(right: SInt)(implicit em: EnclosingModule): Unit =
-    BiConnect[SInt,SInt].biConnect(Left(this), Right(right), em)
-  def <>(right: UInt)(implicit em: EnclosingModule): Unit =
-    BiConnect[SInt,UInt].biConnect(Left(this), Right(right), em)
-  def copy = new SInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
   
-  import scala.language.experimental.macros
-  import gama.internal.macrodefs.{TransformMacro => XFORM}
+  def copy = new SInt(new SPEC(node.storage, node.resolveDirection)).asInstanceOf[this.type]
+
   // External API
+  def :=(source: Digital): Unit = macro XFORM.doConnectTo.sourcearg
+  def <>(right:  SInt): Unit = macro XFORM.doBiConnect.rightarg
+  def <>(right:  UInt): Unit = macro XFORM.doBiConnect.rightarg
+  // TODO: there are ways to reduce duplication here
+  //    main disadvantage is cleaning up error messages when user does wrong thing
+  
   def ===(that: SInt): Bool = macro XFORM.do_eq.thatarg
   def !==(that: SInt): Bool = macro XFORM.do_neq.thatarg
 
@@ -48,6 +49,14 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   
   // external->internal API
   // New operations
+  def doConnectTo(source: Digital, info: EnclosureInfo) = 
+    ConnectTo[SInt,Digital].monoConnect(Sink(this), Source(source), info.em)
+  def doBiConnect(right: SInt, info: EnclosureInfo): Unit =
+    BiConnect[SInt,SInt].biConnect(Left(this), Right(right), info.em)
+  def doBiConnect(right: UInt, info: EnclosureInfo): Unit =
+    BiConnect[SInt,UInt].biConnect(Left(this), Right(right), info.em)
+  // TODO: See above
+  
   def do_eq (that: SInt, info: EnclosureInfo): Bool = BinaryOp.Bool(OpEqual, (this, that), info)
   def do_neq(that: SInt, info: EnclosureInfo): Bool = BinaryOp.Bool(OpNotEq, (this, that), info)
   

@@ -2,6 +2,10 @@ package gama
 import internal._
 import scala.collection.{immutable=>immutable}
 
+// Activate Scala Language Features
+import scala.language.experimental.macros
+import gama.internal.macrodefs.{TransformMacro => XFORM}
+
 @annotation.implicitNotFound("""Cannot create Vec of elements with common type ${D}.
 Most common reason is that no self-muxing operation (Muxable[${D}]) available""")
 trait Vectorizable[D<:Data] { def muxer: Muxable[D] }
@@ -14,10 +18,27 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   self: Vec[D] =>
   // D must be invariant because of assignment (:=), amongst other reasons
   // TODO: INDEXED SEQ MAY BE SUBTLY INCORRECT
+ 
+  def :=(source: Data): Unit = macro XFORM.doConnectTo.sourcearg
+  def <>(right:  Data): Unit = macro XFORM.doBiConnect.rightarg
+  // TODO: CONSIDER: Note how doConnectTo/doBiConnect introduce an implicit
+  //   is this OK?
+
+  def lookup(index: Int): D = elements(index)
+  def apply(index: Int): D = lookup(index)
+
+  // external->internal API
+  def doConnectTo[VFrom<:Data](source: VFrom, info: EnclosureInfo)(implicit writer: ConnectTo[Vec[D],VFrom]): Unit =
+    writer.monoConnect(Sink(this), Source(source), info.em)
+  def doBiConnect[RT<:Data](right: RT, info: EnclosureInfo)(implicit writer: BiConnect[Vec[D],RT]): Unit =
+    writer.biConnect(Left(this), Right(right), info.em)
   
+  // IMPLEMENTATION BELOW
   protected[gama] val elemType: D = initialModel.copy
   // TODO: BETTER DEFINE WHAT elemType is
+
   protected[gama] val elements: immutable.IndexedSeq[D] = Vector.fill(length)(elemType.copy)
+  def nodes = elements.flatMap(_.nodes)
 
   private def enforceElementConsistency(): Unit = {
     elements.foreach(elem => elem.mimic(elemType, asSPEC=false))
@@ -37,15 +58,6 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
       case _ => throw StructuralMimicException
     }
   }
-
-  def nodes = elements.flatMap(_.nodes)
-
-  implicit protected val eltmuxer: Muxable[D] = implicitly[Vectorizable[D]].muxer
-  def :=[VFrom<:Data](source: VFrom)(implicit em: EnclosingModule, writer: ConnectTo[Vec[D],VFrom]): Unit = writer.monoConnect(Sink(this), Source(source), em)
-  def <>[RT<:Data](right: RT)(implicit em: EnclosingModule, writer: BiConnect[Vec[D],RT]): Unit = writer.biConnect(Left(this), Right(right), em)
-
-  def lookup(index: Int): D = elements(index)
-  def apply(index: Int): D = lookup(index)
 
   def lookupIsConnectable(selector: UIntLike): Boolean = {
     nodes.headOption.getOrElse(elemType) match {

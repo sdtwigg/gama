@@ -5,6 +5,9 @@ package macrodefs
 protected[gama] object TransformMacro {
   import scala.reflect.macros.blackbox.Context
 
+  // Amusingly, could simplify this file with macros;
+  // However, may make frontend too complex
+
   sealed trait CoreTransform {
     val c: Context
     import c.universe._
@@ -48,6 +51,18 @@ protected[gama] object TransformMacro {
     import c.universe._
     def onearg(selector: c.Tree): c.Tree =
       q"$myThis.doLookup($selector, $constructInfo)"
+  }
+  
+  class doConnectTo(val c: Context) extends CoreTransform {
+    import c.universe._
+    def sourcearg(source: c.Tree): c.Tree =
+      q"$myThis.doConnectTo($source, $constructInfo)"
+  }
+  
+  class doBiConnect(val c: Context) extends CoreTransform {
+    import c.universe._
+    def rightarg(right: c.Tree): c.Tree =
+      q"$myThis.doBiConnect($right, $constructInfo)"
   }
   
   class doConstant(val c: Context) extends CoreTransform {
