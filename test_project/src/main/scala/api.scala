@@ -24,4 +24,10 @@ import gama.library._
   val test = uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1
 
   val test2 = AsHWConstant(test)
+  val test3 = AsHWConstant(U(1,1))
+  val test4 = AsHWConstant(S(1,1))
+  val test5 = AsHWConstant(1.U)
+  val test6 = AsHWConstant(1.S)
+
+  val vtest = AsHWConstant(LitVec.SW( (3,3), (4,4), (0,1), (5,5), (1,1) ))
 }
