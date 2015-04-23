@@ -1,6 +1,6 @@
 package gama
-package internal
-
+package object internal extends LitMapInternalAPI
+{  
 abstract class ChiselException(private val message: String, private val cause: Throwable=null) extends Exception(message, cause)
 object ChiselException {
   def unapply(e: ChiselException): Option[(String,Throwable)] = Some((e.message, e.cause))
@@ -29,3 +29,5 @@ Cannot resolve bidirectional connection attempt. This is likely due to one of th
   4) Similar to 3), but the associated ports are of different submodules within the same module.
   5) An improper cross-module connection is being attempted.
 """)
+
+}

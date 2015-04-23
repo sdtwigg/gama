@@ -6,7 +6,7 @@ import gama.library._
 object testmain {
   def main(args: Array[String]) {
 
-    val myTopModule = Module(new APIModule())
+    val myTopModule = ExampleModule()
     val myReader = gama.internal.reader.FoldedJournalReader.Colorful
 
     println(myReader.parseCircuit(myTopModule) mkString("\n"))
