@@ -19,7 +19,7 @@ object UInt {
   }
   implicit object withsintfunctionality
     extends Element.BiConnectImpl[UInt,SInt]
-  // TODO: Is this actually ok? Not always clear what is going on....
+  // OKAY-ness discussed in BiConnect.scala
 }
 // Placing object first lets the class find the implicits in the object
 final class UInt(initialNode: Node) extends UIntLike(initialNode) {

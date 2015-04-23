@@ -23,6 +23,14 @@ trait ConnectTo[To<:Data, -From<:Data] {
   def monoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo): Unit
 }
 object ConnectTo {
+  type From[D<:Data] = {type CB[To<:Data] = ConnectTo[To, D]}
+  // context bound of form D<:Data: ConnectTo.From[UInt]#CB means
+  //   supplied D must be able to connect from a UInt
+
+  type Self = {type CB[D<:Data] = ConnectTo[D, D]}
+  // context bound of form D<:Data: ConnectTo.Self#CB means
+  //   supplied D must be able to connect from D (itself)
+
   def apply[To<:Data,From<:Data](implicit ev: ConnectTo[To, From]) = ev
   trait ConnectToImpl[To<:Data,From<:Data] extends ConnectTo[To,From] {
     def monoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo): Unit =
@@ -31,6 +39,4 @@ object ConnectTo {
 
   implicit def genBundleConnectToBundle[B<:Bundle]: ConnectTo[B,Bundle] = new BundleConnectToBundleImpl[B]{}
 }
-
-trait ConnectSelf[D<: Data] extends ConnectTo[D, D]
 

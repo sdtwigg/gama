@@ -243,6 +243,8 @@ trait Nested2 extends Nested {
   val out_bc = Output(new MyChildBundle)
   val in_vbc  =  Input(Vec(2, new MyChildBundle))
   val out_vbc = Output(Vec(2, new MyChildBundle))
+  
+  val out_sint = Output(SInt())
 }) {
   val wire_uint = Wire(UInt())
   val wire_vec  = Wire(Vec(2,UInt()))
@@ -331,6 +333,9 @@ trait Nested2 extends Nested {
   
   sub1.io.in  <> sub1.io.out // technically weird, but a good test
   sub1.io.out <> sub1.io.in  // technically weird, but a good test
+
+  io.in_uint <> io.out_sint
+  io.out_sint <> io.in_uint
 }
 
 @module class ExampleModule protected () extends Module(new ExampleIO) {

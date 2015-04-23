@@ -19,7 +19,7 @@ object SInt extends {
   }
   implicit object withuintfunctionality
     extends Element.BiConnectImpl[SInt,UInt]
-  // TODO: Is this actually ok? Not always clear what is going on....
+  // OKAY-ness discussed in BiConnect.scala
 }
 
 final class SInt(initialNode: Node) extends Digital(initialNode) {

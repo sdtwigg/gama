@@ -28,6 +28,22 @@ trait BiConnect[LT<:Data, RT<:Data] {
   // Note: em for biDetails is required to resolve when connecting same module's input to output
   //   if inside the module
 object BiConnect {
+  type With[Right<:Data] = {type CB[Left<:Data] = BiConnect[Left, Right]}
+  // context bound of form D<:Data: BiConnect.From[UInt]#CB means
+  //   supplied D must be able to bi-connect with a UInt (on the right)
+
+  type Self = {type CB[D<:Data] = BiConnect[D, D]}
+  // context bound of form D<:Data: BiConnect.Self#CB means
+  //   supplied D must be able to bi-connect from D (itself)
+
+  implicit def reverser[LT<:Data,RT<:Data](implicit ev: BiConnect[LT, RT]): BiConnect[RT,LT] = new BiConnect[RT,LT] {
+    def biDetails(left: Left[RT], right: Right[LT], info: EnclosureInfo): BiConnectDetails =
+      ev.biDetails(Left(right.data), Right(left.data), info)
+    def biConnect(left: Left[RT], right: Right[LT], info: EnclosureInfo): Unit = 
+      ev.biConnect(Left(right.data), Right(left.data), info)
+  }
+  // TODO: IS THIS OK? Probably, BiConnect should be totally commutative
+  
   def apply[LT<:Data,RT<:Data](implicit ev: BiConnect[LT, RT]) = ev
   trait BiConnectImpl[LT<:Data,RT<:Data] extends BiConnect[LT,RT] {
     def biConnect(left: Left[LT], right: Right[RT], info: EnclosureInfo): Unit =
