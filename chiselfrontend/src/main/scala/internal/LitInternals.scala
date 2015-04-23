@@ -42,7 +42,7 @@ protected[gama] object LitMap {
 
 trait LitMapElementImpl[T<:Element] {
   self: LitMap[T] =>
-    def bind(in: T): Unit = {
+    protected[this] def bind(in: T): Unit = {
       in.rebind(LitAssignSpell( LitNode(constructData.node.storage) ))
         // TODO: could just trust that in is OKAY
         //   as if constructed with constructData, it will be
@@ -115,7 +115,7 @@ class VecLitMap[D<:Data: Muxable, LMT<:LitMap[D]: LitMap.Vectorizable[D]#CB] pri
     generalized_head.map(_.constructData).getOrElse(elemgeneralizer.emptyData)
   )
 
-  def bind(in: Vec[D]): Unit = {
+  protected[this] def bind(in: Vec[D]): Unit = {
     require(in.length == elemmaps.length, "Internal Error: Literal Vec.length != LitMaps.length")
     // Handle children (the Vec elements)
     (in.elements zip elemmaps).foreach({ case (elem, emap) => emap.transform(elem) })
