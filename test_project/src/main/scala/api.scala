@@ -54,20 +54,20 @@ import gama.library._
   ))
   val vecvec2 = VecLitMap(Seq(ivec21, ivec22, ivec23))
   val vecvecvec = VecLitMap(Seq(vecvec1, vecvec2))
-  val vecvecveclit = AsHWConstant(gama.LitMapToData(vecvecvec))
+  val vecvecveclit = AsHWConstant(vecvecvec.manifest)
  
   // Test empty literal vecs
   val zeroveclit = AsHWConstant(LitVec.S(Seq.empty))
 
   val zerovecvec = VecLitMap.apply[Vec[SInt],VecLitMap[SInt,SIntLitMap]](Seq.empty)
-  val zerovecveclit = AsHWConstant(gama.LitMapToData(zerovecvec))
+  val zerovecveclit = AsHWConstant(zerovecvec.manifest)
   
   type VecOf[D<:Data,DLM<:LitMap[D]] = VecLitMap[D, DLM]
   type VecOfSInt = VecOf[SInt,SIntLitMap]
   type VecVecOfSInt = VecOf[Vec[SInt], VecOfSInt]
   type VecVecVecOfSInt = VecOf[Vec[Vec[SInt]], VecVecOfSInt]
   val zerovecvecvec = VecLitMap(Seq.empty[VecVecOfSInt])
-  val zerovecvecveclit = AsHWConstant(gama.LitMapToData(zerovecvecvec))
+  val zerovecvecveclit = AsHWConstant(zerovecvecvec.manifest)
   val zerovecvecvecvec = VecLitMap(Seq.empty[VecVecVecOfSInt])
-  val zerovecvecvecveclit = AsHWConstant(gama.LitMapToData(zerovecvecvecvec))
+  val zerovecvecvecveclit = AsHWConstant(zerovecvecvecvec.manifest)
 }

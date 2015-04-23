@@ -1,15 +1,10 @@
 package gama
 import internal._
 
-object LitMapToData {
-  def apply[D<:Data](litmap: LitMap[D]): D = LitDesc(litmap.constructData, litmap).retVal
-  // TODO: PERHAPS LitMap should make the LitDesc itself....
-}
-
 // BOOL LITERALS
 object LiteralBool {
-  val True: Bool  = LitDesc(Bool(), BoolLitMap(true)).retVal
-  val False: Bool = LitDesc(Bool(), BoolLitMap(false)).retVal
+  val True: Bool  = BoolLitMap(true).manifest
+  val False: Bool = BoolLitMap(false).manifest
   
   def apply(value: Boolean): Bool = if(value) True else False
 }
@@ -22,19 +17,19 @@ trait LitIntObjectBase[Out<:Digital] {
 // INT LITERALS
 object LiteralSInt extends LitIntObjectBase[SInt] {
   def apply(value: BigInt, width: Int): SInt = {
-    LitMapToData( SIntLitMap(value, Some(width)) )
+    SIntLitMap(value, Some(width)).manifest
   }
   def apply(value: BigInt): SInt = {
-    LitMapToData( SIntLitMap(value, None) )
+    SIntLitMap(value, None).manifest
   }
 }
 
 object LiteralUInt extends LitIntObjectBase[UInt] {
   def apply(value: BigInt, width: Int): UInt = {
-    LitMapToData( UIntLitMap(value, Some(width)) )
+    UIntLitMap(value, Some(width)).manifest
   }
   def apply(value: BigInt): UInt = { 
-    LitMapToData( UIntLitMap(value, None) )
+    UIntLitMap(value, None).manifest
   }
 }
 
@@ -46,15 +41,15 @@ object LiteralVec {
   
   def U(elt0: Int, elts: Int*): Vec[UInt] = U(elt0 +: (elts.toSeq))
   def U(elts: Iterable[Int]): Vec[UInt] = {
-    LitMapToData( VecLitMap(elts.map(i => UIntLitMap(i, None)).toSeq) )
+    VecLitMap(elts.map(i => UIntLitMap(i, None)).toSeq).manifest
   }
   def S(elt0: Int, elts: Int*): Vec[SInt] = S(elt0 +: (elts.toSeq))
   def S(elts: Iterable[Int]): Vec[SInt] = {
-    LitMapToData( VecLitMap(elts.map(i => SIntLitMap(i, None)).toSeq) )
+    VecLitMap(elts.map(i => SIntLitMap(i, None)).toSeq).manifest
   }
 
   def SW(elt0: Tuple2[Int,Int], elts: Tuple2[Int,Int]*): Vec[SInt] = SW(elt0 +: (elts.toSeq))
   def SW(elts: Iterable[Tuple2[Int, Int]]): Vec[SInt] = {
-    LitMapToData( VecLitMap(elts.map(i => SIntLitMap(i._1, Some(i._2))).toSeq) )
+    VecLitMap(elts.map(i => SIntLitMap(i._1, Some(i._2))).toSeq).manifest
   }
 }

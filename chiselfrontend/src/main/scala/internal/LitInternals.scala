@@ -1,25 +1,37 @@
 package gama
 package internal
 
+// A thin wrapper around the LitMap workhorse, really just a simple tag
 trait LitDescImpl[T<:Data] {
   self: LitDesc[T] => 
     def validateRetVal(): Unit = NodeCheck.assertLitNode(retVal)
 
-    def doWork(): Unit = {
-      litMap.setup(retVal, this)
-    }
-} // A thin wrapper around the LitMap workhorse
+    def doWork(): Unit = {} //litMap.bind(retVal, this) done in manifest now
+}
 
 // THIS CANNOT BE TOTALLY FINAL SINCE USER MAY EXTEND
 // This trait actually holds the literal (hah) information for LitDesc so that
 //   it can map details from whatever T is to its constituent elements
 
 sealed abstract class LitMap[T<:Data] {
-  type Self <: LitMap[T] // So generalizeWith can use stored data
-  def constructData: T // would be helpful for VecLitMap
-  def setup(in: T, litdesc: LitDesc[T]): in.type
-    // Vec uses this to ensure underlying types are the same
-    // returns new version where stuff matches
+  def constructData: T // build the Data T that can hold the literal
+  
+  def manifest: T = transform(constructData) // Main invocation
+  // TODO: Be a lazy val???
+  
+  protected[this] def bind(in: T): Unit
+    // bind LitNode to elements, transform sub-elements with other litmaps
+    //   called before a desc/name is set on the T by transform
+  def transform(in: T): in.type = {
+    bind(in)
+    
+    val litdesc = LitDesc(in, this)
+    in.setDescRef(litdesc, false)
+    in.forceSetName(NameLit(litdesc), NameFromLit, false)
+    // Recall that each layer of a 'nested' literal has own name and LitDesc
+    //   so do not bother propogating names and desc
+    in
+  }
 }
 // eg. to map to a vector, may take a Seq of LitMaps to the constituent elements
 protected[gama] object LitMap {
@@ -28,19 +40,12 @@ protected[gama] object LitMap {
   // LitMap.Vectorizable[UInt]#CB[UIntLitMap] =:= LitMapVectorizer[D,UIntLitMap]
 }
 
-// Recall that each layer of a 'nested' literal has own name and LitDesc
-//   so do not bother propogating names and desc
 trait LitMapElementImpl[T<:Element] {
   self: LitMap[T] =>
-    def genNodeStore: NodeStore
-    // TODO: this may be unnecessary if constructData is used...
-    // although may want to put tighter restrictions on LitMap creation then...
-    
-    def setup(in: T, litdesc: LitDesc[T]): in.type = {
-      in.rebind(LitAssignSpell( LitNode(genNodeStore) )) // also unnecessary with above TODO
-      in.setDescRef(litdesc, false)
-      in.forceSetName(NameLit(litdesc), NameFromLit, false)
-      in
+    def bind(in: T): Unit = {
+      in.rebind(LitAssignSpell( LitNode(constructData.node.storage) ))
+        // TODO: could just trust that in is OKAY
+        //   as if constructed with constructData, it will be
     }
 }
 
@@ -48,12 +53,12 @@ trait LitMapElementImpl[T<:Element] {
 trait LitMapVectorizer[D<:Data, LMT <: LitMap[D]] {
   def emptyData: D // used if VecLitMap.elemmaps is empty
   def generalize(target: LMT, model: LMT): LMT // force target to mimic model but retain value
+    // Vec uses this to ensure underlying types are the same
+    // returns new version where stuff matches
 }
 
 case class BoolLitMap(value: Boolean) extends LitMap[Bool] with LitMapElementImpl[Bool] {
-  type Self = BoolLitMap
   def constructData = Bool()
-  def genNodeStore = UBits(Some(1))
 }
 object BoolLitMap {
   implicit object generalizer extends LitMapVectorizer[Bool, BoolLitMap] {
@@ -63,9 +68,7 @@ object BoolLitMap {
 }
 
 case class UIntLitMap(value: BigInt, width: Option[Int]) extends LitMap[UInt] with LitMapElementImpl[UInt] {
-  type Self = UIntLitMap
   def constructData = UInt(width)
-  def genNodeStore = UBits(width)
 }
 object UIntLitMap {
   implicit object generalizer extends LitMapVectorizer[UInt, UIntLitMap] {
@@ -76,9 +79,7 @@ object UIntLitMap {
 }
 
 case class SIntLitMap(value: BigInt, width: Option[Int]) extends LitMap[SInt] with LitMapElementImpl[SInt] {
-  type Self = SIntLitMap
   def constructData = SInt(width)
-  def genNodeStore = SBits(width)
 }
 object SIntLitMap {
   implicit object generalizer extends LitMapVectorizer[SInt, SIntLitMap] {
@@ -95,7 +96,6 @@ class VecLitMap[D<:Data: Muxable, LMT<:LitMap[D]: LitMap.Vectorizable[D]#CB] pri
   // Also 'LitMap.Vectorizable[D]#CB' gets [LMT] applies
   //   and thus becomes: implicit ...: LitMapVectorizer[D, LMT])
 {
-  type Self = VecLitMap[D, LMT]
   private[this] val elemgeneralizer = implicitly[LitMapVectorizer[D,LMT]] // need elem generalizer
 
   val length = initial_elemmaps.length
@@ -112,22 +112,17 @@ class VecLitMap[D<:Data: Muxable, LMT<:LitMap[D]: LitMap.Vectorizable[D]#CB] pri
   // Split so that, when doing Vec of Vec, do not prematurely generate other elements
   
   def constructData = Vec(length,
-    elemmaps.headOption.map(_.constructData).getOrElse(elemgeneralizer.emptyData)
+    generalized_head.map(_.constructData).getOrElse(elemgeneralizer.emptyData)
   )
 
-  def setup(in: Vec[D], litdesc: LitDesc[Vec[D]]): in.type = {
+  def bind(in: Vec[D]): Unit = {
     require(in.length == elemmaps.length, "Internal Error: Literal Vec.length != LitMaps.length")
     // Handle children (the Vec elements)
-    (in.elements zip elemmaps).foreach({ case (elem, emap) => LitDesc(elem, emap) })
-
-    // Handle self (the Vec), DO NOT PROPOGATE DESC OR NAME
-    in.setDescRef(litdesc, false)
-    in.forceSetName(NameLit(litdesc), NameFromLit, false)
-    in
+    (in.elements zip elemmaps).foreach({ case (elem, emap) => emap.transform(elem) })
   }
 }
-object VecLitMap {
 
+object VecLitMap {
   def apply[D<:Data: Muxable, LMT<:LitMap[D]: LitMap.Vectorizable[D]#CB](initial_elemmaps: Seq[LMT with LitMap[D]]) =
     new VecLitMap(initial_elemmaps, false)
 
