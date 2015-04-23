@@ -1,5 +1,5 @@
 package gama
-package object internal extends LitMapInternalAPI
+package object internal
 {  
 abstract class ChiselException(private val message: String, private val cause: Throwable=null) extends Exception(message, cause)
 object ChiselException {

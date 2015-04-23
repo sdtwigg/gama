@@ -22,11 +22,11 @@ sealed abstract class LitMap[T<:Data] {
     // returns new version where stuff matches
 }
 // eg. to map to a vector, may take a Seq of LitMaps to the constituent elements
-
-// This class may end up being unnecessary as the information for it is
-//   derived from LitMap[T] anyway
-//trait LitNodeDesc[NS<:NodeStore]
-//case object LitUBits(value: BigInt) extends LitNodeDesc
+protected[gama] object LitMap {
+  type Vectorizable[D<:Data] = {type CB[T<:LitMap[D]] = LitMapVectorizer[D, T]}
+  // Partial application of LitMapVectorizer (although need #CB)
+  // LitMap.Vectorizable[UInt]#CB[UIntLitMap] =:= LitMapVectorizer[D,UIntLitMap]
+}
 
 // Recall that each layer of a 'nested' literal has own name and LitDesc
 //   so do not bother propogating names and desc
@@ -48,11 +48,6 @@ trait LitMapElementImpl[T<:Element] {
 trait LitMapVectorizer[D<:Data, LMT <: LitMap[D]] {
   def emptyData: D // used if VecLitMap.elemmaps is empty
   def generalize(target: LMT, model: LMT): LMT // force target to mimic model but retain value
-}
-protected[gama] trait LitMapInternalAPI { //by package object in internal.scala
-  type LitMapVectorizable[D<:Data] = {type CB[T<:LitMap[D]] = LitMapVectorizer[D, T]}
-  // Partial application of LitMapVectorizer (although need #CB)
-  // LitMapVectorizable[UInt]#CB[UIntLitMap] =:= LitMapVectorizer[D,UIntLitMap]
 }
 
 case class BoolLitMap(value: Boolean) extends LitMap[Bool] with LitMapElementImpl[Bool] {
@@ -94,10 +89,10 @@ object SIntLitMap {
 }
 
 // TODO: Maybe make this a builder and have the generalized one be a full case class
-class VecLitMap[D<:Data: Muxable, LMT<:LitMap[D]: LitMapVectorizable[D]#CB] private
+class VecLitMap[D<:Data: Muxable, LMT<:LitMap[D]: LitMap.Vectorizable[D]#CB] private
   (initial_elemmaps: Seq[LMT with LitMap[D]], assume_head_generalized: Boolean) extends LitMap[Vec[D]]
   // Note: 'with LitMap[D]' is to help scala type inferer figure out D
-  // Also 'LitMapVectorizable[D]#CB' gets [LMT] applies
+  // Also 'LitMap.Vectorizable[D]#CB' gets [LMT] applies
   //   and thus becomes: implicit ...: LitMapVectorizer[D, LMT])
 {
   type Self = VecLitMap[D, LMT]
@@ -133,7 +128,7 @@ class VecLitMap[D<:Data: Muxable, LMT<:LitMap[D]: LitMapVectorizable[D]#CB] priv
 }
 object VecLitMap {
 
-  def apply[D<:Data: Muxable, LMT<:LitMap[D]: LitMapVectorizable[D]#CB](initial_elemmaps: Seq[LMT with LitMap[D]]) =
+  def apply[D<:Data: Muxable, LMT<:LitMap[D]: LitMap.Vectorizable[D]#CB](initial_elemmaps: Seq[LMT with LitMap[D]]) =
     new VecLitMap(initial_elemmaps, false)
 
   def unapply(test: VecLitMap[_<:Data,_<:LitMap[_<:Data]]): Option[Seq[LitMap[_<:Data]]] = Some(test.elemmaps)
