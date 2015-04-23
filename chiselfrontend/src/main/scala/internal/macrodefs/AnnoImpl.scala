@@ -82,7 +82,7 @@ protected[gama] object AnnoImpl {
         val termparamss = paramss.map(a=>a.map(b=>getTermName(b)))
         val mysimplecopy = q"override def simplecopy: this.type = (new $tpname(...$termparamss)).asInstanceOf[this.type]"
         val newbody = stats ++ Seq(
-          if(getNoArgDefs(stats).contains("copy")) q""
+          if(getNoArgDefs(stats).contains("simplecopy")) q""
           else mysimplecopy 
         )
         q"""
