@@ -47,7 +47,7 @@ object BiConnect {
   def apply[LT<:Data,RT<:Data](implicit ev: BiConnect[LT, RT]) = ev
   trait BiConnectImpl[LT<:Data,RT<:Data] extends BiConnect[LT,RT] {
     def biConnect(left: Left[LT], right: Right[RT], info: EnclosureInfo): Unit =
-      info.em.getActiveJournal.append(BiConnectData(left, right, biDetails(left,right, info), info))
+      info.em.getActiveJournal.append(journal.BiConnectData(left, right, biDetails(left,right, info), info))
   } // should this just be BiConnect?
 
   implicit def genBundleBiConnectBundle[LT<:Bundle,RT<:Bundle]: BiConnect[LT,RT] = new BundleBiConnectBundleImpl[LT,RT]{}

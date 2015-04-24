@@ -27,7 +27,7 @@ sealed abstract class Desc {
 }
 trait EnclosedDesc extends Desc   {
   val info: EnclosureInfo
-  def genJournalEntry: Option[JournalEntry]
+  def genJournalEntry: Option[journal.Entry]
   // Note: can be enclosed but still not emit a JournalEntry, eg. PortDesc 
   
   def doWork(): Unit = {

@@ -50,5 +50,5 @@ trait MemAccessible[D<:Data] extends Accessible[D] {
 trait AccessorDescImpl[+T<:Data] {
   self: AccessorDesc[T] =>
     def validateRetVal(): Unit = NodeCheck.assertAccessorNode(retVal)
-    def genJournalEntry = Some(CreateAccessor(this))
+    def genJournalEntry = Some(journal.CreateAccessor(this))
 }

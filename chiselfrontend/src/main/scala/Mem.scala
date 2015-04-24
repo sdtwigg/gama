@@ -20,7 +20,7 @@ object Mem {
   // external->internal API
   def doMem[D<:Data](model: D, depth: Int, storer: Storable[D], info: EnclosureInfo): Mem[D] = {
     val newmemory = new Mem(model.copy.rebind(MemSpecSpell(info.em)), depth, storer, info)
-    info.em.getActiveJournal.append(CreateMem(newmemory))
+    info.em.getActiveJournal.append(journal.CreateMem(newmemory))
 
     newmemory
   }

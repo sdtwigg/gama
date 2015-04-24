@@ -1,6 +1,6 @@
 package gama
-
 import internal._
+import journal.{Journal, EmptyJournal} // journal from internal
 
 final class EnclosingModule private (incomingEnclosed: Module[_<:Data]) extends EnclosureWeakReference[Module[_<:Data]](incomingEnclosed) {
   protected[this] val lostLinkDetails: String = s"EnclosingModule (previously connected to ${incomingEnclosed.toString})"
@@ -42,7 +42,7 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
   private[this] var _children = scala.collection.mutable.ListBuffer.empty[Module[_<:Data]]
   protected[gama] def children = _children.toList
   private def addSubmodule(child: Module[_<:Data]) = {
-    getActiveJournal.append(CreateModule(child))
+    getActiveJournal.append(journal.CreateModule(child))
     _children.append(child)
   }
 

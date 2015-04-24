@@ -1,24 +1,24 @@
 package gama
 package internal
-package reader
+package journal
 
 import scala.collection.{immutable=>immutable}
 
-sealed abstract class AllJournalReader extends BaseJournalReader {
-  def parseJournal(entries: immutable.Seq[JournalEntry]): String = {
+sealed abstract class AllReader extends BaseReader {
+  def parseJournal(entries: immutable.Seq[Entry]): String = {
     ensureNamed(entries)
     if(entries.isEmpty) "{}"
     else
-      (entries flatMap(entry => parseJournalEntry(entry).split("\n")) map("  " + _) mkString("{\n", "\n", "\n}"))
+      (entries flatMap(entry => parseEntry(entry).split("\n")) map("  " + _) mkString("{\n", "\n", "\n}"))
   }
-  def ensureNamed(entries: immutable.Seq[JournalEntry]): Unit = {
+  def ensureNamed(entries: immutable.Seq[Entry]): Unit = {
     def check(target: Nameable, tempprefix: String): Option[Tuple2[Nameable,String]] = {
       target.name match {
         case Some(_) => None
         case None    => Some((target, tempprefix))
       }
     }
-    val itemsToName: Iterable[Tuple2[Nameable,String]] = entries flatMap((entry: JournalEntry) => entry match {
+    val itemsToName: Iterable[Tuple2[Nameable,String]] = entries flatMap((entry: Entry) => entry match {
       // Determine which entries need named
       case CreateOp(opdesc)        => check(opdesc.retVal,"T")
       case CreateWire(wiredesc)    => check(wiredesc.retVal,"W")
@@ -44,7 +44,7 @@ sealed abstract class AllJournalReader extends BaseJournalReader {
    s"${emitName(module.name)}: ${HL.GREEN}${module.getClass.getName}${HL.RESET}"
 }
 
-object AllJournalReader {
-  object Colorful    extends AllJournalReader {def HL = Highlighters.Colorful}
-  object NonColorful extends AllJournalReader {def HL = Highlighters.NonColorful}
+object AllReader {
+  object Colorful    extends AllReader {def HL = Highlighters.Colorful}
+  object NonColorful extends AllReader {def HL = Highlighters.NonColorful}
 }

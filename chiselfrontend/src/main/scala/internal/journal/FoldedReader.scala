@@ -1,17 +1,17 @@
 package gama
 package internal
-package reader
+package journal
 
 import scala.collection.{immutable=>immutable}
 
-sealed abstract class FoldedJournalReader extends BaseJournalReader {
-  def parseJournal(entries: immutable.Seq[JournalEntry]): String = {
+sealed abstract class FoldedReader extends BaseReader {
+  def parseJournal(entries: immutable.Seq[Entry]): String = {
     ensureNamed(entries)
     
     // Filter out ops that are just arithmetic expressions (and thus folded into other things)
     //   Take everything else, including entries with no name (which is problematic at this phase)
     def descFilter: Desc=>Boolean = desc => desc.retVal.nameSource.map(_ > NameFromMath).getOrElse(true)
-    val filteredEntries: immutable.Seq[JournalEntry] = entries filter (entry => entry match {
+    val filteredEntries: immutable.Seq[Entry] = entries filter (entry => entry match {
       case CreateOp(opdesc)        => descFilter(opdesc)
       case CreateAccessor(accdesc) => descFilter(accdesc)
       case CreateExtract(extdesc)  => descFilter(extdesc)
@@ -19,9 +19,9 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
     })
     if(filteredEntries.isEmpty) "{}"
     else
-      (filteredEntries flatMap(entry => parseJournalEntry(entry).split("\n")) map("  " + _) mkString("{\n","\n","\n}"))
+      (filteredEntries flatMap(entry => parseEntry(entry).split("\n")) map("  " + _) mkString("{\n","\n","\n}"))
   }
-  def ensureNamed(entries: immutable.Seq[JournalEntry]): Unit = {
+  def ensureNamed(entries: immutable.Seq[Entry]): Unit = {
     def check(target: Nameable, tempprefix: String): Option[Tuple2[Nameable,String]] = {
       target.name match {
         case Some(_) => None
@@ -48,7 +48,7 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
       }
     })
     // Folding pass
-    entries foreach((entry: JournalEntry) => entry match {
+    entries foreach((entry: Entry) => entry match {
       // Determine which entries need named
       case CreateOp(opdesc) if(opdesc.retVal.name.isEmpty) => {
         opdesc.retVal.checkedSetName(NameTerm(emitOpDesc(opdesc)), NameFromMath, true)
@@ -68,7 +68,7 @@ sealed abstract class FoldedJournalReader extends BaseJournalReader {
    s"${emitName(module.name)}: ${HL.GREEN}${module.getClass.getName}${HL.RESET}"
 }
 
-object FoldedJournalReader {
-  object Colorful    extends FoldedJournalReader {def HL = Highlighters.Colorful}
-  object NonColorful extends FoldedJournalReader {def HL = Highlighters.NonColorful}
+object FoldedReader {
+  object Colorful    extends FoldedReader {def HL = Highlighters.Colorful}
+  object NonColorful extends FoldedReader {def HL = Highlighters.NonColorful}
 }

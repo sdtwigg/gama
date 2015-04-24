@@ -1,16 +1,16 @@
 package gama
 package internal
-package reader
+package journal
 
 import scala.collection.{immutable=>immutable}
 
-trait JournalReader {
+trait Reader {
   def parseModule(module: Module[_<:Data]): String
-  def parseJournal(entries: immutable.Seq[JournalEntry]): String
+  def parseJournal(entries: immutable.Seq[Entry]): String
   def parseJournal(journal: Journal): String = parseJournal(journal.entries)
 }
 
-abstract class BaseJournalReader extends JournalReader {
+abstract class BaseReader extends Reader {
   // TODO: SPLIT THIS INTO MULTIPLE TRAITS
   def HL: Highlighter
   
@@ -55,7 +55,7 @@ abstract class BaseJournalReader extends JournalReader {
     })
   }
 
-  def parseJournalEntry(entry: JournalEntry): String = {
+  def parseEntry(entry: Entry): String = {
     entry match {
       case CreateOp(opdesc) =>
         s"${HL.CYAN}const${HL.RESET} ${emitRefType(opdesc.retVal)} = ${emitOpDesc(opdesc)}  ${emitEncInfo(opdesc.info)}"

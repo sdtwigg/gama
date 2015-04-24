@@ -25,6 +25,6 @@ trait ExtractableImpl {
 trait ExtractDescImpl {
   self: ExtractDesc =>
     def validateRetVal(): Unit = NodeCheck.assertExtractedNode(retVal)
-    def genJournalEntry = Some(CreateExtract(this))
+    def genJournalEntry = Some(journal.CreateExtract(this))
 }
 
