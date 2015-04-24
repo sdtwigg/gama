@@ -9,8 +9,8 @@ object when {
 }
 
 sealed class when private (cond: Bool, work: =>Unit, em: Module[_]) {
-  private val tcJournal = journal.EmptyJournal()
-  private val fcJournal = journal.EmptyJournal()
+  private val tcJournal = journal.Journal.empty()
+  private val fcJournal = journal.Journal.empty()
 
   // Add the Conditionally onto the active journal
   em.getActiveJournal.append(journal.Conditionally(cond, tcJournal, fcJournal))

@@ -1,6 +1,6 @@
 package gama
 import internal._
-import journal.{Journal, EmptyJournal} // journal from internal
+import journal.{Journal} // journal from internal
 
 final class EnclosingModule private (incomingEnclosed: Module[_<:Data]) extends EnclosureWeakReference[Module[_<:Data]](incomingEnclosed) {
   protected[this] val lostLinkDetails: String = s"EnclosingModule (previously connected to ${incomingEnclosed.toString})"
@@ -25,7 +25,7 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
   implicit val __enclosingmodule = EnclosingModule(this)
 
   // First, must setup journal so can use them
-  private[this] val mainJournal = EmptyJournal()
+  private[this] val mainJournal = Journal.empty()
   private[this] val subJournalStack = scala.collection.mutable.Stack.empty[Journal]
     // sub-journals are used by when statements
 
