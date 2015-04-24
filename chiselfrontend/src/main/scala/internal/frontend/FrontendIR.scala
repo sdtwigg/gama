@@ -26,6 +26,11 @@ case class MemDecl(desc: MemDesc) extends CmdHW
 case class MemRead(symbol: RefSymbol, mem: MemDesc, selector: ExprHW) extends CmdHW with CreatesRefSymbol
 case class MemWrite(mem: MemDesc, selector: ExprHW, source: ExprHW) extends CmdHW
   // TODO: Masked and partial mem writes....
+// Other
+case class SubModuleDecl(identifier: String, io: RefSymbol) extends CmdHW with CreatesRefSymbol { def symbol = io }
+  // TODO: Other fields, like module type
+  // enforce at type level RefSymbol directioned, e.g. RefSymbol[PrimitivePort]?
+  // probably not worth it since info will be lost if ever put into symbol table
 
 ///////////////////
 // Expressions, References, Types, etc.
@@ -34,22 +39,18 @@ case class ExprUnary(op: OpIdUnary, target: ExprHW, resultType: TypeHW) extends 
 case class ExprBinary(op: OpIdBinary, left: ExprHW, right: ExprHW, resultType: TypeHW) extends ExprHW
 case class ExprMux(cond: ExprHW, tc: ExprHW, fc: ExprHW, resultType: TypeHW) extends ExprHW
 case class ExprLit(litmap: LitMap[_<:Data], resultType: TypeHW) extends ExprHW // TODO: convert litmaps? // Leaf
-// Expression version of references, may be unncessary?
-case class ExprRef(ref: RefHW, resultType: TypeHW) extends ExprHW // Leaf
-case class ExprVIndex(source: ExprHW, index: Int, resultType: TypeHW) extends ExprHW
-case class ExprVSelect(source: ExprHW, selector: ExprHW, resultType: TypeHW) extends ExprHW
-case class ExprTLookup(source: ExprHW, field: String, resultType: TypeHW) extends ExprHW
-case class ExprExtract(source: ExprHW, left_pos: Int, right_pos: Int, resultType: PrimitiveHW) extends ExprHW
-
-sealed trait RefHW extends TreeHW { def sourceType: TypeHW }
-case class RefSymbol(symbol: Int, identifier: Option[String], sourceType: TypeHW) extends RefHW
-case class RefVIndex(parent: RefHW, index: Int, sourceType: VecHW) extends RefHW
-case class RefVSelect(parent: RefHW, selector: ExprHW, sourceType: VecHW) extends RefHW
-case class RefTLookup(source: RefHW, field: String, sourceType: TupleHW) extends RefHW
-case class RefExtract(source: RefHW, left_pos: Int, right_pos: Int, sourceType: PrimitiveHW) extends RefHW
+// References are also all possible expressions
+sealed trait RefHW extends ExprHW { def refType: TypeHW; def resultType = refType } // TODO: connectable check func
+case class RefSymbol(symbol: Int, identifier: Option[String], refType: TypeHW) extends RefHW
+case class RefVIndex(parent: ExprHW, index: Int, refType: VecHW) extends RefHW
+case class RefVSelect(parent: ExprHW, selector: ExprHW, refType: VecHW) extends RefHW
+case class RefTLookup(source: ExprHW, field: String, refType: TupleHW) extends RefHW
+case class RefExtract(source: ExprHW, left_pos: Int, right_pos: Int, refType: PrimitiveTypeHW) extends RefHW
 
 sealed trait TypeHW extends TreeHW // TODO: when converting from journal, memoize type determinations
-case class PrimitiveHW(storage: NodeStore) extends TypeHW
+sealed trait PrimitiveTypeHW extends TypeHW
+case class PrimitiveNode(storage: NodeStore) extends PrimitiveTypeHW
+case class PrimitivePort(storage: NodeStore, direction: DirectionIO) extends PrimitiveTypeHW
 sealed trait AggregateTypeHW extends TypeHW
 case class TupleHW(fields: Seq[Tuple2[String, TypeHW]]) extends AggregateTypeHW
 case class VecHW(depth: Int, elemType: TypeHW) extends AggregateTypeHW
