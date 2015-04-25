@@ -6,7 +6,11 @@ import scala.language.existentials
 
 // TODO: WRITE TYPE CHECKER
 // TODO: ADD TRANSLATED DEBUGGING INFO
-sealed trait TreeHW
+sealed trait TreeHW extends Product {
+  //override lazy val hashCode: Int = scala.runtime.ScalaRunTime._hashCode(this)
+  //TODO: Uncommenting this line will ensure hashCode is cached
+  //  but also requires all Tree types are truly immutable
+}
 ///////////////////
 // Commands
 sealed trait CmdHW extends TreeHW
@@ -16,7 +20,7 @@ case class WireDecl(symbol: RefSymbol) extends CmdHW with CreatesRefSymbol
 case class RegDecl(symbol: RefSymbol) extends CmdHW with CreatesRefSymbol
 case class ConstDecl(symbol: RefSymbol, expr: ExprHW) extends CmdHW with CreatesRefSymbol
 // Control flow related
-case class BlockHW(statements: Seq[CmdHW], upper: BlockHW) extends CmdHW // upper should be weak reference
+case class BlockHW(statements: Vector[CmdHW], upper: BlockHW) extends CmdHW // upper should be weak reference
 case class WhenHW(cond: ExprHW, tc: BlockHW, fc: BlockHW) extends CmdHW
 // Connection details
 case class ConnectStmt(sink: RefHW, source: ExprHW, details: ConnectDetails) extends CmdHW
@@ -38,9 +42,9 @@ sealed trait ExprHW extends TreeHW { def resultType: TypeHW }
 case class ExprUnary(op: OpIdUnary, target: ExprHW, resultType: TypeHW) extends ExprHW
 case class ExprBinary(op: OpIdBinary, left: ExprHW, right: ExprHW, resultType: TypeHW) extends ExprHW
 case class ExprMux(cond: ExprHW, tc: ExprHW, fc: ExprHW, resultType: TypeHW) extends ExprHW
-case class ExprLit(litmap: LitMap[_<:Data], resultType: TypeHW) extends ExprHW // TODO: convert litmaps? // Leaf
-// References are also all possible expressions
-sealed trait RefHW extends ExprHW { def refType: TypeHW; def resultType = refType } // TODO: connectable check func
+case class ExprLit(litmap: LitTree, resultType: TypeHW) extends ExprHW
+// References are also all possible expressions // TODO: pass class checks mutability of these
+sealed trait RefHW extends ExprHW { def refType: TypeHW; def resultType = refType }
 case class RefSymbol(symbol: Int, identifier: Option[String], refType: TypeHW) extends RefHW
 case class RefVIndex(parent: ExprHW, index: Int, refType: VecHW) extends RefHW
 case class RefVSelect(parent: ExprHW, selector: ExprHW, refType: VecHW) extends RefHW
@@ -52,10 +56,17 @@ sealed trait PrimitiveTypeHW extends TypeHW
 case class PrimitiveNode(storage: NodeStore) extends PrimitiveTypeHW
 case class PrimitivePort(storage: NodeStore, direction: DirectionIO) extends PrimitiveTypeHW
 sealed trait AggregateTypeHW extends TypeHW
-case class TupleHW(fields: Seq[Tuple2[String, TypeHW]]) extends AggregateTypeHW
+case class TupleHW(fields: Vector[Tuple2[String, TypeHW]]) extends AggregateTypeHW
 case class VecHW(depth: Int, elemType: TypeHW) extends AggregateTypeHW
 
 case class MemDesc(memid: Int, identifier: String, sourceType: TypeHW)
+
+// Literal Details
+sealed trait LitTree extends TreeHW
+case class LitPrimitive(value: String) extends LitTree
+case class LitPrimitive2(value: String) extends LitTree
+case class LitVec(elements: Vector[LitTree]) extends LitTree
+case class LitTuple(fields: Vector[Tuple2[String,LitTree]]) extends LitTree
 
 //case class VecAccDecl(symbol: RefSymbol, collection: ExprHW, selector: ExprHW) extends TreeHW with CreatesRefSymbol
 //case class ExtrDecl(symbol: RefSymbol, left_pos: Int, right_pos: Int) extends TreeHW with CreatesRefSymbol
