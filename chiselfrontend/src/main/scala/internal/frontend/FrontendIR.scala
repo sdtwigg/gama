@@ -7,9 +7,10 @@ import scala.language.existentials
 // TODO: WRITE TYPE CHECKER
 // TODO: ADD TRANSLATED DEBUGGING INFO
 sealed trait TreeHW extends Product {
-  //override lazy val hashCode: Int = scala.runtime.ScalaRunTime._hashCode(this)
+  //override val hashCode: Int = scala.runtime.ScalaRunTime._hashCode(this)
   //TODO: Uncommenting this line will ensure hashCode is cached
-  //  but also requires all Tree types are truly immutable
+  //  but also requires all Tree types are truly immutable, which is currently true
+  //also, mixin the class name to the hashcode?
 }
 ///////////////////
 // Commands
@@ -19,6 +20,8 @@ sealed trait CreatesRefSymbol extends CmdHW { def symbol: RefSymbol }
 case class WireDecl(symbol: RefSymbol) extends CmdHW with CreatesRefSymbol
 case class RegDecl(symbol: RefSymbol) extends CmdHW with CreatesRefSymbol
 case class ConstDecl(symbol: RefSymbol, expr: ExprHW) extends CmdHW with CreatesRefSymbol
+case class RefDecl(symbol: RefSymbol, ref: RefHW) extends CmdHW with CreatesRefSymbol
+  // basically, like a pointer... good for holding named accessors/extractors?
 // Control flow related
 case class BlockHW(statements: Vector[CmdHW], upper: BlockHW) extends CmdHW // upper should be weak reference
 case class WhenHW(cond: ExprHW, tc: BlockHW, fc: BlockHW) extends CmdHW
@@ -33,8 +36,6 @@ case class MemWrite(mem: MemDesc, selector: ExprHW, source: ExprHW) extends CmdH
 // Other
 case class SubModuleDecl(identifier: String, io: RefSymbol) extends CmdHW with CreatesRefSymbol { def symbol = io }
   // TODO: Other fields, like module type
-  // enforce at type level RefSymbol directioned, e.g. RefSymbol[PrimitivePort]?
-  // probably not worth it since info will be lost if ever put into symbol table
 
 ///////////////////
 // Expressions, References, Types, etc.
