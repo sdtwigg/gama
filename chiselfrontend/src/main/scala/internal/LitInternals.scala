@@ -1,5 +1,6 @@
 package gama
 package internal
+import frontend.{LitTree, LitPrimitive, LitVec, LitTuple}
 
 // A thin wrapper around the LitMap workhorse, really just a simple tag
 trait LitDescImpl[T<:Data] {
@@ -15,9 +16,8 @@ trait LitDescImpl[T<:Data] {
 
 sealed abstract class LitMap[T<:Data] {
   def constructData: T // build the Data T that can hold the literal
-  
-  def manifest: T = transform(constructData) // Main invocation
-  // TODO: Be a lazy val???
+  def manifest: T = transform(constructData) // Main invocation // TODO: Be a lazy val???
+  def asLitTree: LitTree
   
   protected[this] def bind(in: T): Unit
     // bind LitNode to elements, transform sub-elements with other litmaps
@@ -59,6 +59,7 @@ trait LitMapVectorizer[D<:Data, LMT <: LitMap[D]] {
 
 case class BoolLitMap(value: Boolean) extends LitMap[Bool] with LitMapElementImpl[Bool] {
   def constructData = Bool()
+  def asLitTree = LitPrimitive(if(value) "1" else "0")
 }
 object BoolLitMap {
   implicit object generalizer extends LitMapVectorizer[Bool, BoolLitMap] {
@@ -68,7 +69,9 @@ object BoolLitMap {
 }
 
 case class UIntLitMap(value: BigInt, width: Option[Int]) extends LitMap[UInt] with LitMapElementImpl[UInt] {
+  require( value>=0, "UInt Literals must be non-negative." )
   def constructData = UInt(width)
+  def asLitTree = LitPrimitive(value.toString) // TODO: hexadecimal?
 }
 object UIntLitMap {
   implicit object generalizer extends LitMapVectorizer[UInt, UIntLitMap] {
@@ -80,6 +83,7 @@ object UIntLitMap {
 
 case class SIntLitMap(value: BigInt, width: Option[Int]) extends LitMap[SInt] with LitMapElementImpl[SInt] {
   def constructData = SInt(width)
+  def asLitTree = LitPrimitive(value.toString) // TODO: hexadecimal
 }
 object SIntLitMap {
   implicit object generalizer extends LitMapVectorizer[SInt, SIntLitMap] {
@@ -114,6 +118,7 @@ class VecLitMap[D<:Data: Muxable, LMT<:LitMap[D]: LitMap.Vectorizable[D]#CB] pri
   def constructData = Vec(length,
     generalized_head.map(_.constructData).getOrElse(elemgeneralizer.emptyData)
   )
+  def asLitTree = LitVec(elemmaps.map(_.asLitTree).toVector)
 
   protected[this] def bind(in: Vec[D]): Unit = {
     require(in.length == elemmaps.length, "Internal Error: Literal Vec.length != LitMaps.length")

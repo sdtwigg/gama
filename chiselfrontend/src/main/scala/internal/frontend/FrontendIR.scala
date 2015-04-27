@@ -21,7 +21,12 @@ case class WireDecl(symbol: RefSymbol) extends CmdHW with CreatesRefSymbol
 case class RegDecl(symbol: RefSymbol) extends CmdHW with CreatesRefSymbol
 case class ConstDecl(symbol: RefSymbol, expr: ExprHW) extends CmdHW with CreatesRefSymbol
 case class RefDecl(symbol: RefSymbol, ref: RefHW) extends CmdHW with CreatesRefSymbol
-  // basically, like a pointer... good for holding named accessors/extractors?
+  // basically, a reference/pointer... good for holding named accessors/extractors?
+  // However, there are other types of 'aliased' connects, like connect on an aggregate
+  //   so the presence of this type isn't TOO ridiculous
+  // will probably need almost immediate de-aliasing when an l-value side though....
+  // de-aliasing pass converts to const (for r-value use) and rewrites l-value use
+  // I think can be done after type infer BUT definitley must be de-aliased before connect smashing
 // Control flow related
 case class BlockHW(statements: Vector[CmdHW], upper: BlockHW) extends CmdHW // upper should be weak reference
 case class WhenHW(cond: ExprHW, tc: BlockHW, fc: BlockHW) extends CmdHW
@@ -65,7 +70,6 @@ case class MemDesc(memid: Int, identifier: String, sourceType: TypeHW)
 // Literal Details
 sealed trait LitTree extends TreeHW
 case class LitPrimitive(value: String) extends LitTree
-case class LitPrimitive2(value: String) extends LitTree
 case class LitVec(elements: Vector[LitTree]) extends LitTree
 case class LitTuple(fields: Vector[Tuple2[String,LitTree]]) extends LitTree
 
