@@ -37,7 +37,7 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
   protected[gama] val ioDesc: PortDesc[IOT] = PortDesc(Port(makeIO, __enclosingmodule), EnclosureInfo(__enclosingmodule, None))
   final val io: IOT = ioDesc.retVal
   io.setDescRef(ioDesc, true)
-  io.forceSetName(NameUNKNOWN, NameFromIO, true)
+  io.forceSetName(NameIO(this), NameFromIO, true)
   
   // Also, add self to parent, if it exists
   parent.foreach(_.addSubmodule(this))

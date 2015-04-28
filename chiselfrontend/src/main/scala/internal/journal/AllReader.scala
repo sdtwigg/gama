@@ -39,9 +39,9 @@ sealed abstract class AllReader extends BaseReader {
     })
   }
 
-  def emitRef(data: Data): String  = emitName(data.name)
+  def emitRef(data: Data): String  = emitName(data)
   def emitModuleInst(module: Module[_<:Data]): String = 
-   s"${emitName(module.name)}: ${HL.GREEN}${module.getClass.getName}${HL.RESET}"
+   s"${emitName(module)}: ${HL.GREEN}${module.getClass.getName}${HL.RESET}"
 }
 
 object AllReader {

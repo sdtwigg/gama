@@ -28,9 +28,9 @@ object JournalToFrontendIR {
       newSymbol
     }
   }
-  private type TableEntry = ExprHW
   class ExprTable(parent: Option[ExprTable]) {
     // an optimization, stores encountered unnamed expressions so they can be folded in later
+    private type TableEntry = ExprHW
     private val table = scala.collection.mutable.HashMap.empty[Data,TableEntry]
     
     def get(key: Data): Option[TableEntry] =
@@ -50,7 +50,16 @@ object JournalToFrontendIR {
     val statements: List[CmdHW] = journal.entries.flatMap((entry: Entry) => (
       entry match {
         // Symbol creators
-        case CreateOp(opdesc) => ???
+        case CreateOp(opdesc) => {
+          val expr = convertExpr(opdesc, reftable, exprtable)
+          if(opdesc.retVal.name.isDefined) {
+            Some(ConstDecl(reftable.addNewSymbol(opdesc.retVal, extractName(opdesc), false), expr))
+          } else {
+            exprtable.add(opdesc.retVal, expr)
+            None
+          }
+        }
+        
         case CreateWire(wiredesc) => ???
         case CreateReg(regdesc) => ???
         case CreateAccessor(accdesc) => ???
@@ -69,7 +78,33 @@ object JournalToFrontendIR {
     BlockHW(statements)
   }
 
-  def convertExpr(result: Data): ExprHW = ??? // will need to do some folding
+  def extractName(desc: Desc): Option[String] = desc.retVal.name match {
+    case Some(NameTerm(identifier: String)) => Some(identifier)
+    case _ => None // other NameTree terms shouldn't ever be possible for a retVal
+    // TODO: CLEANUP
+  }
+
+  def convertExpr(opdesc: OpDesc, reftable: RefTable, exprtable: ExprTable): ExprHW = {
+    def lookup(in: Data): ExprHW = in.name match {
+      // TODO: this likely needs to be non-nested as other conversions will prob use parts
+      // leaf types
+      case None | Some(NameTerm(_)) =>
+        (reftable.get(in).map(_._1) orElse exprtable.get(in)).getOrElse(RefExprERROR)
+      case Some(NameLit(litdesc)) => ExprLit(litdesc.litMap.asLitTree, constructType(litdesc.retVal))
+      // refinements
+      case Some(NameIO(source)) => lookup(source.io)
+      case Some(NameField(source, field)) => RefTLookup(lookup(source), field, constructType(source))
+      case Some(NameIndex(source, index)) => RefVIndex(lookup(source), index, constructType(source))
+      // error cases
+      case Some(NameUNKNOWN) | Some(NameUnnamedOp(_)) => RefExprERROR
+    }
+
+    opdesc match {
+      case UnaryOpDesc(op, input, rv, _)          => ExprUnary(op, lookup(input), constructType(rv))
+      case BinaryOpDesc(op, (left, right), rv, _) => ExprBinary(op, lookup(left), lookup(right), constructType(rv))
+      case MuxDesc(cond, tc, fc, rv, _)           => ExprMux(lookup(cond), lookup(tc), lookup(fc), constructType(rv))
+    }
+  }
 
   def constructType(model: Data): TypeHW = model match {
     // explicitely do not bother checking Port here

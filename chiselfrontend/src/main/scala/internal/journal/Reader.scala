@@ -26,20 +26,14 @@ abstract class BaseReader extends Reader {
   }
   
   def parseModule(module: Module[_<:Data]): String = {
-    module.io.forceSetName(NameTerm("io"), NameFromIO, true)
     ensureAllChildrenNamed(module)
-    module.children.foreach(child =>
-      child.io.forceSetName(NameField(child.name.getOrElse(NameUNKNOWN), "io"), NameFromIO, true)
-    )
-    try {
+    module.io.forceSetName(NameTerm("io"), NameFromIO, true)
+      // TODO: kinda hacky although readers are mainly for debugging anyway...
+    try{
       val ioType = emitType(module.io)
       val body = parseJournal(module.getActiveJournal)
       s"${HL.CYAN}module${HL.RESET} ${module.getClass.getName}(${HL.GREEN}${ioType}${HL.RESET})${body}"
-    } finally {
-      // wipeout names so know if future clients forget to adjust them
-      module.io.forceSetName(NameUNKNOWN, NameFromIO, true)
-      module.children.foreach(_.io.forceSetName(NameUNKNOWN, NameFromIO, true))
-    }
+    } finally {module.io.forceSetName(NameIO(module), NameFromIO, true)} // restore true io name
   }
   def ensureAllChildrenNamed(module: Module[_<:Data]): Unit = {
     val childrenToName: Iterable[Nameable] = module.children flatMap(child => {
@@ -101,7 +95,7 @@ abstract class BaseReader extends Reader {
       (fields map ({case (field, subd) => s"$field:${emitBiConnectDetails(subd)}"}) mkString("(",", ",")"))
   }
   def emitMemDetails(mem: Mem[_<:Data]): String = 
-    s"${emitName(mem.name)}[${mem.depth}]: ${HL.GREEN}${emitType(mem.elemType)}${HL.RESET}"
+    s"${emitName(mem)}[${mem.depth}]: ${HL.GREEN}${emitType(mem.elemType)}${HL.RESET}"
   def emitModuleInst(module: Module[_<:Data]): String
 
   def emitRef(data: Data): String
@@ -181,14 +175,15 @@ abstract class BaseReader extends Reader {
     s"${emitAccessibleRef(accdesc.accRef)}(${emitRef(accdesc.selector)})"
   def emitAccessibleRef(acc: Accessible[_<:Data]): String = acc match {
     case vec: VecAccessible[_] => (emitRef(vec.collection))
-    case mem: MemAccessible[_] => (emitName(mem.collection.name)) // assured mem.collection is a Mem[_]
+    case mem: MemAccessible[_] => (emitName(mem.collection)) // assured mem.collection is a Mem[_]
   }
 
-  def emitName(name: Option[NameTree]): String = parseNameTree(name.getOrElse(NameUNKNOWN))
+  def emitName(target: Nameable): String = parseNameTree(target.name.getOrElse(NameUNKNOWN))
   def parseNameTree(name: NameTree): String = name match {
     case NameTerm(identifier) => identifier
-    case NameField(source, field) => s"${parseNameTree(source)}.${field}"
-    case NameIndex(source, index) => s"${parseNameTree(source)}(${index})"
+    case NameIO(source) => s"${emitName(source)}.io"
+    case NameField(source, field) => s"${emitName(source)}.${field}"
+    case NameIndex(source, index) => s"${emitName(source)}(${index})"
 
     case NameLit(litdesc) => parseLitDesc(litdesc)
     case NameUnnamedOp(opdesc) => "$$$$UNHANDLED" + opdesc.toString 

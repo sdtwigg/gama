@@ -10,6 +10,7 @@ sealed trait TreeHW extends Product {
   //  but also requires all Tree types are truly immutable, which is currently true
   //also, mixin the class name to the hashcode?
 }
+sealed trait FIRERROR extends TreeHW
 ///////////////////
 // Commands
 sealed trait CmdHW extends TreeHW
@@ -46,14 +47,15 @@ sealed trait ExprHW extends TreeHW { def resultType: TypeHW }
 case class ExprUnary(op: OpIdUnary, target: ExprHW, resultType: TypeHW) extends ExprHW
 case class ExprBinary(op: OpIdBinary, left: ExprHW, right: ExprHW, resultType: TypeHW) extends ExprHW
 case class ExprMux(cond: ExprHW, tc: ExprHW, fc: ExprHW, resultType: TypeHW) extends ExprHW
-case class ExprLit(litmap: LitTree, resultType: TypeHW) extends ExprHW
+case class ExprLit(litvalue: LitTree, resultType: TypeHW) extends ExprHW
 // References are also all possible expressions // TODO: pass class checks mutability of these
 sealed trait RefHW extends ExprHW { def refType: TypeHW; def resultType = refType }
 case class RefSymbol(symbol: Int, identifier: Option[String], refType: TypeHW) extends RefHW
-case class RefVIndex(parent: ExprHW, index: Int, refType: VecHW) extends RefHW
-case class RefVSelect(parent: ExprHW, selector: ExprHW, refType: VecHW) extends RefHW
-case class RefTLookup(source: ExprHW, field: String, refType: TupleHW) extends RefHW
-case class RefExtract(source: ExprHW, left_pos: Int, right_pos: Int, refType: PrimitiveTypeHW) extends RefHW
+case class RefVIndex(parent: ExprHW, index: Int, refType: TypeHW) extends RefHW
+case class RefVSelect(parent: ExprHW, selector: ExprHW, refType: TypeHW) extends RefHW
+case class RefTLookup(source: ExprHW, field: String, refType: TypeHW) extends RefHW
+case class RefExtract(source: ExprHW, left_pos: Int, right_pos: Int, refType: TypeHW) extends RefHW
+case object RefExprERROR extends RefHW with FIRERROR {def refType = TypeHWUNKNOWN }
 
 sealed trait TypeHW extends TreeHW // TODO: when converting from journal, memoize type determinations
 sealed trait PrimitiveTypeHW extends TypeHW
@@ -62,6 +64,7 @@ case class PrimitivePort(storage: NodeStore, direction: DirectionIO) extends Pri
 sealed trait AggregateTypeHW extends TypeHW
 case class TupleHW(fields: Vector[Tuple2[String, TypeHW]]) extends AggregateTypeHW
 case class VecHW(depth: Int, elemType: TypeHW) extends AggregateTypeHW
+case object TypeHWUNKNOWN extends TypeHW with FIRERROR
 
 case class MemDesc(memid: Int, identifier: String, sourceType: TypeHW)
 

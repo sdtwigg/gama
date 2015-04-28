@@ -33,7 +33,7 @@ trait HardwareTupleImpl extends SimpleCopy {
 
   protected[gama] def propogateName(newname: NameTree, newsource: NameSource): Unit = {
     subfields.foreach({case (subfield: String, elem: Data) =>
-      elem.forceSetName(NameField(newname, subfield), newsource, true)
+      elem.forceSetName(NameField(this, subfield), newsource, true)
     })
   }
   protected[gama] def propogateDescRef(newdesc: Desc): Unit = elements.foreach( elem => {elem.setDescRef(newdesc, true)} )

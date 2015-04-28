@@ -12,9 +12,9 @@ sealed abstract class RawReader extends BaseReader {
   // These aren't really readable but this is for raw debugging so
   //   not quite the point
   def emitRef(data: Data): String =
-    data.name.map(n=>emitName(Some(n))).getOrElse(data.toString)
+    data.name.map(_=>emitName(data)).getOrElse(data.toString)
   def emitModuleInst(module: Module[_<:Data]): String = 
-    module.name.map(n=>emitName(Some(n))).getOrElse(module.toString)
+    module.name.map(_=>emitName(module)).getOrElse(module.toString)
 }
 
 object RawReader {

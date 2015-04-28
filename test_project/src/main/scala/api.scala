@@ -23,6 +23,9 @@ import gama.library._
   val extendedtest2 = ((~(-((((uint1 ## uint2) - (uint1)) << 2.U)(7,4)(2,1)(1))) >> 1.U) * 2.U / 3.U % 5.U).andR
   val test = uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1 + uint1
 
+  val myb = Wire(new MyBundle)
+  val tricky = Mux(True, myb, myb).a + 1.U
+
   val test2 = AsHWConstant(test)
   val test3 = AsHWConstant(U(1,1))
   val test4 = AsHWConstant(S(1,1))

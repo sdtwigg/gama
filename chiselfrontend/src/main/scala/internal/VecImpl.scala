@@ -69,7 +69,7 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   
   def propogateName(newname: NameTree, newsource: NameSource): Unit = {
     elements.zipWithIndex.foreach({case (elem: Data, idx: Int) => 
-      elem.forceSetName(NameIndex(newname, idx), newsource, true)
+      elem.forceSetName(NameIndex(this, idx), newsource, true)
     })
   }
   def propogateDescRef(newdesc: Desc): Unit = {

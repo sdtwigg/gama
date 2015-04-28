@@ -1,13 +1,16 @@
 package gama
 package internal
 
+import scala.language.existentials
+
 sealed abstract class NameTree
 
 case class NameTerm(identifier: String) extends NameTree
-case class NameField(source: NameTree, field: String) extends NameTree
-case class NameIndex(source: NameTree, index: Int) extends NameTree
+case class NameIO(source: Module[_<:Data]) extends NameTree
+case class NameField(source: HardwareTuple, field: String) extends NameTree
+case class NameIndex(source: Vec[_<:Data], index: Int) extends NameTree
 
 case class NameLit[D<:Data](litdesc: LitDesc[D]) extends NameTree
-case class NameUnnamedOp(opdesc: OpDesc) extends NameTree
+case class NameUnnamedOp(opdesc: OpDesc) extends NameTree // TODO: Why is this here?
 
 case object NameUNKNOWN extends NameTree
