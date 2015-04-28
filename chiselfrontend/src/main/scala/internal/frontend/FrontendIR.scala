@@ -2,8 +2,6 @@ package gama
 package internal
 package frontend
 
-import scala.language.existentials
-
 // TODO: WRITE TYPE CHECKER
 // TODO: ADD TRANSLATED DEBUGGING INFO
 sealed trait TreeHW extends Product {
@@ -28,7 +26,7 @@ case class RefDecl(symbol: RefSymbol, ref: RefHW) extends CmdHW with CreatesRefS
   // de-aliasing pass converts to const (for r-value use) and rewrites l-value use
   // I think can be done after type infer BUT definitley must be de-aliased before connect smashing
 // Control flow related
-case class BlockHW(statements: Vector[CmdHW], upper: BlockHW) extends CmdHW // upper should be weak reference
+case class BlockHW(statements: List[CmdHW]) extends CmdHW // have reference to enclosing context?
 case class WhenHW(cond: ExprHW, tc: BlockHW, fc: BlockHW) extends CmdHW
 // Connection details
 case class ConnectStmt(sink: RefHW, source: ExprHW, details: ConnectDetails) extends CmdHW

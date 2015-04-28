@@ -55,3 +55,7 @@ object InternalName {
   }
 }
 
+// TODO: More intelligent naming of internal nodes
+// Names should only start being propogates from things that are the root of a Desc
+// Also, things that already have a name COULD be granted a ref or const.
+//   Then AsHWConstant is unneeded

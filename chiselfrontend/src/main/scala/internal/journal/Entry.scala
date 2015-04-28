@@ -9,8 +9,8 @@ sealed trait Entry
 case class CreateOp(opdesc: OpDesc) extends Entry
 case class CreateWire(wiredesc: WireDesc[_<:Data]) extends Entry
 case class CreateReg(regdesc: RegDesc[_<:Data]) extends Entry
-case class CreateAccessor(accdesc: AccessorDesc[_<:Data]) extends Entry
-case class CreateExtract(extdesc: ExtractDesc) extends Entry
+case class CreateAccessor(accdesc: AccessorDesc[_<:Data]) extends Entry // into CreateRef
+case class CreateExtract(extdesc: ExtractDesc) extends Entry // could be turned into generic CreateRef
 case class CreateMem(mem: Mem[_<:Data]) extends Entry
 case class CreateModule(module: Module[_<:Data]) extends Entry
 case class AddBlock(code: Journal) extends Entry

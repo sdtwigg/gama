@@ -34,7 +34,9 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
   protected[gama] def popJournal: Journal = {subJournalStack.pop}
   
   // Now, module enclosing and journal setup complete so can construct the IO
-  final val io: IOT = Port(makeIO, __enclosingmodule)
+  protected[gama] val ioDesc: PortDesc[IOT] = PortDesc(Port(makeIO, __enclosingmodule), EnclosureInfo(__enclosingmodule, None))
+  final val io: IOT = ioDesc.retVal
+  io.setDescRef(ioDesc, true)
   io.forceSetName(NameUNKNOWN, NameFromIO, true)
   
   // Also, add self to parent, if it exists

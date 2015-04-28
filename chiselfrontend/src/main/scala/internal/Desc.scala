@@ -69,6 +69,9 @@ case class RegDesc[+T<:Data](retVal: T, info: EnclosureInfo)
 case class WireDesc[+T<:Data](retVal: T, info: EnclosureInfo)
  extends Desc with WireDescImpl[T] with EnclosedDesc
 
+case class PortDesc[+T<:Data](retVal: T, info: EnclosureInfo)
+ extends Desc with PortDescImpl[T] with EnclosedDesc
+
 case class LitDesc[T<:Data](retVal: T, litMap: LitMap[T])
  extends Desc with LitDescImpl[T] with UnenclosedDesc
 
