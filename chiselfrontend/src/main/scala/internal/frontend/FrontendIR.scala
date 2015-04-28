@@ -53,9 +53,11 @@ sealed trait RefHW extends ExprHW { def refType: TypeHW; def resultType = refTyp
 case class RefSymbol(symbol: Int, identifier: Option[String], refType: TypeHW) extends RefHW
 case class RefVIndex(parent: ExprHW, index: Int, refType: TypeHW) extends RefHW
 case class RefVSelect(parent: ExprHW, selector: ExprHW, refType: TypeHW) extends RefHW
+// TODO: RefMSelect(mem: MemDesc, selector: ExprHW) extends RefHW {def refType = mem.sourceType}
 case class RefTLookup(source: ExprHW, field: String, refType: TypeHW) extends RefHW
 case class RefExtract(source: ExprHW, left_pos: Int, right_pos: Int, refType: TypeHW) extends RefHW
-case object RefExprERROR extends RefHW with FIRERROR {def refType = TypeHWUNKNOWN }
+case object RefExprERROR extends RefHW with FIRERROR {def refType = TypeHWUNKNOWN}
+// TODO: only RefSymbol actually needs to regen type, others can derive it
 
 sealed trait TypeHW extends TreeHW // TODO: when converting from journal, memoize type determinations
 sealed trait PrimitiveTypeHW extends TypeHW

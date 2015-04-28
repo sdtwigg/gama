@@ -12,20 +12,23 @@ sealed abstract class AllReader extends BaseReader {
       (entries flatMap(entry => parseEntry(entry).split("\n")) map("  " + _) mkString("{\n", "\n", "\n}"))
   }
   def ensureNamed(entries: immutable.Seq[Entry]): Unit = {
-    def check(target: Nameable, tempprefix: String): Option[Tuple2[Nameable,String]] = {
+    def hasName(target: Nameable): Boolean = {
       target.name match {
-        case Some(_) => None
-        case None    => Some((target, tempprefix))
+        case None | Some(NameUNKNOWN) => false
+        case Some(_) => true
       }
     }
+    def makeTemp(target: Nameable, tempprefix: String): Option[Tuple2[Nameable,String]] =
+      if(hasName(target)) None else Some((target, tempprefix))
+    
     val itemsToName: Iterable[Tuple2[Nameable,String]] = entries flatMap((entry: Entry) => entry match {
       // Determine which entries need named
-      case CreateOp(opdesc)        => check(opdesc.retVal,"T")
-      case CreateWire(wiredesc)    => check(wiredesc.retVal,"W")
-      case CreateReg(regdesc)      => check(regdesc.retVal,"R")
-      case CreateAccessor(accdesc) => check(accdesc.retVal,"A")
-      case CreateExtract(extdesc)  => check(extdesc.retVal,"E")
-      case CreateMem(mem)          => check(mem, "mem")
+      case CreateOp(opdesc)        => makeTemp(opdesc.retVal,"T")
+      case CreateWire(wiredesc)    => makeTemp(wiredesc.retVal,"W")
+      case CreateReg(regdesc)      => makeTemp(regdesc.retVal,"R")
+      case CreateAccessor(accdesc) => makeTemp(accdesc.retVal,"A")
+      case CreateExtract(extdesc)  => makeTemp(extdesc.retVal,"E")
+      case CreateMem(mem)          => makeTemp(mem, "mem")
       case CreateModule(module)    => None // handled above
       case AddBlock(_)    => None
       case Conditionally(_,_,_) => None // recall: will recursively see

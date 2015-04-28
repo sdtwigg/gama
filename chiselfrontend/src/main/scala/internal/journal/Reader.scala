@@ -186,7 +186,6 @@ abstract class BaseReader extends Reader {
     case NameIndex(source, index) => s"${emitName(source)}(${index})"
 
     case NameLit(litdesc) => parseLitDesc(litdesc)
-    case NameUnnamedOp(opdesc) => "$$$$UNHANDLED" + opdesc.toString 
 
     case NameUNKNOWN => "$$$$UNKNOWN$$$$"
   }

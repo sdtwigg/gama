@@ -12,11 +12,12 @@ sealed abstract class NameSource {
   protected[gama] def > (that: NameSource) = that < this
 }
 abstract class NameTentative(priority: Int) extends NameSource {def priority = Some(priority)}
-case object NameFromMath  extends NameTentative(0) // e.g. when ops folded, like 1 + 1
-case object NameFromTemp  extends NameTentative(1) // e.g. T0, R1, A2, M3, W4
+case object NameFromInit  extends NameTentative(0) // Desc sets to NameUNKNOWN with this priority
+case object NameFromMath  extends NameTentative(1) // e.g. when ops folded, like 1 + 1
+case object NameFromTemp  extends NameTentative(2) // e.g. T0, R1, A2, M3, W4
 
-case object NameFromMacro extends NameTentative(2)
-case object NameFromUser  extends NameTentative(3)
+case object NameFromMacro extends NameTentative(3)
+case object NameFromUser  extends NameTentative(4)
 
 // These names can only be set using forceSetName
 abstract class NameForceOnly extends NameSource {def priority = None}

@@ -9,6 +9,7 @@ trait DescReference { // MUTABLE STATE: descRef
     private[this] var _descRef: Option[scala.ref.WeakReference[Desc]] = None
     protected[gama] def descRef: Option[Desc] = _descRef.flatMap(_.get)
     
+    // Note, this should generally be paired with some call to checked/forceSetName
     protected[gama] def setDescRef(in: Desc, propogate: Boolean): Unit = {
       assert(_descRef.isEmpty)
       _descRef = Some(scala.ref.WeakReference(in))
@@ -79,6 +80,7 @@ object Desc {
   def generate[RV<:Data](retVal: RV)(genDesc: RV=>Desc): RV = {
     val newDesc = genDesc(retVal)
     retVal.setDescRef(newDesc, true)
+    retVal.checkedSetName(NameUNKNOWN, NameFromInit, true)
     retVal
   }
 }

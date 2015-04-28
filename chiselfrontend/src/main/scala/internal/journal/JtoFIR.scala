@@ -51,7 +51,7 @@ object JournalToFrontendIR {
       entry match {
         // Symbol creators
         case CreateOp(opdesc) => {
-          val expr = convertExpr(opdesc, reftable, exprtable)
+          val expr = convertOp(opdesc, reftable, exprtable)
           if(opdesc.retVal.name.isDefined) {
             Some(ConstDecl(reftable.addNewSymbol(opdesc.retVal, extractName(opdesc), false), expr))
           } else {
@@ -60,10 +60,18 @@ object JournalToFrontendIR {
           }
         }
         
-        case CreateWire(wiredesc) => ???
-        case CreateReg(regdesc) => ???
-        case CreateAccessor(accdesc) => ???
-        case CreateExtract(extdesc) => ???
+        case CreateWire(wiredesc) =>
+          Some(WireDecl(reftable.addNewSymbol(wiredesc.retVal, extractName(wiredesc), true)))
+        case CreateReg(regdesc) => 
+          Some(RegDecl(reftable.addNewSymbol(regdesc.retVal, extractName(regdesc), true)))
+        case CreateAccessor(accdesc) => {
+          ??? // add to RefTable
+          None
+        }
+        case CreateExtract(extdesc) => {
+          ??? // add to RefTable
+          None // maybe a memread or write...
+        }
         // Sort-of symbol creators 
         case CreateModule(module) => ???
         case CreateMem(mem) => ???
@@ -84,21 +92,20 @@ object JournalToFrontendIR {
     // TODO: CLEANUP
   }
 
-  def convertExpr(opdesc: OpDesc, reftable: RefTable, exprtable: ExprTable): ExprHW = {
-    def lookup(in: Data): ExprHW = in.name match {
-      // TODO: this likely needs to be non-nested as other conversions will prob use parts
-      // leaf types
-      case None | Some(NameTerm(_)) =>
-        (reftable.get(in).map(_._1) orElse exprtable.get(in)).getOrElse(RefExprERROR)
-      case Some(NameLit(litdesc)) => ExprLit(litdesc.litMap.asLitTree, constructType(litdesc.retVal))
-      // refinements
-      case Some(NameIO(source)) => lookup(source.io)
-      case Some(NameField(source, field)) => RefTLookup(lookup(source), field, constructType(source))
-      case Some(NameIndex(source, index)) => RefVIndex(lookup(source), index, constructType(source))
-      // error cases
-      case Some(NameUNKNOWN) | Some(NameUnnamedOp(_)) => RefExprERROR
-    }
+  def exprLookup(in: Data)(implicit reftable: RefTable, exprtable: ExprTable): ExprHW = in.name match {
+    // Name at leaf 
+    case Some(NameTerm(_)) | Some(NameIO(_)) | Some(NameUNKNOWN) =>
+      (reftable.get(in).map(_._1) orElse exprtable.get(in)).getOrElse(RefExprERROR)
+    case Some(NameLit(litdesc)) => ExprLit(litdesc.litMap.asLitTree, constructType(litdesc.retVal))
+    // refinements
+    case Some(NameField(source, field)) => RefTLookup(exprLookup(source), field, constructType(source))
+    case Some(NameIndex(source, index)) => RefVIndex(exprLookup(source), index, constructType(source))
+    // error cases
+    case None => RefExprERROR // at this stage, name should be known...
+  }
 
+  def convertOp(opdesc: OpDesc, reftable: RefTable, exprtable: ExprTable): ExprHW = {
+    def lookup(in: Data): ExprHW = exprLookup(in)(reftable, exprtable)
     opdesc match {
       case UnaryOpDesc(op, input, rv, _)          => ExprUnary(op, lookup(input), constructType(rv))
       case BinaryOpDesc(op, (left, right), rv, _) => ExprBinary(op, lookup(left), lookup(right), constructType(rv))
@@ -106,6 +113,7 @@ object JournalToFrontendIR {
     }
   }
 
+  // TODO: use HashMap[TypeHW,TypeHW] so redundant types not created? saves memory....
   def constructType(model: Data): TypeHW = model match {
     // explicitely do not bother checking Port here
     case e: Element => (PrimitiveNode(e.node.storage))

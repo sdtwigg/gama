@@ -22,21 +22,24 @@ sealed abstract class FoldedReader extends BaseReader {
       (filteredEntries flatMap(entry => parseEntry(entry).split("\n")) map("  " + _) mkString("{\n","\n","\n}"))
   }
   def ensureNamed(entries: immutable.Seq[Entry]): Unit = {
-    def check(target: Nameable, tempprefix: String): Option[Tuple2[Nameable,String]] = {
+    def hasName(target: Nameable): Boolean = {
       target.name match {
-        case Some(_) => None
-        case None    => Some((target, tempprefix))
+        case None | Some(NameUNKNOWN) => false
+        case Some(_) => true
       }
     }
+    def makeTemp(target: Nameable, tempprefix: String): Option[Tuple2[Nameable,String]] =
+      if(hasName(target)) None else Some((target, tempprefix))
+
     val itemsToTempName: Iterable[Tuple2[Nameable,String]] = entries flatMap(entry => entry match {
       // Determine which entries need named
       case CreateOp(opdesc)        => None // fold later
-      case CreateWire(wiredesc)    => check(wiredesc.retVal,"W")
-      case CreateReg(regdesc)      => check(regdesc.retVal,"R")
+      case CreateWire(wiredesc)    => makeTemp(wiredesc.retVal,"W")
+      case CreateReg(regdesc)      => makeTemp(regdesc.retVal,"R")
       case CreateAccessor(accdesc) => None // fold later
       case CreateExtract(extdesc)  => None // fold later
-      case CreateMem(mem)          => check(mem, "mem")
-      case CreateModule(module)    => check(module, "M")
+      case CreateMem(mem)          => makeTemp(mem, "mem")
+      case CreateModule(module)    => makeTemp(module, "M")
       case AddBlock(_)    => None
       case Conditionally(_,_,_) => None // recall: will recursively see
       case ConnectData(_,_,_,_) => None
@@ -50,13 +53,13 @@ sealed abstract class FoldedReader extends BaseReader {
     // Folding pass
     entries foreach((entry: Entry) => entry match {
       // Determine which entries need named
-      case CreateOp(opdesc) if(opdesc.retVal.name.isEmpty) => {
+      case CreateOp(opdesc) if(!hasName(opdesc.retVal)) => {
         opdesc.retVal.checkedSetName(NameTerm(emitOpDesc(opdesc)), NameFromMath, true)
       }
-      case CreateAccessor(accdesc) if(accdesc.retVal.name.isEmpty) => {
+      case CreateAccessor(accdesc) if(!hasName(accdesc.retVal)) => {
         accdesc.retVal.checkedSetName(NameTerm(emitAccDesc(accdesc)), NameFromMath, true)
       }
-      case CreateExtract(extdesc) if(extdesc.retVal.name.isEmpty) => {
+      case CreateExtract(extdesc) if(!hasName(extdesc.retVal)) => {
         extdesc.retVal.checkedSetName(NameTerm(emitExtDesc(extdesc)), NameFromMath, true)
       }
       case _ =>
