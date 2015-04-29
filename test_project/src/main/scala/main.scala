@@ -6,12 +6,12 @@ import gama.library._
 object testmain {
   def main(args: Array[String]) {
 
-    //val myTopModule = ExampleModule()
-    val myTopModule = Module(new APIModule)
+    val myTopModule = ExampleModule()
+    //val myTopModule = Module(new APIModule)
     val topModDesc = gama.internal.journal.Converter(myTopModule)
 
-    //val myJReader = gama.internal.journal.FoldedReader.Colorful
-    //println(myJReader.parseCircuit(myTopModule) mkString("\n"))
+    val myJReader = gama.internal.journal.FoldedReader.Colorful
+    println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     val myIRReader = gama.internal.frontend.IRReader.Colorful
     println(s"Module(${Console.GREEN}${myIRReader.parseType(topModDesc.io)}${Console.RESET}, ${myIRReader.parseCmdHW(topModDesc.body)})")
 

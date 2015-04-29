@@ -73,11 +73,13 @@ case class UIntLitMap(value: BigInt, width: Int) extends LitMap[UInt] with LitMa
   require( value.bitLength <= width, s"UInt Literal: width $width too small to hold $value (need ${value.bitLength})")
 
   def constructData = UInt(width)
-  def asLitTree = LitPrimitive(s"$value{$width}") // TODO: hexadecimal?
+  def asLitTree = LitPrimitive(s"$value{${width}U}") // TODO: hexadecimal?
 }
 object UIntLitMap {
+  def apply(value: BigInt): UIntLitMap = UIntLitMap(value, math.max(value.bitLength,1))
+    // TODO: at least 1 so that Literal 0 always has some width, is this ok?
   implicit object generalizer extends LitMapVectorizer[UInt, UIntLitMap] {
-    def emptyData = UInt()
+    def emptyData = UInt(Some(0))
     def generalize(target: UIntLitMap, model: UIntLitMap) =
       UIntLitMap(target.value, math.max(target.width, model.width))
   }
@@ -88,11 +90,12 @@ case class SIntLitMap(value: BigInt, width: Int) extends LitMap[SInt] with LitMa
     s"SInt Literal: width $width too small to hold $value (need ${value.bitLength+1})")
 
   def constructData = SInt(width)
-  def asLitTree = LitPrimitive(s"$value{$width}") // TODO: hexadecimal?
+  def asLitTree = LitPrimitive(s"$value{${width}S}") // TODO: hexadecimal?
 }
 object SIntLitMap {
+  def apply(value: BigInt): SIntLitMap = SIntLitMap(value, value.bitLength+1)
   implicit object generalizer extends LitMapVectorizer[SInt, SIntLitMap] {
-    def emptyData = SInt()
+    def emptyData = SInt(Some(0))
     def generalize(target: SIntLitMap, model: SIntLitMap) = 
       SIntLitMap(target.value, math.max(target.width, model.width))
   }

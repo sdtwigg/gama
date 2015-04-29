@@ -20,7 +20,7 @@ object LiteralSInt extends LitIntObjectBase[SInt] {
     SIntLitMap(value, width).manifest
   }
   def apply(value: BigInt): SInt = {
-    SIntLitMap(value, value.bitLength+1).manifest
+    SIntLitMap(value).manifest
   }
 }
 
@@ -29,7 +29,7 @@ object LiteralUInt extends LitIntObjectBase[UInt] {
     UIntLitMap(value, width).manifest
   }
   def apply(value: BigInt): UInt = { 
-    UIntLitMap(value, value.bitLength).manifest
+    UIntLitMap(value).manifest
   }
 }
 
@@ -41,11 +41,11 @@ object LiteralVec {
   
   def U(elt0: BigInt, elts: BigInt*): Vec[UInt] = U(elt0 +: (elts.toSeq))
   def U(elts: Iterable[BigInt]): Vec[UInt] = {
-    VecLitMap(elts.map(i => UIntLitMap(i, i.bitLength)).toSeq).manifest
+    VecLitMap(elts.map(i => UIntLitMap(i)).toSeq).manifest
   }
   def S(elt0: BigInt, elts: BigInt*): Vec[SInt] = S(elt0 +: (elts.toSeq))
   def S(elts: Iterable[BigInt]): Vec[SInt] = {
-    VecLitMap(elts.map(i => SIntLitMap(i, i.bitLength+1)).toSeq).manifest
+    VecLitMap(elts.map(i => SIntLitMap(i)).toSeq).manifest
   }
 
   def SW(elt0: Tuple2[BigInt,Int], elts: Tuple2[BigInt,Int]*): Vec[SInt] = SW(elt0 +: (elts.toSeq))
