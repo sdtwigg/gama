@@ -5,7 +5,7 @@ package frontend
 // TODO: WRITE TYPE CHECKER
 // TODO: ADD TRANSLATED DEBUGGING INFO
 sealed trait TreeHW extends Product {
-  //override val hashCode: Int = scala.runtime.ScalaRunTime._hashCode(this)
+  override lazy val hashCode: Int = scala.runtime.ScalaRunTime._hashCode(this)
   //TODO: Uncommenting this line will ensure hashCode is cached
   //  but also requires all Tree types are truly immutable, which is currently true
   //also, mixin the class name to the hashcode?
@@ -79,11 +79,12 @@ case class LitVec(elements: Vector[LitTree]) extends LitTree
 case class LitTuple(fields: Vector[Tuple2[String,LitTree]]) extends LitTree
 
 // Miscellaneous data containers
-sealed trait ModuleRef {def ioType: TypeHW}
+sealed trait ModuleRef extends TreeHW {def ioType: TypeHW}
 case class ModuleThis(ioType: TypeHW) extends ModuleRef
 case class ModuleSub(modid: Int, identifier: Option[String], ioType: TypeHW) extends ModuleRef
 
-case class MemDesc(memid: Int, identifier: Option[String], depth: Int, sourceType: TypeHW)
+case class MemDesc(memid: Int, identifier: Option[String], depth: Int, sourceType: TypeHW) extends TreeHW
 
+// NOT A TreeHW
 case class ElaboratedModule(io: TypeHW, body: BlockHW)
 
