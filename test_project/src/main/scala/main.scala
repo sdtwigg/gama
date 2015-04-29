@@ -14,6 +14,10 @@ object testmain {
     println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     val myIRReader = gama.internal.frontend.IRReader.Colorful
     println(s"Module(${Console.GREEN}${myIRReader.parseType(topModDesc.io)}${Console.RESET}, ${myIRReader.parseCmdHW(topModDesc.body)})")
+
+    val typechecker = new gama.internal.frontend.ModuleTypeChecker(true)(topModDesc)
+    println(s"# Type Checker ${Console.RED}Errors${Console.RESET}: ${typechecker.errors.length}")
+    println(s"# Type Checker ${Console.YELLOW}Warnings${Console.RESET}: ${typechecker.errors.length}")
   }
 }
 /*

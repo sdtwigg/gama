@@ -4,8 +4,6 @@ package journal
 
 import frontend._
 
-case class ElaboratedModule(io: TypeHW, body: BlockHW)
-
 object Converter {
   def apply(module: Module[_<:Data]): ElaboratedModule = {
     val reftable = new RefTable(None)

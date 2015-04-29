@@ -2,7 +2,6 @@ package gama
 package internal
 package frontend
 
-
 // TODO: WRITE TYPE CHECKER
 // TODO: ADD TRANSLATED DEBUGGING INFO
 sealed trait TreeHW extends Product {
@@ -11,6 +10,7 @@ sealed trait TreeHW extends Product {
   //  but also requires all Tree types are truly immutable, which is currently true
   //also, mixin the class name to the hashcode?
 }
+// Also, since all of these things are case classes, CSE is VERY straightforward to do
 sealed trait FIRERROR extends TreeHW
 ///////////////////
 // Commands
@@ -46,15 +46,16 @@ case class SubModuleDecl(details: ModuleSub, ph: String) extends CmdHW
 ///////////////////
 // Expressions, References, Types, etc.
 sealed trait ExprHW extends TreeHW { def resultType: TypeHW }
+sealed trait ExprLeaf extends ExprHW // for certain lookup tables
 case class ExprUnary(op: OpIdUnary, target: ExprHW, resultType: TypeHW) extends ExprHW
 case class ExprBinary(op: OpIdBinary, left: ExprHW, right: ExprHW, resultType: TypeHW) extends ExprHW
 case class ExprMux(cond: ExprHW, tc: ExprHW, fc: ExprHW, resultType: TypeHW) extends ExprHW
-case class ExprLit(litvalue: LitTree, resultType: TypeHW) extends ExprHW
+case class ExprLit(litvalue: LitTree, resultType: TypeHW) extends ExprHW with ExprLeaf
 // References are also all possible expressions
-sealed trait RefHW extends ExprHW { def refType: TypeHW; def resultType = refType }
-case class RefSymbol(symbol: Int, identifier: Option[String], refType: TypeHW) extends RefHW
-case class RefIO(mod: ModuleRef) extends RefHW {def refType = mod.ioType}
-case class RefMSelect(mem: MemDesc, selector: ExprHW) extends RefHW {def refType = mem.sourceType}
+sealed trait RefHW extends ExprHW { def refType: TypeHW; def resultType = refType } 
+case class RefSymbol(symbol: Int, identifier: Option[String], refType: TypeHW) extends RefHW with ExprLeaf
+case class RefIO(mod: ModuleRef) extends RefHW with ExprLeaf {def refType = mod.ioType}
+case class RefMSelect(mem: MemDesc, selector: ExprHW) extends RefHW with ExprLeaf {def refType = mem.sourceType}
 case class RefVIndex(parent: ExprHW, index: Int, refType: TypeHW) extends RefHW
 case class RefVSelect(parent: ExprHW, selector: ExprHW, refType: TypeHW) extends RefHW
 case class RefTLookup(source: ExprHW, field: String, refType: TypeHW) extends RefHW
@@ -84,4 +85,5 @@ case class ModuleSub(modid: Int, identifier: Option[String], ioType: TypeHW) ext
 
 case class MemDesc(memid: Int, identifier: Option[String], depth: Int, sourceType: TypeHW)
 
-// Also, since all of these things are case classes, CSE is VERY straightforward to do
+case class ElaboratedModule(io: TypeHW, body: BlockHW)
+
