@@ -10,7 +10,7 @@ trait IRReader {
     case RegDecl(symbol)  => s"${HL.CYAN}reg  ${HL.RESET} ${emitFullSymbol(symbol)}"
     case ConstDecl(symbol, expr) =>
       s"${HL.CYAN}const${HL.RESET} ${emitFullSymbol(symbol)} = ${parseExpr(expr)}"
-    case RefDecl(symbol, expr) =>
+    case AliasDecl(symbol, expr) =>
       s"${HL.CYAN}alias${HL.RESET} ${emitFullSymbol(symbol)} = ${parseExpr(expr)}"
 
     case BlockHW(cmds) =>
@@ -26,19 +26,24 @@ trait IRReader {
     }
 
     case ConnectStmt(sink, source, details) =>
-      s"${parseExpr(sink)} := ${parseExpr(source)} ${parseConnectDetails(details)}"
+      s"${parseExpr(sink)} := ${parseExpr(source)} ${HL.YELLOW}${parseConnectDetails(details)}${HL.RESET}"
     case BiConnectStmt(left, right, details) =>
-      s"${parseExpr(left)} <-> ${parseExpr(right)} ${parseBiConnectDetails(details)}"
+      s"${parseExpr(left)} <-> ${parseExpr(right)} ${HL.YELLOW}${parseBiConnectDetails(details)}${HL.RESET}"
 
-    case SubModuleDecl(identifier, _) => s"${HL.CYAN}inst${HL.RESET} $identifier"
+    case SubModuleDecl(details, placeholder) =>
+      s"${HL.CYAN}inst${HL.RESET} ${emitModName(details)}: ${HL.GREEN}$placeholder${HL.RESET}"
+  }
+  def emitModName(desc: ModuleSub): String = {
+    val name = desc.identifier.getOrElse("")
+    s"$name${HL.WHITE}#S${desc.modid}${HL.RESET}"
   }
   def emitMemName(desc: MemDesc): String = {
     val name = desc.identifier.getOrElse("")
-    s"$name${HL.YELLOW}#M${desc.memid}${HL.RESET}"
+    s"$name${HL.WHITE}#M${desc.memid}${HL.RESET}"
   }
   def emitSymbol(symbol: RefSymbol): String = {
     val name = symbol.identifier.getOrElse("")
-    s"$name${HL.YELLOW}#S${symbol.symbol}${HL.RESET}"
+    s"$name${HL.WHITE}#D${symbol.symbol}${HL.RESET}"
   }
   def emitFullSymbol(symbol: RefSymbol): String = {
     val name = symbol.identifier.getOrElse("")
@@ -95,6 +100,7 @@ trait IRReader {
       case ExprMux(cond, tc, fc, _) => s"((${parseExpr(cond)}) ? (${parseExpr(tc)}) : (${parseExpr(fc)}))"
       case ExprLit(litvalue, _) => s"${HL.RED}${parseLitTree(litvalue)}${HL.RESET}"
 
+      case RefIO(details) => s"${parseModRef(details)}->${HL.CYAN}io${HL.RESET}"
       case RefMSelect(mem, selector)       => s"${emitMemName(mem)}(${parseExpr(selector)})"
       case RefVIndex(parent, index, _)     => s"${parseExpr(parent)}($index)"
       case RefVSelect(parent, selector, _) => s"${parseExpr(parent)}(${parseExpr(selector)})"
@@ -103,6 +109,11 @@ trait IRReader {
 
       case RefExprERROR(cause) => "$$$$RefExprERROR: " + cause + " $$$$"
     }
+  }
+
+  def parseModRef(in: ModuleRef) = in match {
+    case ModuleThis(_) => s"${HL.CYAN}this${HL.RESET}"
+    case mod @ ModuleSub(_, _, _) => emitModName(mod)
   }
 
   def parseLitTree(litvalue: LitTree): String = litvalue match {

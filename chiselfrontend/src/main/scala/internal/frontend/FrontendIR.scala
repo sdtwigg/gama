@@ -2,6 +2,14 @@ package gama
 package internal
 package frontend
 
+case class ModuleDesc(io: TypeHW, body: BlockHW)
+
+sealed trait ModuleRef {def ioType: TypeHW}
+case class ModuleThis(ioType: TypeHW) extends ModuleRef
+case class ModuleSub(modid: Int, identifier: Option[String], ioType: TypeHW) extends ModuleRef
+
+case class MemDesc(memid: Int, identifier: Option[String], depth: Int, sourceType: TypeHW)
+
 // TODO: WRITE TYPE CHECKER
 // TODO: ADD TRANSLATED DEBUGGING INFO
 sealed trait TreeHW extends Product {
@@ -19,7 +27,7 @@ sealed trait CreatesRefSymbol extends CmdHW { def symbol: RefSymbol }
 case class WireDecl(symbol: RefSymbol) extends CmdHW with CreatesRefSymbol
 case class RegDecl(symbol: RefSymbol) extends CmdHW with CreatesRefSymbol
 case class ConstDecl(symbol: RefSymbol, expr: ExprHW) extends CmdHW with CreatesRefSymbol
-case class RefDecl(symbol: RefSymbol, ref: RefHW) extends CmdHW with CreatesRefSymbol
+case class AliasDecl(symbol: RefSymbol, ref: RefHW) extends CmdHW with CreatesRefSymbol
   // basically, a reference/pointer... good for holding named accessors/extractors?
   // However, there are other types of 'aliased' connects, like connect on an aggregate
   //   so the presence of this type isn't TOO ridiculous
@@ -39,8 +47,8 @@ case class MemDecl(desc: MemDesc) extends CmdHW
   // TODO: Masked and partial mem writes....
   // TODO: Add these properly
 // Other
-case class SubModuleDecl(identifier: String, io: RefSymbol) extends CmdHW with CreatesRefSymbol { def symbol = io }
-  // TODO: Other fields, like module type
+case class SubModuleDecl(details: ModuleSub, ph: String) extends CmdHW
+  // TODO: Other fields, like module type? ph = placeholder
 
 ///////////////////
 // Expressions, References, Types, etc.
@@ -49,9 +57,10 @@ case class ExprUnary(op: OpIdUnary, target: ExprHW, resultType: TypeHW) extends 
 case class ExprBinary(op: OpIdBinary, left: ExprHW, right: ExprHW, resultType: TypeHW) extends ExprHW
 case class ExprMux(cond: ExprHW, tc: ExprHW, fc: ExprHW, resultType: TypeHW) extends ExprHW
 case class ExprLit(litvalue: LitTree, resultType: TypeHW) extends ExprHW
-// References are also all possible expressions // TODO: pass class checks mutability of these
+// References are also all possible expressions
 sealed trait RefHW extends ExprHW { def refType: TypeHW; def resultType = refType }
 case class RefSymbol(symbol: Int, identifier: Option[String], refType: TypeHW) extends RefHW
+case class RefIO(mod: ModuleRef) extends RefHW {def refType = mod.ioType}
 case class RefMSelect(mem: MemDesc, selector: ExprHW) extends RefHW {def refType = mem.sourceType}
 case class RefVIndex(parent: ExprHW, index: Int, refType: TypeHW) extends RefHW
 case class RefVSelect(parent: ExprHW, selector: ExprHW, refType: TypeHW) extends RefHW
@@ -69,28 +78,10 @@ case class TupleHW(fields: Vector[Tuple2[String, TypeHW]]) extends AggregateType
 case class VecHW(depth: Int, elemType: TypeHW) extends AggregateTypeHW
 case object TypeHWUNKNOWN extends TypeHW with FIRERROR
 
-case class MemDesc(memid: Int, identifier: Option[String], depth: Int, sourceType: TypeHW)
-
 // Literal Details
 sealed trait LitTree extends TreeHW
 case class LitPrimitive(value: String) extends LitTree
 case class LitVec(elements: Vector[LitTree]) extends LitTree
 case class LitTuple(fields: Vector[Tuple2[String,LitTree]]) extends LitTree
-
-//case class VecAccDecl(symbol: RefSymbol, collection: ExprHW, selector: ExprHW) extends TreeHW with CreatesRefSymbol
-//case class ExtrDecl(symbol: RefSymbol, left_pos: Int, right_pos: Int) extends TreeHW with CreatesRefSymbol
-// Accessor and Extract are converted to expressions or references depending on context:
-// if not connectable, then can safely assume an expression
-//    also, can safely assume an expression if folded into r-value of a connect or constdecl
-// if connectable, then must find the root symbol and build from there
-// Can have a pass where dig into expressions and greedily try to convert them into references
-//   This may not even need to be a separate pass?
-// ACTUALLY, notice ConstDecl (which also can't be an l-value), can also grant a RefSymbol
-//   Thus, maybe sufficient to just unify the refinements on Expr and Ref?
-//      Prefix could be Sel (short for Select)
-//      Then ExprRef would actually become ExprSymbol and only take a Symbol
-//      Perhaps could inherit from a SelTree and Sel statements all have function saying whether mutable or not
-//        function would take a Symbol=>Bool function arg which does the symbol table lookup for RefSymbol
-//   Then, verify proper construction via typecheck
 
 // Also, since all of these things are case classes, CSE is VERY straightforward to do

@@ -33,6 +33,10 @@ import gama.library._
   val test6 = AsHWConstant(1.S)
 
   val vtest = AsHWConstant(LitVec.SW( (3,3), (4,4), (0,1), (5,5), (1,1) ))
+  val mycalias = vtest(notuint)
+  val vecreg = Reg(Vec(4,UInt()))
+  val myalias = vecreg(notuint)
+  myalias := 1.U
   
   import gama.internal.{LitMap, VecLitMap, SIntLitMap}
   val ivec11 = VecLitMap(Seq(

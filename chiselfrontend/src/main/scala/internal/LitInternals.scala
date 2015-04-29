@@ -59,7 +59,7 @@ trait LitMapVectorizer[D<:Data, LMT <: LitMap[D]] {
 
 case class BoolLitMap(value: Boolean) extends LitMap[Bool] with LitMapElementImpl[Bool] {
   def constructData = Bool()
-  def asLitTree = LitPrimitive(if(value) "1" else "0")
+  def asLitTree = LitPrimitive(if(value) "1{1}" else "0{1}")
 }
 object BoolLitMap {
   implicit object generalizer extends LitMapVectorizer[Bool, BoolLitMap] {
@@ -71,7 +71,7 @@ object BoolLitMap {
 case class UIntLitMap(value: BigInt, width: Option[Int]) extends LitMap[UInt] with LitMapElementImpl[UInt] {
   require( value>=0, "UInt Literals must be non-negative." )
   def constructData = UInt(width)
-  def asLitTree = LitPrimitive(value.toString) // TODO: hexadecimal?
+  def asLitTree = LitPrimitive(s"$value{${width.getOrElse('?')}}") // TODO: hexadecimal?
 }
 object UIntLitMap {
   implicit object generalizer extends LitMapVectorizer[UInt, UIntLitMap] {
@@ -83,7 +83,7 @@ object UIntLitMap {
 
 case class SIntLitMap(value: BigInt, width: Option[Int]) extends LitMap[SInt] with LitMapElementImpl[SInt] {
   def constructData = SInt(width)
-  def asLitTree = LitPrimitive(value.toString) // TODO: hexadecimal
+  def asLitTree = LitPrimitive(s"$value{${width.getOrElse('?')}}") // TODO: hexadecimal?
 }
 object SIntLitMap {
   implicit object generalizer extends LitMapVectorizer[SInt, SIntLitMap] {

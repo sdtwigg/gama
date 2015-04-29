@@ -4,74 +4,31 @@ package journal
 
 import frontend._
 
-object JournalToFrontendIR {
-  class MemTable(parent: Option[MemTable]) {
-    private val table = scala.collection.mutable.HashMap.empty[Mem[_],MemDesc]
-    private[this] var lastid = 0 // only the module-level MemTable should end up using this
-    private def getFreshId: Int = this.synchronized{
-      parent.map(_.getFreshId).getOrElse({lastid=lastid+1; lastid})
-    }
-    
-    def get(key: Mem[_]): Option[MemDesc] = table.get(key) orElse parent.flatMap(_.get(key))
-    def addNewMem(in: Mem[_<:Data]): MemDesc = {
-      if(get(in).isDefined) { throw new Exception("Internal Error: Context Uniqueness Violation") }
-      val newMem = MemDesc(getFreshId, extractName(in), in.depth, constructType(in.elemType))
-      table(in) = newMem
-      newMem
-    }
-  }
-  class RefTable(parent: Option[RefTable]) {
-    private val d2r_table = scala.collection.mutable.HashMap.empty[Data,RefHW]
-    private val r2c_table = scala.collection.mutable.HashMap.empty[RefHW,Boolean] // connectable
 
-    private[this] var lastsymbol = 0 // only the module-level RefTable should end up using this
-    private def getFreshSymbol: Int = this.synchronized{
-      parent.map(_.getFreshSymbol).getOrElse({lastsymbol=lastsymbol+1; lastsymbol})
-    }
-    
-    def get(key: Data): Option[Tuple2[RefHW, Boolean]] =
-      {for { // inner join
-        ref <- d2r_table.get(key)
-        connectable <- r2c_table.get(ref)
-      } yield (ref, connectable)} orElse parent.flatMap(_.get(key))
-    def get(ref: RefHW): Option[Boolean] = r2c_table.get(ref) orElse parent.flatMap(_.get(ref))
-
-    def add(key: Data, value: Tuple2[RefHW, Boolean]): Unit = {
-      if(get(key).isDefined) { throw new Exception("Internal Error: Context Uniqueness Violation") }
-      d2r_table(key) = value._1
-      r2c_table(value._1) = value._2
-    }
-    def addNewSymbol(in: Data, identifier: Option[String], connectable: Boolean): RefSymbol = {
-      if(get(in).isDefined) { throw new Exception("Internal Error: Context Uniqueness Violation") }
-      val newSymbol = RefSymbol(getFreshSymbol, identifier, constructType(in))
-      add(in, (newSymbol, connectable))
-      newSymbol
-    }
-  }
-  class ExprTable(parent: Option[ExprTable]) {
-    // an optimization, stores encountered unnamed expressions so they can be folded in later
-    private type TableEntry = ExprHW
-    private val table = scala.collection.mutable.HashMap.empty[Data,TableEntry]
-    
-    def get(key: Data): Option[TableEntry] =
-      table.get(key) orElse parent.flatMap(_.get(key))
-
-    def add(key: Data, expr: TableEntry): Unit = {
-      if(get(key).isDefined) { throw new Exception("Internal Error: Context Uniqueness Violation") }
-      table(key) = expr
-    }
-  }
-
+object ToFIR {
   def convertJournal(journal: Journal, parentref: Option[RefTable], parentexpr: Option[ExprTable],
-                                       parentmem: Option[MemTable]): BlockHW = 
+                                       parentmem: Option[MemTable], parentmod: Option[SubModTable]): BlockHW = 
   {
     implicit val reftable  = new RefTable(parentref)
     implicit val exprtable = new ExprTable(parentexpr)
     implicit val memtable  = new MemTable(parentmem)
+    implicit val modtable  = new SubModTable(parentmod)
 
     def hasName(in: Nameable): Boolean = in.name match {
       case None | Some(NameUNKNOWN) => false
       case Some(_) => true
+    }
+    def handleAliasCandidate(rv: Data, alias: RefHW, connectable: Boolean): Option[CmdHW] = {
+      if(hasName(rv)) {
+        val newref =
+          if(connectable) AliasDecl(reftable.addNewSymbol(rv, extractName(rv), true), alias)
+          else            ConstDecl(reftable.addNewSymbol(rv, extractName(rv), false), alias)
+        Some(newref)
+      }
+      else {
+        reftable.add(rv, (alias, connectable))
+        None
+      }
     }
     
     val statements: List[CmdHW] = journal.entries.flatMap((entry: Entry) => (
@@ -92,7 +49,6 @@ object JournalToFrontendIR {
         case CreateReg(regdesc) => 
           Some(RegDecl(reftable.addNewSymbol(regdesc.retVal, extractName(regdesc), true)))
 
-        // TODO emit RefDecl when have name
         case CreateAccessor(accdesc) => {
           val (newref, connectable) = accdesc.accRef match {
             case va: VecAccessible[_] => {
@@ -105,26 +61,34 @@ object JournalToFrontendIR {
               ).getOrElse(RefExprERROR("MemLookup failed"))
               (nref, true)
           }
-          reftable.add(accdesc.retVal, (newref, connectable))
-          None
+          handleAliasCandidate(accdesc.retVal, newref, connectable)
         }
         case CreateExtract(extdesc) => {
           val (srcexpr, connectable) = exprLookup(extdesc.base)
           val newref = RefExtract(srcexpr, extdesc.left_pos, extdesc.right_pos, constructType(extdesc.retVal))
-          reftable.add(extdesc.retVal, (newref, connectable))
-          None
+          handleAliasCandidate(extdesc.retVal, newref, connectable)
         }
 
         // Sort-of symbol creators 
-        case CreateModule(module) => ???
+        case CreateModule(module) => {
+          val modref = modtable.addNewMod(module)
+          reftable.add(module.io, (RefIO(modref), true))
+          Some(SubModuleDecl(modref, module.getClass.getName))
+        }
         case CreateMem(mem) => Some(MemDecl(memtable.addNewMem(mem)))
         // Control Flow
-        case Conditionally(cond, tc, fc) => ???
-        case AddBlock(code) => Some(convertJournal(code, Some(reftable), Some(exprtable), Some(memtable)))
+        case Conditionally(cond, tc, fc) =>
+          Some(WhenHW(exprLookup(cond)._1,
+            convertJournal(tc, Some(reftable), Some(exprtable), Some(memtable), Some(modtable)), 
+            convertJournal(fc, Some(reftable), Some(exprtable), Some(memtable), Some(modtable))
+          ))
+        case AddBlock(code) => Some(convertJournal(code, Some(reftable), Some(exprtable), Some(memtable), Some(modtable)))
         // Connection operators
-        case ConnectData(sink, source, details, info) => ???
-        case BiConnectData(left, right, details, info) => ???
-      })
+        case ConnectData(Sink(sink), Source(source), details, info) =>
+          Some(ConnectStmt(refLookup(sink)._1, exprLookup(source)._1, details))
+        case BiConnectData(Left(left), Right(right), details, info) =>
+          Some(BiConnectStmt(refLookup(left)._1, refLookup(right)._1, details))
+      }): Iterable[CmdHW]
     )
     BlockHW(statements)
   }
@@ -186,7 +150,10 @@ object JournalToFrontendIR {
   // TODO: use HashMap[TypeHW,TypeHW] so redundant types not created? saves memory....
   def constructType(model: Data): TypeHW = model match {
     // explicitely do not bother checking Port here
-    case e: Element => (PrimitiveNode(e.node.storage))
+    case e: Element => (e.node.resolveDirection match {
+      case Some(dir) => PrimitivePort(e.node.storage, dir)
+      case None      => PrimitiveNode(e.node.storage)
+    })
     case v: Vec[_] => (VecHW(v.length, constructType(v.elemType)))
     case t: HardwareTuple => (TupleHW(t.subfields_ordered.map(
       {case (field: String, elem: Data) => (field, constructType(elem))}
