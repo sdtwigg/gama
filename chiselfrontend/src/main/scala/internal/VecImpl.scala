@@ -40,6 +40,19 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   protected[gama] val elements: immutable.IndexedSeq[D] = Vector.fill(length)(elemType.copy)
   def nodes = elements.flatMap(_.nodes)
 
+  def iterator: Iterator[D] = new Iterator[D] { // from IndexedSeqLike.scala
+    private[this] var position = 0
+    def hasNext: Boolean = position < self.length
+    def next(): D = {
+      if(position >= self.length) Iterator.empty.next()
+      else {
+        val d = lookup(position)
+        position += 1
+        d
+      }
+    }
+  }
+
   private def enforceElementConsistency(): Unit = {
     elements.foreach(elem => elem.mimic(elemType, asSPEC=false))
       // false b/c exact mimic required: respective nodes of elements should all be completely identical

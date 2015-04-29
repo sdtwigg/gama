@@ -34,9 +34,10 @@ case class ConnectStmt(sink: RefHW, source: ExprHW, details: ConnectDetails) ext
 case class BiConnectStmt(left: RefHW, right: RefHW, details: BiConnectDetails) extends CmdHW
 // Memory related
 case class MemDecl(desc: MemDesc) extends CmdHW
-case class MemRead(symbol: RefSymbol, mem: MemDesc, selector: ExprHW) extends CmdHW with CreatesRefSymbol
-case class MemWrite(mem: MemDesc, selector: ExprHW, source: ExprHW) extends CmdHW
+//case class MemRead(symbol: RefSymbol, mem: MemDesc, selector: ExprHW) extends CmdHW with CreatesRefSymbol
+//case class MemWrite(mem: MemDesc, selector: ExprHW, source: ExprHW) extends CmdHW
   // TODO: Masked and partial mem writes....
+  // TODO: Add these properly
 // Other
 case class SubModuleDecl(identifier: String, io: RefSymbol) extends CmdHW with CreatesRefSymbol { def symbol = io }
   // TODO: Other fields, like module type
@@ -51,16 +52,16 @@ case class ExprLit(litvalue: LitTree, resultType: TypeHW) extends ExprHW
 // References are also all possible expressions // TODO: pass class checks mutability of these
 sealed trait RefHW extends ExprHW { def refType: TypeHW; def resultType = refType }
 case class RefSymbol(symbol: Int, identifier: Option[String], refType: TypeHW) extends RefHW
+case class RefMSelect(mem: MemDesc, selector: ExprHW) extends RefHW {def refType = mem.sourceType}
 case class RefVIndex(parent: ExprHW, index: Int, refType: TypeHW) extends RefHW
 case class RefVSelect(parent: ExprHW, selector: ExprHW, refType: TypeHW) extends RefHW
-// TODO: RefMSelect(mem: MemDesc, selector: ExprHW) extends RefHW {def refType = mem.sourceType}
 case class RefTLookup(source: ExprHW, field: String, refType: TypeHW) extends RefHW
 case class RefExtract(source: ExprHW, left_pos: Int, right_pos: Int, refType: TypeHW) extends RefHW
-case object RefExprERROR extends RefHW with FIRERROR {def refType = TypeHWUNKNOWN}
+case class RefExprERROR(cause: String) extends RefHW with FIRERROR {def refType = TypeHWUNKNOWN}
 // TODO: only RefSymbol actually needs to regen type, others can derive it
 
-sealed trait TypeHW extends TreeHW // TODO: when converting from journal, memoize type determinations
-sealed trait PrimitiveTypeHW extends TypeHW
+sealed trait TypeHW extends TreeHW 
+sealed trait PrimitiveTypeHW extends TypeHW {def storage: NodeStore}
 case class PrimitiveNode(storage: NodeStore) extends PrimitiveTypeHW
 case class PrimitivePort(storage: NodeStore, direction: DirectionIO) extends PrimitiveTypeHW
 sealed trait AggregateTypeHW extends TypeHW
@@ -68,7 +69,7 @@ case class TupleHW(fields: Vector[Tuple2[String, TypeHW]]) extends AggregateType
 case class VecHW(depth: Int, elemType: TypeHW) extends AggregateTypeHW
 case object TypeHWUNKNOWN extends TypeHW with FIRERROR
 
-case class MemDesc(memid: Int, identifier: String, sourceType: TypeHW)
+case class MemDesc(memid: Int, identifier: Option[String], depth: Int, sourceType: TypeHW)
 
 // Literal Details
 sealed trait LitTree extends TreeHW

@@ -10,6 +10,7 @@ trait DescReference { // MUTABLE STATE: descRef
     protected[gama] def descRef: Option[Desc] = _descRef.flatMap(_.get)
     
     // Note, this should generally be paired with some call to checked/forceSetName
+    // TODO: refactor this with Nameable (in Data) as Nameable may only need to be a string...
     protected[gama] def setDescRef(in: Desc, propogate: Boolean): Unit = {
       assert(_descRef.isEmpty)
       _descRef = Some(scala.ref.WeakReference(in))
