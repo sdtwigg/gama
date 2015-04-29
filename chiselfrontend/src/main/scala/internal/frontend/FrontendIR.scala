@@ -2,13 +2,6 @@ package gama
 package internal
 package frontend
 
-case class ModuleDesc(io: TypeHW, body: BlockHW)
-
-sealed trait ModuleRef {def ioType: TypeHW}
-case class ModuleThis(ioType: TypeHW) extends ModuleRef
-case class ModuleSub(modid: Int, identifier: Option[String], ioType: TypeHW) extends ModuleRef
-
-case class MemDesc(memid: Int, identifier: Option[String], depth: Int, sourceType: TypeHW)
 
 // TODO: WRITE TYPE CHECKER
 // TODO: ADD TRANSLATED DEBUGGING INFO
@@ -83,5 +76,12 @@ sealed trait LitTree extends TreeHW
 case class LitPrimitive(value: String) extends LitTree
 case class LitVec(elements: Vector[LitTree]) extends LitTree
 case class LitTuple(fields: Vector[Tuple2[String,LitTree]]) extends LitTree
+
+// Miscellaneous data containers
+sealed trait ModuleRef {def ioType: TypeHW}
+case class ModuleThis(ioType: TypeHW) extends ModuleRef
+case class ModuleSub(modid: Int, identifier: Option[String], ioType: TypeHW) extends ModuleRef
+
+case class MemDesc(memid: Int, identifier: Option[String], depth: Int, sourceType: TypeHW)
 
 // Also, since all of these things are case classes, CSE is VERY straightforward to do
