@@ -1,6 +1,6 @@
 package gama
 package internal
-import frontend.{LitTree, LitPrimitive, LitVec, LitTuple}
+import frontend.{LitTree, LitRawBits, LitVec, LitTuple}
 
 // A thin wrapper around the LitMap workhorse, really just a simple tag
 trait LitDescImpl[T<:Data] {
@@ -59,7 +59,7 @@ trait LitMapVectorizer[D<:Data, LMT <: LitMap[D]] {
 
 case class BoolLitMap(value: Boolean) extends LitMap[Bool] with LitMapElementImpl[Bool] {
   def constructData = Bool()
-  def asLitTree = LitPrimitive(if(value) "1{1}" else "0{1}")
+  def asLitTree = LitRawBits(if(value) 1 else 0, 1, false)
 }
 object BoolLitMap {
   implicit object generalizer extends LitMapVectorizer[Bool, BoolLitMap] {
@@ -73,7 +73,7 @@ case class UIntLitMap(value: BigInt, width: Int) extends LitMap[UInt] with LitMa
   require( value.bitLength <= width, s"UInt Literal: width $width too small to hold $value (need ${value.bitLength})")
 
   def constructData = UInt(width)
-  def asLitTree = LitPrimitive(s"$value{${width}U}") // TODO: hexadecimal?
+  def asLitTree = LitRawBits(value, width, false)
 }
 object UIntLitMap {
   def apply(value: BigInt): UIntLitMap = UIntLitMap(value, math.max(value.bitLength,1))
@@ -90,7 +90,7 @@ case class SIntLitMap(value: BigInt, width: Int) extends LitMap[SInt] with LitMa
     s"SInt Literal: width $width too small to hold $value (need ${value.bitLength+1})")
 
   def constructData = SInt(width)
-  def asLitTree = LitPrimitive(s"$value{${width}S}") // TODO: hexadecimal?
+  def asLitTree = LitRawBits(value, width, true)
 }
 object SIntLitMap {
   def apply(value: BigInt): SIntLitMap = SIntLitMap(value, value.bitLength+1)

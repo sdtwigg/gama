@@ -74,7 +74,7 @@ case object TypeHWUNKNOWN extends TypeHW with FIRERROR
 
 // Literal Details
 sealed trait LitTree extends TreeHW
-case class LitPrimitive(value: String) extends LitTree
+case class LitRawBits(value: BigInt, width: Int, signed: Boolean) extends LitTree
 case class LitVec(elements: Vector[LitTree]) extends LitTree
 case class LitTuple(fields: Vector[Tuple2[String,LitTree]]) extends LitTree
 

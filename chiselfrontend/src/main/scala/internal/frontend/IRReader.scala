@@ -117,7 +117,7 @@ trait IRReader {
   }
 
   def parseLitTree(litvalue: LitTree): String = litvalue match {
-    case LitPrimitive(value) => value
+    case LitRawBits(value, width, signed) => s"$value{${width}${if(signed) 'S' else 'U'}}"
     case LitVec(elements) => elements map(elem => parseLitTree(elem)) mkString("{",",","}")
     case LitTuple(fields) => ???
   }
