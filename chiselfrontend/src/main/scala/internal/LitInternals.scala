@@ -68,28 +68,33 @@ object BoolLitMap {
   }
 }
 
-case class UIntLitMap(value: BigInt, width: Option[Int]) extends LitMap[UInt] with LitMapElementImpl[UInt] {
-  require( value>=0, "UInt Literals must be non-negative." )
+case class UIntLitMap(value: BigInt, width: Int) extends LitMap[UInt] with LitMapElementImpl[UInt] {
+  require( value>=0, "UInt Literal: value must be non-negative." )
+  require( value.bitLength <= width, s"UInt Literal: width $width too small to hold $value (need ${value.bitLength})")
+
   def constructData = UInt(width)
-  def asLitTree = LitPrimitive(s"$value{${width.getOrElse('?')}}") // TODO: hexadecimal?
+  def asLitTree = LitPrimitive(s"$value{$width}") // TODO: hexadecimal?
 }
 object UIntLitMap {
   implicit object generalizer extends LitMapVectorizer[UInt, UIntLitMap] {
     def emptyData = UInt()
     def generalize(target: UIntLitMap, model: UIntLitMap) =
-      UIntLitMap(target.value, for(lw <- target.width; rw <- model.width) yield math.max(lw, rw))
+      UIntLitMap(target.value, math.max(target.width, model.width))
   }
 }
 
-case class SIntLitMap(value: BigInt, width: Option[Int]) extends LitMap[SInt] with LitMapElementImpl[SInt] {
+case class SIntLitMap(value: BigInt, width: Int) extends LitMap[SInt] with LitMapElementImpl[SInt] {
+  require( value.bitLength+1 <= width,
+    s"SInt Literal: width $width too small to hold $value (need ${value.bitLength+1})")
+
   def constructData = SInt(width)
-  def asLitTree = LitPrimitive(s"$value{${width.getOrElse('?')}}") // TODO: hexadecimal?
+  def asLitTree = LitPrimitive(s"$value{$width}") // TODO: hexadecimal?
 }
 object SIntLitMap {
   implicit object generalizer extends LitMapVectorizer[SInt, SIntLitMap] {
     def emptyData = SInt()
     def generalize(target: SIntLitMap, model: SIntLitMap) = 
-      SIntLitMap(target.value, for(lw <- target.width; rw <- model.width) yield math.max(lw, rw))
+      SIntLitMap(target.value, math.max(target.width, model.width))
   }
 }
 

@@ -6,12 +6,12 @@ import gama.library._
 object testmain {
   def main(args: Array[String]) {
 
-    val myTopModule = ExampleModule()
-    //val myTopModule = Module(new MemModule)
+    //val myTopModule = ExampleModule()
+    val myTopModule = Module(new APIModule)
     val topModDesc = gama.internal.journal.Converter(myTopModule)
 
-    val myJReader = gama.internal.journal.FoldedReader.Colorful
-    println(myJReader.parseCircuit(myTopModule) mkString("\n"))
+    //val myJReader = gama.internal.journal.FoldedReader.Colorful
+    //println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     val myIRReader = gama.internal.frontend.IRReader.Colorful
     println(s"Module(${Console.GREEN}${myIRReader.parseType(topModDesc.io)}${Console.RESET}, ${myIRReader.parseCmdHW(topModDesc.body)})")
 
@@ -184,7 +184,7 @@ trait Nested2 extends Nested {
   myCVec := myPVec // these work as designed, somewhat unfortunately
 
   val freeLitVec = LitVec.U(0,1,2,3,4,5)
-  val enclLitVec = AsHWConstant(LitVec.U(Seq(10,11,12,13,14,15)))
+  val enclLitVec = AsHWConstant( LitVec.U(Seq(10,11,12,13,14,15).map(BigInt(_))) )
 
   val muxLitVec = Mux(bool, freeLitVec, enclLitVec)
   val lituint1a = AsHWConstant(freeLitVec(1))

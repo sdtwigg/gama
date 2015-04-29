@@ -17,19 +17,19 @@ trait LitIntObjectBase[Out<:Digital] {
 // INT LITERALS
 object LiteralSInt extends LitIntObjectBase[SInt] {
   def apply(value: BigInt, width: Int): SInt = {
-    SIntLitMap(value, Some(width)).manifest
+    SIntLitMap(value, width).manifest
   }
   def apply(value: BigInt): SInt = {
-    SIntLitMap(value, None).manifest
+    SIntLitMap(value, value.bitLength+1).manifest
   }
 }
 
 object LiteralUInt extends LitIntObjectBase[UInt] {
   def apply(value: BigInt, width: Int): UInt = {
-    UIntLitMap(value, Some(width)).manifest
+    UIntLitMap(value, width).manifest
   }
   def apply(value: BigInt): UInt = { 
-    UIntLitMap(value, None).manifest
+    UIntLitMap(value, value.bitLength).manifest
   }
 }
 
@@ -39,17 +39,18 @@ object LiteralVec {
   //    Perhaps some function that just returns the litmap
   //    then a function to take the seq of litmap and turn into vec
   
-  def U(elt0: Int, elts: Int*): Vec[UInt] = U(elt0 +: (elts.toSeq))
-  def U(elts: Iterable[Int]): Vec[UInt] = {
-    VecLitMap(elts.map(i => UIntLitMap(i, None)).toSeq).manifest
+  def U(elt0: BigInt, elts: BigInt*): Vec[UInt] = U(elt0 +: (elts.toSeq))
+  def U(elts: Iterable[BigInt]): Vec[UInt] = {
+    VecLitMap(elts.map(i => UIntLitMap(i, i.bitLength)).toSeq).manifest
   }
-  def S(elt0: Int, elts: Int*): Vec[SInt] = S(elt0 +: (elts.toSeq))
-  def S(elts: Iterable[Int]): Vec[SInt] = {
-    VecLitMap(elts.map(i => SIntLitMap(i, None)).toSeq).manifest
+  def S(elt0: BigInt, elts: BigInt*): Vec[SInt] = S(elt0 +: (elts.toSeq))
+  def S(elts: Iterable[BigInt]): Vec[SInt] = {
+    VecLitMap(elts.map(i => SIntLitMap(i, i.bitLength+1)).toSeq).manifest
   }
 
-  def SW(elt0: Tuple2[Int,Int], elts: Tuple2[Int,Int]*): Vec[SInt] = SW(elt0 +: (elts.toSeq))
-  def SW(elts: Iterable[Tuple2[Int, Int]]): Vec[SInt] = {
-    VecLitMap(elts.map(i => SIntLitMap(i._1, Some(i._2))).toSeq).manifest
+  def SW(elt0: Tuple2[BigInt,Int], elts: Tuple2[BigInt,Int]*): Vec[SInt] = SW(elt0 +: (elts.toSeq))
+  def SW(elts: Iterable[Tuple2[BigInt, Int]]): Vec[SInt] = {
+    VecLitMap(elts.map(i => SIntLitMap(i._1, i._2)).toSeq).manifest
   }
 }
+

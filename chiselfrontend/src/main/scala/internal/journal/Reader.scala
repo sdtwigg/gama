@@ -193,14 +193,8 @@ abstract class BaseReader extends Reader {
   def parseLitDesc[D<:Data](litdesc: LitDesc[D]): String = parseLitMap(litdesc.litMap)
   def parseLitMap[D<:Data](litmap: LitMap[D]): String = litmap match {
     case BoolLitMap(value) => HL.RED + (if(value) "UBits(1,1)/*true*/)" else "UBits(0,1)/*false*/") + HL.RESET
-    case UIntLitMap(value, width) => {
-      val w = width.map(_.toString).getOrElse("?")
-      s"${HL.RED}UBits($value, $w)${HL.RESET}"
-    }
-    case SIntLitMap(value, width) => {
-      val w = width.map(_.toString).getOrElse("?")
-      s"${HL.RED}SBits($value, $w)${HL.RESET}"
-    }
+    case UIntLitMap(value, width) => s"${HL.RED}UBits($value, $width)${HL.RESET}"
+    case SIntLitMap(value, width) => s"${HL.RED}SBits($value, $width)${HL.RESET}"
     case VecLitMap(elemmaps) => {
       elemmaps.map(emap=>parseLitMap(emap)).mkString("{",",","}")
     }
