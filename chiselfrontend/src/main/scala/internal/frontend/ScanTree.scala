@@ -34,7 +34,11 @@ class ExprScanTree {
 
 trait LinkedTypeScanTree {
   // Should this always use TyperWidthInfer.bypassCompRef 
-  def startscan(leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
+  def start(leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
+    val newf = followers.map(f => (f.rType, TTStart(f)))
+    pathscan(leader.rType, TTStart(leader), newf)
+  }
+  def startguided(detauls: ConnectDetails, leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
     val newf = followers.map(f => (f.rType, TTStart(f)))
     pathscan(leader.rType, TTStart(leader), newf)
   }
@@ -67,6 +71,24 @@ trait LinkedTypeScanTree {
       }
 
       case TypeHWUNKNOWN => // TODO: Error? Also, what if a follower is lost?
+    }
+  def guidedscan(details: ConnectDetails, leader: TypeHW, leadPath: TypeTrace,
+                 followers: Iterable[Tuple2[TypeHW, TypeTrace]]): Unit = 
+    details match {
+      case ConnectAll => pathscan(leader, leadPath, followers)
+
+      case ConnectVec(elemd) => for{
+        lType <- asVecHW(leader)
+        lEType = lType.elemType
+        lPath  = TTIndexALL(leadPath)
+      } {
+        val newfollowers = for {
+          (fType, fPath) <- followers
+          fVType <- asVecHW(fType)
+          fEType = fVType.elemType
+        } yield (fEType, TTIndexALL(fPath)): Tuple2[TypeHW, TypeTrace]
+        guidedscan(elemd, lEType, lPath, newfollowers)
+      }
     }
 
   def leafwork(leader: PrimitiveTypeHW, leadPath: TypeTrace,

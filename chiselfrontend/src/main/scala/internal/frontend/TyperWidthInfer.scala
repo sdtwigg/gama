@@ -100,23 +100,32 @@ object TyperWidthInferer {
 
     // STEP 2: CONSTRAINT CONSTRUCTION
     //  Find all constraints from expressions with unknowns and constraining commands
-    // TODO: quickly skip ones that are irrelevant
     unknownTable.keys.foreach(expr => expr match {
         // TODO: Actually look at op...
       case ExprUnary(op, target, _) => {
-        ConstrainFrom.startscan(expr, Seq(target))
+        ConstrainFrom.start(expr, Seq(target))
       }
       case ExprBinary(op, left, right, _) => {
-        ConstrainFrom.startscan(expr, Seq(left, right))
+        ConstrainFrom.start(expr, Seq(left, right))
       } 
-      case ExprMux(_, tc, fc, _) => {
-        ConstrainFrom.startscan(expr, Seq(tc, fc))
-      }
+      case ExprMux(_, tc, fc, _) => ConstrainFrom.start(expr, Seq(tc, fc))
       case RefExtract(source, lp, rp, _) => ??? // this may be skippable for now...
 
       case RefSymbol(_,_,_) => // RefSymbols must be constrained by commands
-      case _ => // Other expression types cannot have unknown elements
+      case _ => // No other expressions are directly inferred
     })
+    // TODO: quickly skip ones that are irrelevant
+    constrainingCmds.foreach(cmd => cmd match {
+      case ConstDecl(symbol, expr) => ConstrainFrom.start(symbol, Seq(expr))
+      case AliasDecl(symbol, ref)  => ConstrainFrom.start(symbol, Seq(ref)) // treat like ConstDecl
+      case ConnectStmt(sink, source, details) => {
+        ConstrainFrom.startguided(details, dealiaser.dealias(sink), Seq(source))
+      }
+        // needs dealiasing of both forms
+      case BiConnectStmt(sink, source, details) => ??? // needs dealiasing of both forms
+      case _ => ??? // These shouldn't show up as the others are not constraining commands
+    })
+
     object ConstrainFrom extends WidthScanTree {
       def widthwork(leadPath: TypeTrace, followers: Iterable[Tuple2[Option[Int], TypeTrace]]) =
         for ((fwidth, fPath) <- followers) fwidth match {
@@ -126,7 +135,7 @@ object TyperWidthInferer {
     }
 
     // DEBUGGING
-    implicit val dprint = IRReader.Colorful
+    val dprint = IRReader.Colorful
     println("UNKNOWNS")
     unknownTable.foreach({case (k,v) => println(s"${dprint.parseExpr(k)}: ${Console.GREEN}${dprint.parseType(k.rType)}${Console.RESET}")})
     println("CONSTRAINING COMMANDS")
@@ -163,9 +172,10 @@ object TyperWidthInferer {
 }
 
 trait WidthScanTree extends LinkedTypeScanTree {
-  override def startscan(leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
+  override def start(leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
+    val (ltype, lpath) = TyperWidthInferer.bypassCompRef(leader)
     val newf = followers.map(TyperWidthInferer.bypassCompRef(_))
-    pathscan(leader.rType, TTStart(leader), newf)
+    pathscan(ltype, lpath, newf)
   }
   def leafwork(leader: PrimitiveTypeHW, leadPath: TypeTrace,
                followers: Iterable[Tuple2[PrimitiveTypeHW, TypeTrace]]) =
