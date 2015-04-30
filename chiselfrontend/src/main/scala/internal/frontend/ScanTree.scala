@@ -33,14 +33,15 @@ class ExprScanTree {
 }
 
 trait LinkedTypeScanTree {
-  // Should this always use TyperWidthInfer.bypassCompRef 
   def start(leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
-    val newf = followers.map(f => (f.rType, TTStart(f)))
-    pathscan(leader.rType, TTStart(leader), newf)
+    val (ltype, lpath) = TyperWidthInferer.bypassCompRef(leader)
+    val newf = followers.map(TyperWidthInferer.bypassCompRef(_))
+    pathscan(ltype, lpath, newf)
   }
-  def startguided(detauls: ConnectDetails, leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
+  def startguided(details: ConnectDetails, leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
+    val (ltype, lpath) = TyperWidthInferer.bypassCompRef(leader)
     val newf = followers.map(f => (f.rType, TTStart(f)))
-    pathscan(leader.rType, TTStart(leader), newf)
+    guidedscan(details, ltype, lpath, newf)
   }
   def pathscan(leader: TypeHW, leadPath: TypeTrace,
                followers: Iterable[Tuple2[TypeHW, TypeTrace]]): Unit = 

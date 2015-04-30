@@ -5,14 +5,17 @@ package frontend
 import scala.collection.mutable.{HashMap=>HMap, HashSet=>HSet, ListBuffer=>ListB}
 
 object TyperWidthInferer {
-  sealed trait Constraint
-  case class GEqLit(lb: Int) extends Constraint
-  case class GEqTT(lb: TypeTrace) extends Constraint
+  sealed trait WidthConstraint
+  case class WidthLit(lit: Int) extends WidthConstraint
+  case class WidthRef(ref: TypeTrace) extends WidthConstraint
+  case class WidthAdd(left: WidthConstraint, right: WidthConstraint) extends WidthConstraint // l + r
+  case class WidthMax(consts: Seq[WidthConstraint]) extends WidthConstraint // max(1, 2, 3, ...)
+  case class WidthBitM(const: WidthConstraint) extends WidthConstraint // 2^const-1
 
   def infer(target: ElaboratedModule): ElaboratedModule = {
     // 1. Build up table of uninferred widths and associated constraints
-    //   Store as: Map[ExprHW -> Set[TypeTrace]], Map[TypeTrace -> Set[Constraints]]
-    //   Constraints: >=Int, >=TypeTrace, >=(Op,TypeTrace,TypeTrace)
+    //   Store as: Map[ExprHW -> Set[TypeTrace]], Map[TypeTrace -> Set[WidthConstraints]]
+    //   WidthConstraints: >=Int, >=TypeTrace, >=(Op,TypeTrace,TypeTrace)
     //  -> Will have to walk the entire tree, particularly expressions and connections
     //      need to de-alias Expr that don't register own type (e.g. RefVIndex)
     //  -> Maybe reasonable to do a quick walk to populate first map so can skip detailed walks
@@ -47,14 +50,14 @@ object TyperWidthInferer {
 */
 
     val unknownTable = HMap.empty[ExprHW, HSet[TypeTrace]]
-    val constraintTable = HMap.empty[TypeTrace, HSet[Constraint]]
+    val constraintTable = HMap.empty[TypeTrace, HSet[WidthConstraint]]
     val dealiaser = new Dealiaser
 
     def addUnknown(expr: ExprHW, unknown: TypeTrace): Unit = {
       unknownTable.getOrElseUpdate(expr, HSet.empty[TypeTrace]) += unknown
     }
-    def addConstraint(unknown: TypeTrace, constraint: Constraint): Unit = {
-      constraintTable.getOrElseUpdate(unknown, HSet.empty[Constraint]) += constraint
+    def addConstraint(unknown: TypeTrace, constraint: WidthConstraint): Unit = {
+      constraintTable.getOrElseUpdate(unknown, HSet.empty[WidthConstraint]) += constraint
     }
 
     val constrainingCmds = ListB.empty[CmdHW]
@@ -102,11 +105,23 @@ object TyperWidthInferer {
     //  Find all constraints from expressions with unknowns and constraining commands
     unknownTable.keys.foreach(expr => expr match {
         // TODO: Actually look at op...
-      case ExprUnary(op, target, _) => {
-        ConstrainFrom.start(expr, Seq(target))
+      case ExprUnary(op, target, _) => op match {
+        case OpIDENT | OpToUInt | OpAsUInt | OpAsSInt | OpNot =>
+          ConstrainFrom.start(expr, Seq(target))
+        case OpToSInt => ??? // add 1 bit
+        case OpXorRed => ??? // width should already be known (=1)
       }
-      case ExprBinary(op, left, right, _) => {
-        ConstrainFrom.start(expr, Seq(left, right))
+      case ExprBinary(op, left, right, _) => op match {
+        case OpPlus | OpSubt | OpAnd | OpOr | OpXor | OpPadTo => // max(l, r)
+          ConstrainFrom.start(expr, Seq(left, right))
+        case OpMult | OpCat   => ??? // l + r
+        case OpDiv  | OpRShft => // l
+          ConstrainFrom.start(expr, Seq(left))
+        case OpMod   => // r?
+          ConstrainFrom.start(expr, Seq(right))
+        case OpLShft => ??? // l + max(r) = l + (2^r-1) (could be huge)
+        case OpEqual | OpNotEq | OpLess | OpLeEq | OpGrt | OpGrEq => ???
+          // width should already be known (=1)
       } 
       case ExprMux(_, tc, fc, _) => ConstrainFrom.start(expr, Seq(tc, fc))
       case RefExtract(source, lp, rp, _) => ??? // this may be skippable for now...
@@ -129,22 +144,31 @@ object TyperWidthInferer {
     object ConstrainFrom extends WidthScanTree {
       def widthwork(leadPath: TypeTrace, followers: Iterable[Tuple2[Option[Int], TypeTrace]]) =
         for ((fwidth, fPath) <- followers) fwidth match {
-            case None    => addConstraint(leadPath, GEqTT(fPath))
-            case Some(w) => addConstraint(leadPath, GEqLit(w))
+            case None    => addConstraint(leadPath, WidthRef(fPath))
+            case Some(w) => addConstraint(leadPath, WidthLit(w))
         }
     }
 
     // DEBUGGING
     val dprint = IRReader.Colorful
     println("UNKNOWNS")
-    unknownTable.foreach({case (k,v) => println(s"${dprint.parseExpr(k)}: ${Console.GREEN}${dprint.parseType(k.rType)}${Console.RESET}")})
-    println("CONSTRAINING COMMANDS")
-    constrainingCmds.foreach(v => println(dprint.parseCmdHW(v)))
-    println("CONSTRAINTS")
-    constraintTable.foreach({case (k,vs) => vs.foreach(v => println(s"${dprint.parseTT(k)} : ${parseConstraint(v)}"))})
-    def parseConstraint(c: Constraint): String = c match {
-      case GEqLit(lb) => s">= $lb"
-      case GEqTT(lb)  => s">= ${dprint.parseTT(lb)}"
+    unknownTable.foreach({case (k,tts) => {
+      println(s"${dprint.parseExpr(k)}: ${Console.GREEN}${dprint.parseType(k.rType)}${Console.RESET}")
+      tts.foreach(tt => constraintTable.getOrElse(tt, Set.empty).foreach(c =>
+        println(s"${dprint.parseTT(tt)} >= ${parseConstraint(c)}")
+      ))
+      println("")
+    }})
+    
+    //println("CONSTRAINTS")
+    //constraintTable.foreach({case (k,vs) => vs.foreach(v => println(s"${dprint.parseTT(k)} : ${parseConstraint(v)}"))})
+  
+    def parseConstraint(c: WidthConstraint): String = c match {
+      case WidthLit(lit)     => s"$lit"
+      case WidthRef(ref)     => s"${dprint.parseTT(ref)}"
+      case WidthAdd(l, r)    => s"(${parseConstraint(l)}+${parseConstraint(r)})"
+      case WidthMax(consts)  => consts.map(parseConstraint(_)) mkString("max(",", ", ")")
+      case WidthBitM(const)  => s"(2^${parseConstraint(const)}-1)"
     }
     
     target
@@ -172,11 +196,6 @@ object TyperWidthInferer {
 }
 
 trait WidthScanTree extends LinkedTypeScanTree {
-  override def start(leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
-    val (ltype, lpath) = TyperWidthInferer.bypassCompRef(leader)
-    val newf = followers.map(TyperWidthInferer.bypassCompRef(_))
-    pathscan(ltype, lpath, newf)
-  }
   def leafwork(leader: PrimitiveTypeHW, leadPath: TypeTrace,
                followers: Iterable[Tuple2[PrimitiveTypeHW, TypeTrace]]) =
     for(lwidth <- getWidth(leader) if lwidth.isEmpty) { // No work to be done if width known
