@@ -41,7 +41,7 @@ class ModuleTypeChecker(warnWidthUnknown: Boolean)(target: ElaboratedModule) {
       case b @ BlockHW(_) => checkBlockHW(b, leafTable)
       case WhenHW(cond, tc, fc) => {
         checkExpr(cond, leafTable)
-        cond.resultType match {
+        cond.rType match {
           case PrimitiveNode(UBits(Some(1))) => // OK
           case PrimitiveNode(UBits(None)) => if(warnWidthUnknown) {warnings+=Problem(PTStart(cond),"Width Unknown")}
           case _ => errors+=Problem(PTStart(cond),"WhenHW cond must be of type UBits(1|?)")
@@ -79,7 +79,7 @@ class ModuleTypeChecker(warnWidthUnknown: Boolean)(target: ElaboratedModule) {
   }
 
   def checkExpr(expr: ExprHW, lt: LeafTable): Unit = {
-    checkNode(expr.resultType, PTStart(expr))
+    checkNode(expr.rType, PTStart(expr))
     expr match {
       case _ => 
     }

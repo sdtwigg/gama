@@ -6,18 +6,22 @@ import gama.library._
 object testmain {
   def main(args: Array[String]) {
 
-    val myTopModule = ExampleModule()
-    //val myTopModule = Module(new APIModule)
+    //val myTopModule = ExampleModule()
+    val myTopModule = Module(new InferModule)
     val topModDesc = gama.internal.journal.Converter(myTopModule)
-
-    val myJReader = gama.internal.journal.FoldedReader.Colorful
-    println(myJReader.parseCircuit(myTopModule) mkString("\n"))
-    val myIRReader = gama.internal.frontend.IRReader.Colorful
-    println(s"Module(${Console.GREEN}${myIRReader.parseType(topModDesc.io)}${Console.RESET}, ${myIRReader.parseCmdHW(topModDesc.body)})")
-
+    
     val typechecker = new gama.internal.frontend.ModuleTypeChecker(true)(topModDesc)
     println(s"# Type Checker ${Console.RED}Errors${Console.RESET}: ${typechecker.errors.length}")
     println(s"# Type Checker ${Console.YELLOW}Warnings${Console.RESET}: ${typechecker.errors.length}")
+    
+    val inferred = gama.internal.frontend.TyperWidthInferer.infer(topModDesc)
+
+    //val myJReader = gama.internal.journal.FoldedReader.Colorful
+    //println(myJReader.parseCircuit(myTopModule) mkString("\n"))
+    val myIRReader = gama.internal.frontend.IRReader.Colorful
+    println(s"Module(${Console.GREEN}${myIRReader.parseType(topModDesc.io)}${Console.RESET}, ${myIRReader.parseCmdHW(topModDesc.body)})")
+
+
   }
 }
 /*

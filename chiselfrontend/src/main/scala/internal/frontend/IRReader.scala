@@ -47,7 +47,7 @@ trait IRReader {
   }
   def emitFullSymbol(symbol: RefSymbol): String = {
     val name = symbol.identifier.getOrElse("")
-    s"${emitSymbol(symbol)}: ${HL.GREEN}${parseType(symbol.refType)}${HL.RESET}"
+    s"${emitSymbol(symbol)}: ${HL.GREEN}${parseType(symbol.rType)}${HL.RESET}"
   }
   
   def parseExpr(expr: ExprHW): String = {
@@ -101,10 +101,10 @@ trait IRReader {
       case ExprLit(litvalue, _) => s"${HL.RED}${parseLitTree(litvalue)}${HL.RESET}"
 
       case RefIO(details) => s"${parseModRef(details)}->${HL.CYAN}io${HL.RESET}"
-      case RefMSelect(mem, selector)       => s"${emitMemName(mem)}(${parseExpr(selector)})"
-      case RefVIndex(parent, index, _)     => s"${parseExpr(parent)}($index)"
-      case RefVSelect(parent, selector, _) => s"${parseExpr(parent)}(${parseExpr(selector)})"
-      case RefTLookup(source, field, _)    => s"${parseExpr(source)}.$field"
+      case RefMSelect(mem, selector)    => s"${emitMemName(mem)}(${parseExpr(selector)})"
+      case RefVIndex(parent, index)     => s"${parseExpr(parent)}($index)"
+      case RefVSelect(parent, selector) => s"${parseExpr(parent)}(${parseExpr(selector)})"
+      case RefTLookup(source, field)    => s"${parseExpr(source)}.$field"
       case RefExtract(source, left_pos, right_pos, _) => s"${parseExpr(source)}($left_pos,$right_pos)"
 
       case RefExprERROR(cause) => "$$$$RefExprERROR: " + cause + " $$$$"
@@ -154,7 +154,12 @@ trait IRReader {
     case BiConnectTuple(fields) =>
       (fields map ({case (field, subd) => s"$field:${parseBiConnectDetails(subd)}"}) mkString("(",", ",")"))
   }
-
+  
+  def parseTT(in: TypeTrace): String = in match {
+    case TTStart(expr) => s"{${parseExpr(expr)}}"
+    case TTIndexALL(tt) => s"${parseTT(tt)}.*"
+    case TTField(tt, field) => s"${parseTT(tt)}.$field"
+  }
 }
 
 object IRReader {

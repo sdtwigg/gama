@@ -53,7 +53,7 @@ object ToFIR {
           val (newref, connectable) = accdesc.accRef match {
             case va: VecAccessible[_] => {
               val (srcexpr, connectable) = exprLookup(va.collection)
-              (RefVSelect(srcexpr, exprLookup(accdesc.selector)._1, constructType(accdesc.retVal)), connectable)
+              (RefVSelect(srcexpr, exprLookup(accdesc.selector)._1), connectable)
             }
             case ma: MemAccessible[_] =>
               val nref = memtable.get(ma.collection).map(memdesc =>
@@ -120,13 +120,13 @@ object ToFIR {
       // refinements - Note: can reference expressions so call exprLookup!
       case Some(NameField(source, field)) => {
         val srcexpr = exprLookup(source)
-        val newref = (RefTLookup(srcexpr._1, field, constructType(source)), srcexpr._2)
+        val newref = (RefTLookup(srcexpr._1, field), srcexpr._2)
         reftable.add(in, newref)
         newref
       }
       case Some(NameIndex(source, index)) => {
         val srcexpr = exprLookup(source)
-        val newref = (RefVIndex(srcexpr._1, index, constructType(source)), srcexpr._2)
+        val newref = (RefVIndex(srcexpr._1, index), srcexpr._2)
         reftable.add(in, newref)
         newref
       }

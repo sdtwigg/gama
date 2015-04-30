@@ -45,30 +45,30 @@ case class SubModuleDecl(details: ModuleSub, ph: String) extends CmdHW
 
 ///////////////////
 // Expressions, References, Types, etc.
-sealed trait ExprHW extends TreeHW { def resultType: TypeHW }
+sealed trait ExprHW extends TreeHW { def rType: TypeHW }
 sealed trait ExprLeaf extends ExprHW // for certain lookup tables
-case class ExprUnary(op: OpIdUnary, target: ExprHW, resultType: TypeHW) extends ExprHW
-case class ExprBinary(op: OpIdBinary, left: ExprHW, right: ExprHW, resultType: TypeHW) extends ExprHW
-case class ExprMux(cond: ExprHW, tc: ExprHW, fc: ExprHW, resultType: TypeHW) extends ExprHW
-case class ExprLit(litvalue: LitTree, resultType: TypeHW) extends ExprHW with ExprLeaf
+case class ExprUnary(op: OpIdUnary, target: ExprHW, rType: TypeHW) extends ExprHW
+case class ExprBinary(op: OpIdBinary, left: ExprHW, right: ExprHW, rType: TypeHW) extends ExprHW
+case class ExprMux(cond: ExprHW, tc: ExprHW, fc: ExprHW, rType: TypeHW) extends ExprHW
+case class ExprLit(litvalue: LitTree, rType: TypeHW) extends ExprHW with ExprLeaf
 // References are also all possible expressions
-sealed trait RefHW extends ExprHW { def refType: TypeHW; def resultType = refType } 
-case class RefSymbol(symbol: Int, identifier: Option[String], refType: TypeHW) extends RefHW with ExprLeaf
-case class RefIO(mod: ModuleRef) extends RefHW with ExprLeaf {def refType = mod.ioType}
-case class RefMSelect(mem: MemDesc, selector: ExprHW) extends RefHW with ExprLeaf {def refType = mem.sourceType}
-case class RefVIndex(parent: ExprHW, index: Int, refType: TypeHW) extends RefHW
-case class RefVSelect(parent: ExprHW, selector: ExprHW, refType: TypeHW) extends RefHW
-case class RefTLookup(source: ExprHW, field: String, refType: TypeHW) extends RefHW
-case class RefExtract(source: ExprHW, left_pos: Int, right_pos: Int, refType: TypeHW) extends RefHW
-case class RefExprERROR(cause: String) extends RefHW with FIRERROR {def refType = TypeHWUNKNOWN}
+sealed trait RefHW extends ExprHW
+case class RefSymbol(symbol: Int, identifier: Option[String], rType: TypeHW) extends RefHW with ExprLeaf
+case class RefIO(mod: ModuleRef) extends RefHW with ExprLeaf {def rType = mod.ioType}
+case class RefMSelect(mem: MemDesc, selector: ExprHW) extends RefHW with ExprLeaf {def rType = mem.sourceType}
+case class RefVIndex(source: ExprHW, index: Int) extends RefHW {val rType = getVecEType(source.rType)}
+case class RefVSelect(source: ExprHW, selector: ExprHW) extends RefHW {val rType = getVecEType(source.rType)}
+case class RefTLookup(source: ExprHW, field: String) extends RefHW {val rType = getTupleFType(source.rType, field)}
+case class RefExtract(source: ExprHW, left_pos: Int, right_pos: Int, rType: TypeHW) extends RefHW
 // TODO: only RefSymbol actually needs to regen type, others can derive it
+case class RefExprERROR(cause: String) extends RefHW with FIRERROR {def rType = TypeHWUNKNOWN}
 
 sealed trait TypeHW extends TreeHW 
 sealed trait PrimitiveTypeHW extends TypeHW {def storage: NodeStore}
 case class PrimitiveNode(storage: NodeStore) extends PrimitiveTypeHW
 case class PrimitivePort(storage: NodeStore, direction: DirectionIO) extends PrimitiveTypeHW
 sealed trait AggregateTypeHW extends TypeHW
-case class TupleHW(fields: Vector[Tuple2[String, TypeHW]]) extends AggregateTypeHW
+case class TupleHW(fields: Vector[Tuple2[String, TypeHW]]) extends AggregateTypeHW // TODO: May want this to be a Map
 case class VecHW(depth: Int, elemType: TypeHW) extends AggregateTypeHW
 case object TypeHWUNKNOWN extends TypeHW with FIRERROR
 
