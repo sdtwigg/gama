@@ -27,4 +27,7 @@ import gama.library._
 
   val myOp2 = myRegVU(0) + 1.U
   myWire := Mux(True, myRegVU, myRegVU)(0)
+
+  val myOp3 = (2.U * 2.U)
+  val myOp4 = (2.U << 2.U)
 }

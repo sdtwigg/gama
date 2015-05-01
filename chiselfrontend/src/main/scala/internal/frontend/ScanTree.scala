@@ -40,7 +40,7 @@ trait LinkedTypeScanTree {
   }
   def startguided(details: ConnectDetails, leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
     val (ltype, lpath) = TyperWidthInferer.bypassCompRef(leader)
-    val newf = followers.map(f => (f.rType, TTStart(f)))
+    val newf = followers.map(TyperWidthInferer.bypassCompRef(_))
     guidedscan(details, ltype, lpath, newf)
   }
   def pathscan(leader: TypeHW, leadPath: TypeTrace,
@@ -88,6 +88,20 @@ trait LinkedTypeScanTree {
           fVType <- asVecHW(fType)
           fEType = fVType.elemType
         } yield (fEType, TTIndexALL(fPath)): Tuple2[TypeHW, TypeTrace]
+        guidedscan(elemd, lEType, lPath, newfollowers)
+      }
+
+      case ConnectTuple(fieldds) => for {
+        lType <- asTupleHW(leader) // lType as TupleHW
+        (field, elemd) <- fieldds  // String, ConnectDetails
+        lEType <- lType.fields find(_._1 == field) map(_._2) // Elem Type
+        lPath = TTField(leadPath, field)
+      } {
+        val newfollowers = for {
+          (fType, fPath) <- followers // fType is TypeHW
+          fTType <- asTupleHW(fType)  // fTType as TupleHW
+          fEType <- fTType.fields find(_._1 == field) map(_._2)
+        } yield (fEType, TTField(fPath, field)): Tuple2[TypeHW, TypeTrace]
         guidedscan(elemd, lEType, lPath, newfollowers)
       }
     }
