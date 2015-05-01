@@ -29,7 +29,7 @@ case class AliasDecl(symbol: RefSymbol, ref: RefHW) extends CmdHW with CreatesRe
   // I think can be done after type infer BUT definitley must be de-aliased before connect smashing
 // Control flow related
 case class BlockHW(statements: List[CmdHW]) extends CmdHW // have reference to enclosing context?
-case class WhenHW(cond: ExprHW, tc: BlockHW, fc: BlockHW) extends CmdHW
+case class WhenHW(cond: ExprHW, tc: CmdHW, fc: CmdHW) extends CmdHW
 // Connection details
 case class ConnectStmt(sink: RefHW, source: ExprHW, details: ConnectDetails) extends CmdHW
 case class BiConnectStmt(left: RefHW, right: RefHW, details: BiConnectDetails) extends CmdHW
@@ -86,5 +86,5 @@ case class ModuleSub(modid: Int, identifier: Option[String], ioType: TypeHW) ext
 case class MemDesc(memid: Int, identifier: Option[String], depth: Int, sourceType: TypeHW) extends TreeHW
 
 // NOT A TreeHW
-case class ElaboratedModule(io: TypeHW, body: BlockHW)
+case class ElaboratedModule(io: TypeHW, body: CmdHW)
 

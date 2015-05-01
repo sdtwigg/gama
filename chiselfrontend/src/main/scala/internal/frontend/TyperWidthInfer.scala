@@ -5,23 +5,8 @@ package frontend
 import scala.collection.mutable.{HashMap=>HMap, HashSet=>HSet, ListBuffer=>ListB}
 
 object TyperWidthInferer {
-
-  def infer(target: ElaboratedModule): ElaboratedModule = {
-    // 1. Build up table of uninferred widths and associated constraints
-    //   Store as: Map[ExprHW -> Set[TypeTrace]], Map[TypeTrace -> Set[WidthConstraints]]
-    //   WidthConstraints: >=Int, >=TypeTrace, >=(Op,TypeTrace,TypeTrace)
-    //  -> Will have to walk the entire tree, particularly expressions and connections
-    //      need to de-alias Expr that don't register own type (e.g. RefVIndex)
-    //  -> Maybe reasonable to do a quick walk to populate first map so can skip detailed walks
-    //       e.g.
-    //  -> Also, will want to ensure AliasDecl is carefully handled...
-    //     a. AliasDecl can act like ConstDecl where symbol constrained by ref
-    //     b. HOWEVER: for ConnectStmt.sink, BiConnectStmt.left,right, constraints must be built off de-aliased
-    //        Thus, will need to build de-aliasing table: Map[RefSymbol -> RefHW]
-    // 2. Resolve the constraints in the second map to make result Map[TypeTrace -> Int] (or ->Option[Int]?)
-    // 3. Build replacement Map[ExprHW -> ExprHW] by using first map and result map
-    //  -> Can be clever and decompose the TypeTrace, group up constituent parts, and then do cloning
-/*
+  case class InferenceSolution(inferredModule: ElaboratedModule, unknownsFound: Int, unknownParts: Int, solvedParts: Int)
+  /*
   Summary of how each expression is inferred
     ExprUnary  -> INFERRED based on op
     ExprBinary -> INFERRED based on op
@@ -41,8 +26,8 @@ object TyperWidthInferer {
     * bypassing is required since the rType of these may still contain uninferred elements, thus
       do not want a constraint that is dependent on these computed types since they will not be
       part of the constraint graph
-*/
-
+  */
+  def infer(target: ElaboratedModule): InferenceSolution = {
     val unknownTable = HMap.empty[ExprHW, HSet[TypeTrace]]
     val constraints = new ConstraintTable
     val dealiaser = new Dealiaser
@@ -146,7 +131,7 @@ object TyperWidthInferer {
       case RefExtract(source, lp, rp, _) => ForceWidth(lp-rp+1).start(expr, None)
 
       case RefSymbol(_,_,_) => // RefSymbols must be constrained by commands
-      case _ => // No other expressions are directly inferred
+      case _ => ??? // No other expressions are directly inferred
     })
     // Look at all constraining commands
     // TODO: quickly skip ones that are irrelevant
@@ -162,8 +147,51 @@ object TyperWidthInferer {
     })
 
     // STEP 3: CONSTRAINT SOLVING
-    constraints.solve
+    val solution = constraints.solve
 
+    // STEP 4: BUILD TYPE REPLACEMENT TABLE
+    val typeReplaceTable: Map[ExprHW, TypeHW] = unknownTable.toMap.map({case (uExpr, uTTs) => {
+      val newTypeHW: TypeHW = uTTs.foldLeft(uExpr.rType)((oldTypeHW: TypeHW, tt: TypeTrace) => {
+        val newWidth = solution.lookup(tt)
+        val replacer: TypeHW=>TypeHW = (a) => a match {
+          case PrimitiveNode(UBits(_)) => PrimitiveNode(UBits(newWidth)) 
+          case PrimitiveNode(SBits(_)) => PrimitiveNode(SBits(newWidth))
+          // PrimitivePort widths are assumed to be known
+          case _ => throw new Exception(s"Internal Error: Path terminated at $a")
+        }
+        TypeTrace.remake(oldTypeHW, tt.toList.reverse, replacer)
+      })
+      (uExpr, newTypeHW)
+    }})
+
+    // STEP 5: WALK THE TREE REPLACING TYPES FROM THE TABLE
+//          case ExprUnary(_,_,_) | ExprBinary(_,_,_,_) | ExprMux(_,_,_,_) |
+ //              RefSymbol(_,_,_) | RefExtract(_,_,_,_)
+    object Transformer extends ExprTransformTree {
+      def getNewType(in: ExprHW): TypeHW = typeReplaceTable.get(in).getOrElse(in.rType)
+
+      override def transform(symbol: RefSymbol): RefSymbol = symbol.copy(rType=getNewType(symbol))
+      override def transform(ref: RefHW): RefHW  = ref match {
+        case RefExtract(source, lp, rp, rType) =>
+             RefExtract(transform(source), lp, rp, getNewType(ref))
+        case _ => super.transform(ref)
+      }
+      override def transform(expr: ExprHW): ExprHW = expr match {
+        case ExprUnary(op, target, rType) =>
+             ExprUnary(op, transform(target), getNewType(expr))
+        case ExprBinary(op, left, right, rType) =>
+             ExprBinary(op, transform(left), transform(right), getNewType(expr))
+        case ExprMux(cond, tc, fc, rType) =>
+             ExprMux(transform(cond), transform(tc), transform(fc), getNewType(expr))
+        case _ => super.transform(expr)
+      }
+    }
+    val pathsUnknown = unknownTable.values.map(_.size).sum
+    InferenceSolution(ElaboratedModule(target.io, Transformer.transform(target.body)),
+                      unknownTable.size, pathsUnknown, solution.pathsSolved)
+  }
+
+/*
     // DEBUGGING
     val dprint = IRReader.Colorful
     println("UNKNOWNS")
@@ -186,16 +214,13 @@ object TyperWidthInferer {
       case WidthBitM(const)   => s"(2^${parseConstraint(const)}-1)"
       case FORCEWidthLit(lit) => s"== FORCED: $lit"
     }
-    
-    target
-  }
+*/  
 
     // Similar to aliasing from AliasDecl: since RefVIndex/VSelect/TLookup will not show up with
     //   uninferred types, will need to jump past them so we don't build a type constraint on them
     // This is because those 3 references have computed types
   def bypassCompRef(in: ExprHW): Tuple2[TypeHW, TypeTrace] = in match {
     case RefVIndex(source, _)      => {
-      println(in)
       val res = bypassCompRef(source)
       (in.rType, TTIndexALL(res._2))
     }

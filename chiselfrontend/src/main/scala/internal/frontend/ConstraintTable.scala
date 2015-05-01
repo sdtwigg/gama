@@ -14,26 +14,32 @@ case class FORCEWidthLit(forced: Int) extends WidthConstraint
   // override value that forces width to be this, TODO: is this OK?
 
 class ConstraintTable {
-  val table = HMap.empty[TypeTrace, Set[WidthConstraint]]
+  private val table = HMap.empty[TypeTrace, Set[WidthConstraint]]
 
   def add(unknown: TypeTrace, constraint: WidthConstraint): Unit = {
     table.update(unknown, (table.getOrElse(unknown, Set.empty[WidthConstraint]) + constraint))
   }
-  def get(unknown: TypeTrace): Option[WidthConstraint] = table.get(unknown).map(WidthMax(_))
+  private def get(unknown: TypeTrace): Option[WidthConstraint] = table.get(unknown).map(WidthMax(_))
 
-  def solve: TypeTrace=>Option[Int] = {
+  case class Solution(lookup: TypeTrace=>Option[Int], pathsUnknown: Int, pathsSolved: Int)
+  def solve: Solution = {
     // First, some helper functions
-    def replace(target: WidthConstraint)(implicit lookup: TypeTrace=>Option[WidthConstraint]): WidthConstraint = 
+    def replace(target: WidthConstraint, stops: Set[TypeTrace])
+      (implicit lookup: TypeTrace=>Option[WidthConstraint]): WidthConstraint =
+    {
       target match {
-        case WidthRef(ref) => lookup(ref).getOrElse(target)
+        case WidthRef(ref) =>
+          if(!stops(ref)) { lookup(ref).map(replace(_, stops + ref)).getOrElse(target) }
+          else target // TODO: Likely have a circular reference here and will fail!
 
-        case WidthAdd(terms)  => WidthAdd(terms.map(replace(_)))
-        case WidthMax(consts) => WidthMax(consts.map(replace(_)))
-        case WidthBitM(const) => WidthBitM(replace(const))
+        case WidthAdd(terms)  => WidthAdd(terms.map(replace(_, stops)))
+        case WidthMax(consts) => WidthMax(consts.map(replace(_, stops)))
+        case WidthBitM(const) => WidthBitM(replace(const, stops))
         
         case WidthLit(_) => target
         case FORCEWidthLit(lit) => throw new Exception("Internal Error: Width Force Failure")
           // These should be gone by now
+      }
     }
     def simplify(target: WidthConstraint): WidthConstraint = target match {
       case WidthLit(_) | WidthRef(_) | FORCEWidthLit(_) => target // these are unsimplifiable
@@ -81,7 +87,7 @@ class ConstraintTable {
       val result = HMap.empty[TypeTrace, WidthConstraint]
       val lookup: TypeTrace=>Option[WidthConstraint] = (tt) => result.get(tt)
       for(unknown <- order; constraint <- prelookup(unknown)){
-        val newconstraint = simplify( replace(simplify(constraint))(lookup) )
+        val newconstraint = simplify( replace(simplify(constraint), Set(unknown))(lookup) )
         result.update(unknown, newconstraint)
       }
 
@@ -94,11 +100,16 @@ class ConstraintTable {
     val second_pass_order  = first_pass_order.reverse
     val second_pass_lookup = doPass(second_pass_order, first_pass_lookup)
 
-    val final_result: TypeTrace=>Option[Int] = (tt) => second_pass_lookup(tt) match {
-      case Some(WidthLit(answer)) => Some(answer)
+    val final_result = HMap.empty[TypeTrace, Int]
+    for(unknown <- second_pass_order) second_pass_lookup(unknown) match {
+      case Some(WidthLit(answer)) => final_result.update(unknown, answer)
       case _ => None // Give different message when uninferrable vs just lost data?
     }
 
+    val final_lookup: TypeTrace=>Option[Int] = (tt) => final_result.get(tt)
+    Solution(final_lookup, table.size, final_result.size)
+  }
+/*
     // DEBUGGING
     val dprint = IRReader.Colorful
     def parseConstraint(c: WidthConstraint): String = c match {
@@ -118,8 +129,5 @@ class ConstraintTable {
     for( unknown <- second_pass_order; in <- first_pass_lookup(unknown); out <- second_pass_lookup(unknown) ) {
       println(s"${dprint.parseTT(unknown)} >= ${parseConstraint(in)} ---> >= ${parseConstraint(out)}")
     }
-
-
-    final_result
-  }
+*/
 }

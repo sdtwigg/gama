@@ -27,35 +27,36 @@ class ModuleTypeChecker(warnWidthUnknown: Boolean)(target: ElaboratedModule) {
   val moduleLeafTable = new LeafTable(None)
   moduleLeafTable.add(ioRef, LeafTableEntry(true))
 
-  checkBlockHW(target.body, moduleLeafTable)
+  checkCmdHW(target.body, moduleLeafTable)
 
   // All the checking functions below....
   def checkBlockHW(block: BlockHW, parentlt: LeafTable): Unit = {
     val leafTable = new LeafTable(Some(parentlt))
-    block.statements.foreach(stmt => stmt match {
-      case WireDecl(symbol)  => 
-      case RegDecl(symbol)   =>
-      case ConstDecl(symbol, expr) =>
-      case AliasDecl(symbol, ref) =>
+    block.statements.foreach(stmt => checkCmdHW(stmt, leafTable))
+  }
+  def checkCmdHW(cmd: CmdHW, leafTable: LeafTable): Unit = cmd match {
+    case WireDecl(symbol)  => 
+    case RegDecl(symbol)   =>
+    case ConstDecl(symbol, expr) =>
+    case AliasDecl(symbol, ref) =>
 
-      case b @ BlockHW(_) => checkBlockHW(b, leafTable)
-      case WhenHW(cond, tc, fc) => {
-        checkExpr(cond, leafTable)
-        cond.rType match {
-          case PrimitiveNode(UBits(Some(1))) => // OK
-          case PrimitiveNode(UBits(None)) => if(warnWidthUnknown) {warnings+=Problem(PTStart(cond),"Width Unknown")}
-          case _ => errors+=Problem(PTStart(cond),"WhenHW cond must be of type UBits(1|?)")
-        }
-        checkBlockHW(tc, leafTable)
-        checkBlockHW(fc, leafTable)
+    case b @ BlockHW(_) => checkBlockHW(b, leafTable)
+    case WhenHW(cond, tc, fc) => {
+      checkExpr(cond, leafTable)
+      cond.rType match {
+        case PrimitiveNode(UBits(Some(1))) => // OK
+        case PrimitiveNode(UBits(None)) => if(warnWidthUnknown) {warnings+=Problem(PTStart(cond),"Width Unknown")}
+        case _ => errors+=Problem(PTStart(cond),"WhenHW cond must be of type UBits(1|?)")
       }
+      checkCmdHW(tc, leafTable)
+      checkCmdHW(fc, leafTable)
+    }
 
-      case ConnectStmt(sink, source, details) => 
-      case BiConnectStmt(left, right, details) => 
-      
-      case MemDecl(desc) => 
-      case SubModuleDecl(details, ph) => 
-    })
+    case ConnectStmt(sink, source, details) => 
+    case BiConnectStmt(left, right, details) => 
+    
+    case MemDecl(desc) => 
+    case SubModuleDecl(details, ph) => 
   }
   
   def checkNodeStore(check: NodeStore, path: PathTrace): Unit = check match {
