@@ -68,7 +68,7 @@ sealed trait PrimitiveTypeHW extends TypeHW {def storage: NodeStore}
 case class PrimitiveNode(storage: NodeStore) extends PrimitiveTypeHW
 case class PrimitivePort(storage: NodeStore, direction: DirectionIO) extends PrimitiveTypeHW
 sealed trait AggregateTypeHW extends TypeHW
-case class TupleHW(fields: Vector[Tuple2[String, TypeHW]]) extends AggregateTypeHW // TODO: May want this to be a Map
+case class TupleHW(fields: Map[String, TypeHW]) extends AggregateTypeHW
 case class VecHW(depth: Int, elemType: TypeHW) extends AggregateTypeHW
 case object TypeHWUNKNOWN extends TypeHW with FIRERROR
 
@@ -76,7 +76,7 @@ case object TypeHWUNKNOWN extends TypeHW with FIRERROR
 sealed trait LitTree extends TreeHW
 case class LitRawBits(value: BigInt, width: Int, signed: Boolean) extends LitTree
 case class LitVec(elements: Vector[LitTree]) extends LitTree
-case class LitTuple(fields: Vector[Tuple2[String,LitTree]]) extends LitTree
+case class LitTuple(fields: Map[String,LitTree]) extends LitTree
 
 // Miscellaneous data containers
 sealed trait ModuleRef extends TreeHW {def ioType: TypeHW}

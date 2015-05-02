@@ -155,8 +155,8 @@ object ToFIR {
       case None      => PrimitiveNode(e.node.storage)
     })
     case v: Vec[_] => (VecHW(v.length, constructType(v.elemType)))
-    case t: HardwareTuple => (TupleHW(t.subfields_ordered.map(
+    case t: HardwareTuple => (TupleHW(t.subfields.map(
       {case (field: String, elem: Data) => (field, constructType(elem))}
-    ).toVector))
+    )))
   }
 }

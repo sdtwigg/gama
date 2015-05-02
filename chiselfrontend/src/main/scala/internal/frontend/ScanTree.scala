@@ -56,7 +56,7 @@ trait LinkedTypeScanTree {
           val newfollowers = for {
             (fType, fPath) <- followers // fType is TypeHW
             fTType <- asTupleHW(fType)  // fTType as TupleHW
-            fEType <- fTType.fields find(_._1 == field) map(_._2)
+            fEType <- fTType.fields.get(field)
           } yield (fEType, TTField(fPath, field)): Tuple2[TypeHW, TypeTrace]
           pathscan(lEType, TTField(leadPath, field), newfollowers)
         }
@@ -99,13 +99,13 @@ trait LinkedTypeScanTree {
       case ConnectTuple(fieldds) => for {
         (field, elemd) <- fieldds  // String, ConnectDetails
         lType <- asTupleHW(leader) // lType as TupleHW
-        lEType <- lType.fields find(_._1 == field) map(_._2) // Elem Type
+        lEType <- lType.fields.get(field)
         lPath = TTField(leadPath, field)
       } {
         val newfollowers = for {
           (fType, fPath) <- followers // fType is TypeHW
           fTType <- asTupleHW(fType)  // fTType as TupleHW
-          fEType <- fTType.fields find(_._1 == field) map(_._2)
+          fEType <- fTType.fields.get(field)
         } yield (fEType, TTField(fPath, field)): Tuple2[TypeHW, TypeTrace]
         guidedscan(elemd, lEType, lPath, newfollowers)
       }
@@ -129,10 +129,10 @@ trait LinkedTypeScanTree {
       case BiConnectTuple(fieldds) => for {
         (field, elemd) <- fieldds  // String, ConnectDetails
         lType <- asTupleHW(leftType) // lType as TupleHW
-        lEType <- lType.fields find(_._1 == field) map(_._2) // Elem Type
+        lEType <- lType.fields.get(field)
         lPath = TTField(leftPath, field)
         rType <- asTupleHW(rightType) // lType as TupleHW
-        rEType <- rType.fields find(_._1 == field) map(_._2) // Elem Type
+        rEType <- rType.fields.get(field)
         rPath = TTField(rightPath, field)
       } { biguidedscan(elemd, lEType, lPath, rEType, rPath) }
     }

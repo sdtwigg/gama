@@ -23,5 +23,5 @@ package object frontend {
     case _ => None
   }
   def getTupleFType(in: TypeHW, field: String): TypeHW =
-    asTupleHW(in) flatMap( _.fields find(_._1==field) map(_._2) ) getOrElse(TypeHWUNKNOWN)
+    asTupleHW(in) flatMap( _.fields.get(field) ) getOrElse(TypeHWUNKNOWN)
 }

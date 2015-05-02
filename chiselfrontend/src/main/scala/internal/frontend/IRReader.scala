@@ -126,7 +126,9 @@ trait IRReader {
     case PrimitiveNode(storage) => parseNodeStore(storage)
     case PrimitivePort(storage, dir) => s"${parseDirectionIO(dir)} ${parseNodeStore(storage)}"
     case TupleHW(fields) =>
-      fields map({case (field, elem) => s"${field}: ${parseType(elem)}"}) mkString("{",", ","}")
+      fields.toSeq.sortBy(_._1) map({
+        case (field, elem) => s"${field}: ${parseType(elem)}"
+      }) mkString("{",", ","}")
     case VecHW(depth, elemtype) => s"${parseType(elemtype)}[${depth}]"
     case TypeHWUNKNOWN => "$$$$UNKNOWNTYPE$$$$"
   }
@@ -145,7 +147,9 @@ trait IRReader {
     case ConnectAll => "<ALL>"
     case ConnectVec(elemdetails) => s"${parseConnectDetails(elemdetails)}*"
     case ConnectTuple(fields) =>
-      (fields map ({case (field, subd) => s"$field:${parseConnectDetails(subd)}"}) mkString("(",", ",")"))
+      (fields.toSeq.sortBy(_._1) map ({
+        case (field, subd) => s"$field:${parseConnectDetails(subd)}"
+      }) mkString("(",", ",")"))
   }
   def parseBiConnectDetails(details: BiConnectDetails): String = details match {
     case BiConnectToLeft  => "<<=="

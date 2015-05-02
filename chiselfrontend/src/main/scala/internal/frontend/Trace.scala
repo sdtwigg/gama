@@ -19,9 +19,8 @@ object TypeTrace {
       case (_, None) => reform(in)
       case (_, Some(TTStart(_))) => remake(in, path.tail, reform)
       case (VecHW(d, eType),   Some(TTIndexALL(_))) => VecHW(d, remake(eType, path.tail, reform))
-      case (TupleHW(elems), Some(TTField(_, sfield))) => TupleHW(elems.map({case (efield, elem) =>
-        (efield, if(sfield == efield) remake(elem, path.tail, reform) else elem)
-      }))
+      case (TupleHW(elems), Some(TTField(_, sfield))) if elems.isDefinedAt(sfield) =>
+        TupleHW( elems.updated(sfield, remake(elems(sfield), path.tail, reform)) )
       case _ => throw new Exception("Internal Error: Malformed Path")
     }
   }
