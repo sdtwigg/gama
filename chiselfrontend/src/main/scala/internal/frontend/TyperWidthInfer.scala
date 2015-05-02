@@ -138,11 +138,10 @@ object TyperWidthInferer {
     constrainingCmds.foreach(cmd => cmd match {
       case ConstDecl(symbol, expr) => ConstrainFrom.start(symbol, Seq(expr))
       case AliasDecl(symbol, ref)  => ConstrainFrom.start(symbol, Seq(ref)) // treat like ConstDecl
-      case ConnectStmt(sink, source, details) => {
+      case ConnectStmt(sink, source, details) =>
         ConstrainFrom.startguided(details, dealiaser.dealias(sink), Seq(source))
-      }
-        // needs dealiasing of both forms
-      case BiConnectStmt(sink, source, details) => ??? // needs dealiasing of both forms
+      case BiConnectStmt(left, right, details) => 
+        ConstrainFrom.startbiguided(details, dealiaser.dealias(left), dealiaser.dealias(right))
       case _ => ??? // These shouldn't show up as the others are not constraining commands
     })
 

@@ -9,7 +9,7 @@ import gama.library._
   val c = UInt(width=8)
 }
 
-@module class InferModule extends Module(Output(UInt(16))) {
+@module class InferModule extends Module(new ExampleIO) {
   val myKnownReg = Reg(UInt(4))
   myKnownReg := 2.U
 
@@ -45,7 +45,10 @@ import gama.library._
   val myWire2 = Mux(False, Mux(True, myUBVV(0), myUBVV(1))(2), myUBVV(2)(2))
   val myAcc = myUBVV(0.U)(0.U)
   myAcc := myUB
-  
+
+  val ioWire = Wire(new UBundle)
+  io.in2 <> ioWire
+
   // This circular reference should fail inference
   val myWirea = Wire(UInt())
   val myWireb = Wire(UInt())

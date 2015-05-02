@@ -43,6 +43,11 @@ trait LinkedTypeScanTree {
     val newf = followers.map(TyperWidthInferer.bypassCompRef(_))
     guidedscan(details, ltype, lpath, newf)
   }
+  def startbiguided(details: BiConnectDetails, left: ExprHW, right: ExprHW): Unit = {
+    val (ltype, lpath) = TyperWidthInferer.bypassCompRef(left)
+    val (rtype, rpath) = TyperWidthInferer.bypassCompRef(right)
+    biguidedscan(details, ltype, lpath, rtype, rpath)
+  }
   def pathscan(leader: TypeHW, leadPath: TypeTrace,
                followers: Iterable[Tuple2[TypeHW, TypeTrace]]): Unit = 
     leader match {
@@ -92,8 +97,8 @@ trait LinkedTypeScanTree {
       }
 
       case ConnectTuple(fieldds) => for {
-        lType <- asTupleHW(leader) // lType as TupleHW
         (field, elemd) <- fieldds  // String, ConnectDetails
+        lType <- asTupleHW(leader) // lType as TupleHW
         lEType <- lType.fields find(_._1 == field) map(_._2) // Elem Type
         lPath = TTField(leadPath, field)
       } {
@@ -104,6 +109,32 @@ trait LinkedTypeScanTree {
         } yield (fEType, TTField(fPath, field)): Tuple2[TypeHW, TypeTrace]
         guidedscan(elemd, lEType, lPath, newfollowers)
       }
+    }
+  def biguidedscan(details: BiConnectDetails,
+                 leftType: TypeHW, leftPath: TypeTrace,
+                 rightType: TypeHW, rightPath: TypeTrace): Unit = 
+    details match {
+      case BiConnectToLeft  => pathscan(leftType,  leftPath,  Some((rightType, rightPath)))
+      case BiConnectToRight => pathscan(rightType, rightPath, Some((leftType,  leftPath)))
+
+      case BiConnectVec(elemd) => for{
+        lType <- asVecHW(leftType)
+        lEType = lType.elemType
+        lPath  = TTIndexALL(leftPath)
+        rType <- asVecHW(rightType)
+        rEType = rType.elemType
+        rPath  = TTIndexALL(rightPath)
+      } { biguidedscan(elemd, lEType, lPath, rEType, rPath) }
+
+      case BiConnectTuple(fieldds) => for {
+        (field, elemd) <- fieldds  // String, ConnectDetails
+        lType <- asTupleHW(leftType) // lType as TupleHW
+        lEType <- lType.fields find(_._1 == field) map(_._2) // Elem Type
+        lPath = TTField(leftPath, field)
+        rType <- asTupleHW(rightType) // lType as TupleHW
+        rEType <- rType.fields find(_._1 == field) map(_._2) // Elem Type
+        rPath = TTField(rightPath, field)
+      } { biguidedscan(elemd, lEType, lPath, rEType, rPath) }
     }
 
   def leafwork(leader: PrimitiveTypeHW, leadPath: TypeTrace,
