@@ -65,8 +65,10 @@ case class AccessorDesc[+T<:Data](
   retVal: T, info: EnclosureInfo
 ) extends Desc with AccessorDescImpl[T] with EnclosedDesc
 
-case class RegDesc[+T<:Data](retVal: T, info: EnclosureInfo)
- extends Desc with RegDescImpl[T] with EnclosedDesc
+case class RegDesc[+T<:Data](
+  reset: Option[Tuple2[Bool, T]],
+  retVal: T, info: EnclosureInfo
+) extends Desc with RegDescImpl[T] with EnclosedDesc
 
 case class WireDesc[+T<:Data](retVal: T, info: EnclosureInfo)
  extends Desc with WireDescImpl[T] with EnclosedDesc

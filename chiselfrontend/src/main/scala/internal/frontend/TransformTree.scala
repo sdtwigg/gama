@@ -5,7 +5,9 @@ package frontend
 class ExprTransformTree {
   def transform(cmd: CmdHW): CmdHW = cmd match {
     case WireDecl(symbol)  => WireDecl(transform(symbol))
-    case RegDecl(symbol)   => RegDecl( transform(symbol))
+    case RegDecl(symbol, reset)   => RegDecl( transform(symbol), reset.map({
+      case (ren, rval) => (transform(ren), transform(rval))
+    }))
     case ConstDecl(symbol, expr) => ConstDecl(transform(symbol), transform(expr))
     case AliasDecl(symbol, ref)  => AliasDecl(transform(symbol), transform(ref) )
     case BlockHW(stmts) => BlockHW(stmts.map(transform(_)))

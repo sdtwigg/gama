@@ -59,7 +59,8 @@ object TyperWidthInferer {
           case _ =>
         }
         cmd match {
-          case ConstDecl(_,_) | AliasDecl(_,_) | ConnectStmt(_,_,_) | BiConnectStmt(_,_,_)
+          case RegDecl(_,_) | ConstDecl(_,_) | AliasDecl(_,_) |
+               ConnectStmt(_,_,_) | BiConnectStmt(_,_,_)
             => constrainingCmds += cmd
           case _ =>
         }
@@ -136,6 +137,8 @@ object TyperWidthInferer {
     // Look at all constraining commands
     // TODO: quickly skip ones that are irrelevant
     constrainingCmds.foreach(cmd => cmd match {
+      case RegDecl(symbol, Some((_,rval))) => ConstrainFrom.start(symbol, Seq(rval))
+      case RegDecl(symbol, None) => 
       case ConstDecl(symbol, expr) => ConstrainFrom.start(symbol, Seq(expr))
       case AliasDecl(symbol, ref)  => ConstrainFrom.start(symbol, Seq(ref)) // treat like ConstDecl
       case ConnectStmt(sink, source, details) =>

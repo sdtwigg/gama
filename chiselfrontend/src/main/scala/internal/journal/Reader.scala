@@ -55,8 +55,13 @@ abstract class BaseReader extends Reader {
         s"${HL.CYAN}const${HL.RESET} ${emitRefType(opdesc.retVal)} = ${emitOpDesc(opdesc)}  ${emitEncInfo(opdesc.info)}"
       case CreateWire(wiredesc) =>
         s"${HL.CYAN}wire${HL.RESET}  ${emitRefType(wiredesc.retVal)}  ${emitEncInfo(wiredesc.info)}"
-      case CreateReg(regdesc) =>
-        s"${HL.CYAN}reg${HL.RESET}   ${emitRefType(regdesc.retVal)}  ${emitEncInfo(regdesc.info)}"
+      case CreateReg(regdesc) => {
+        val rinfo: String = regdesc.reset match {
+          case Some((ren, rval)) => s"=> ${HL.CYAN}reset${HL.RESET} en = ${emitRef(ren)}, rval = ${emitRef(rval)}"
+          case None => ""
+        }
+        s"${HL.CYAN}reg${HL.RESET}   ${emitRefType(regdesc.retVal)} $rinfo ${emitEncInfo(regdesc.info)}"
+      }
       case CreateAccessor(accdesc) =>
         s"${HL.CYAN}acc${HL.RESET}   ${emitRefType(accdesc.retVal)} = ${emitAccDesc(accdesc)}  ${emitEncInfo(accdesc.info)}"
       case CreateExtract(extdesc) =>

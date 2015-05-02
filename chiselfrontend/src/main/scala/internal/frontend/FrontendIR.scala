@@ -18,7 +18,8 @@ sealed trait CmdHW extends TreeHW
 sealed trait CreatesRefSymbol extends CmdHW { def symbol: RefSymbol }
 // Symbol creators
 case class WireDecl(symbol: RefSymbol) extends CmdHW with CreatesRefSymbol
-case class RegDecl(symbol: RefSymbol) extends CmdHW with CreatesRefSymbol
+case class RegDecl(symbol: RefSymbol, reset: Option[Tuple2[ExprHW, ExprHW]]) extends CmdHW with CreatesRefSymbol
+  // Note, first element is boolean for reset enable, second is reset value... Force to be ExprLit?
 case class ConstDecl(symbol: RefSymbol, expr: ExprHW) extends CmdHW with CreatesRefSymbol
 case class AliasDecl(symbol: RefSymbol, ref: RefHW) extends CmdHW with CreatesRefSymbol
   // basically, a reference/pointer... good for holding named accessors/extractors?

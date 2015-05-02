@@ -5,7 +5,9 @@ package frontend
 class ExprScanTree {
   def scan(cmd: CmdHW): Unit = cmd match {
     case WireDecl(symbol)  => scan(symbol) 
-    case RegDecl(symbol)   => scan(symbol) 
+    case RegDecl(symbol, reset)   => {scan(symbol); reset.foreach({
+      case (ren, rval) => {scan(ren); scan(rval)}
+    })}
     case ConstDecl(symbol, expr) => {scan(symbol); scan(expr)}
     case AliasDecl(symbol, ref) => {scan(symbol); scan(ref)}
     case BlockHW(stmts) => stmts.foreach(scan(_))

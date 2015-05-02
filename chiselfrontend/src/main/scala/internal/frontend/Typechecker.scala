@@ -36,7 +36,7 @@ class ModuleTypeChecker(warnWidthUnknown: Boolean)(target: ElaboratedModule) {
   }
   def checkCmdHW(cmd: CmdHW, leafTable: LeafTable): Unit = cmd match {
     case WireDecl(symbol)  => 
-    case RegDecl(symbol)   =>
+    case RegDecl(symbol, reset)   =>
     case ConstDecl(symbol, expr) =>
     case AliasDecl(symbol, ref) =>
 

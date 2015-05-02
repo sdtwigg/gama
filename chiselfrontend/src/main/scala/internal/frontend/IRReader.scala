@@ -7,7 +7,13 @@ trait IRReader {
 
   def parseCmdHW(cmd: CmdHW): String = cmd match {
     case WireDecl(symbol) => s"${HL.CYAN}wire ${HL.RESET} ${emitFullSymbol(symbol)}"
-    case RegDecl(symbol)  => s"${HL.CYAN}reg  ${HL.RESET} ${emitFullSymbol(symbol)}"
+    case RegDecl(symbol, reset)  => {
+      val rinfo: String = reset match {
+        case Some((ren, rval)) => s"=> ${HL.CYAN}reset${HL.RESET} en = ${parseExpr(ren)}, rval = ${parseExpr(rval)}"
+        case None => ""
+      }
+      s"${HL.CYAN}reg  ${HL.RESET} ${emitFullSymbol(symbol)} $rinfo"
+    }
     case ConstDecl(symbol, expr) =>
       s"${HL.CYAN}const${HL.RESET} ${emitFullSymbol(symbol)} = ${parseExpr(expr)}"
     case AliasDecl(symbol, expr) =>

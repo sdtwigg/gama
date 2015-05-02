@@ -46,8 +46,12 @@ object ToFIR {
         
         case CreateWire(wiredesc) =>
           Some(WireDecl(reftable.addNewSymbol(wiredesc.retVal, extractName(wiredesc), true)))
-        case CreateReg(regdesc) => 
-          Some(RegDecl(reftable.addNewSymbol(regdesc.retVal, extractName(regdesc), true)))
+        case CreateReg(regdesc) => {
+          val reset: Option[Tuple2[ExprHW, ExprHW]] = regdesc.reset.map({
+            case (ren, rval) => (exprLookup(ren)._1, exprLookup(rval)._1)
+          })
+          Some(RegDecl(reftable.addNewSymbol(regdesc.retVal, extractName(regdesc), true), reset))
+        }
 
         case CreateAccessor(accdesc) => {
           val (newref, connectable) = accdesc.accRef match {

@@ -19,8 +19,8 @@ object testmain {
     println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Expressions Considered = ${solution.unknownsFound}")
     println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Unknown Type Parts (Solved/Total) = ${solution.solvedParts}/${solution.unknownParts}")
 
-    //val myJReader = gama.internal.journal.FoldedReader.Colorful
-    //println(myJReader.parseCircuit(myTopModule) mkString("\n"))
+    val myJReader = gama.internal.journal.FoldedReader.Colorful
+    println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     val myIRReader = gama.internal.frontend.IRReader.Colorful
     println(s"Module(${Console.GREEN}${myIRReader.parseType(topModDesc.io)}${Console.RESET}, ${myIRReader.parseCmdHW(topModDesc.body)})")
     println(s"Module(${Console.GREEN}${myIRReader.parseType(inferred.io)}${Console.RESET}, ${myIRReader.parseCmdHW(inferred.body)})")
