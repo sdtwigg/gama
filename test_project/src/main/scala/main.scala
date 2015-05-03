@@ -241,8 +241,8 @@ trait Nested2 extends Nested {
 }
 
 @module class SubModule extends Module(new Bundle with Anon {
-  val in  = Input(UInt())
-  val out = Output(UInt())
+  val in  = Input(UInt(width=4))
+  val out = Output(UInt(width=4))
 }) {
   io.in <> io.out
 }

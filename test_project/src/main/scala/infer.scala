@@ -49,6 +49,10 @@ import gama.library._
   val ioWire = Wire(new UBundle)
   io.in2 <> ioWire
 
+  val mySubModule = Module(new SubModule)
+  val subWire1 = Wire(UInt())
+  subWire1 <> mySubModule.io.out
+
   // This circular reference should fail inference
   val myWirea = Wire(UInt())
   val myWireb = Wire(UInt())

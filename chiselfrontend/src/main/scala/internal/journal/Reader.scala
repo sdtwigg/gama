@@ -32,10 +32,10 @@ abstract class BaseReader extends Reader {
     module.forceSetName(NameTerm(s"${HL.CYAN}this${HL.RESET}"), module_src, true)
       // TODO: kinda hacky although readers are mainly for debugging anyway...
     try{
-      val ioType = emitType(module.io)
+      val ioType = emitType(module.io) // TODO: Make full IO type?
       val body = parseJournal(module.getActiveJournal)
       s"${HL.CYAN}module${HL.RESET} ${module.getClass.getName}(${HL.GREEN}${ioType}${HL.RESET})${body}"
-    } finally {module.io.forceSetName(module_name, module_src, true)} // restore true io name
+    } finally {module.forceSetName(module_name, module_src, true)} // restore true io name
   }
   def ensureAllChildrenNamed(module: Module[_<:Data]): Unit = {
     val childrenToName: Iterable[Nameable] = module.children flatMap(child => {

@@ -40,7 +40,7 @@ trait IRReader {
       s"${parseExpr(left)} <-> ${parseExpr(right)} ${HL.YELLOW}${parseBiConnectDetails(details)}${HL.RESET}"
 
     case SubModuleDecl(details, placeholder) =>
-      s"${HL.CYAN}inst${HL.RESET} ${emitModName(details)}: ${HL.GREEN}$placeholder${HL.RESET}"
+      s"${HL.CYAN}inst${HL.RESET} ${emitModName(details)}: ${HL.GREEN}$placeholder${HL.RESET}, ${HL.CYAN}IO${HL.RESET}: ${HL.GREEN}${parseType(details.ioType)}${HL.RESET}"
   }
   def emitModName(desc: ModuleSub): String = {
     val name = desc.identifier.getOrElse("")
