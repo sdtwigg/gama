@@ -244,6 +244,7 @@ trait Nested2 extends Nested {
   val in  = Input(UInt(width=4))
   val out = Output(UInt(width=4))
 }) {
+  reset
   io.in <> io.out
 }
 

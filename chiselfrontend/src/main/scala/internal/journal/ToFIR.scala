@@ -7,7 +7,7 @@ import frontend._
 
 object ToFIR {
   def processIO[MR<:ModuleRef](target: Module[_<:Data], toModuleRef: TypeHW=>MR, reftable: RefTable): MR = {
-    val full_io_type = TupleHW(target.full_io.map({ case (field, elem) => (field, constructType(elem)) }))
+    val full_io_type = TupleHW(target.full_io.toMap.map({ case (field, elem) => (field, constructType(elem)) }))
     val moduleRef = toModuleRef(full_io_type)
 
     target.full_io.foreach({
