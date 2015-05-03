@@ -6,6 +6,17 @@ import frontend._
 
 
 object ToFIR {
+  def processIO[MR<:ModuleRef](target: Module[_<:Data], toModuleRef: TypeHW=>MR, reftable: RefTable): MR = {
+    val full_io_type = TupleHW(target.full_io.map({ case (field, elem) => (field, constructType(elem)) }))
+    val moduleRef = toModuleRef(full_io_type)
+
+    target.full_io.foreach({
+      case (field, elem) => reftable.add(elem, (RefTLookup(RefIO(moduleRef), field), true))
+    })
+
+    moduleRef
+  }
+
   def convertJournal(journal: Journal, parentref: Option[RefTable], parentexpr: Option[ExprTable],
                                        parentmem: Option[MemTable], parentmod: Option[SubModTable]): BlockHW = 
   {
@@ -75,8 +86,7 @@ object ToFIR {
 
         // Sort-of symbol creators 
         case CreateModule(module) => {
-          val modref = modtable.addNewMod(module)
-          reftable.add(module.io, (RefIO(modref), true))
+          val modref = modtable.addNewMod(module, reftable)
           Some(SubModuleDecl(modref, module.getClass.getName))
         }
         case CreateMem(mem) => Some(MemDecl(memtable.addNewMem(mem)))
@@ -108,7 +118,7 @@ object ToFIR {
   def exprLookup(in: Data)(implicit reftable: RefTable, exprtable: ExprTable): Tuple2[ExprHW,Boolean] =
     in.name match {
       // Name at leaf 
-      case Some(NameTerm(_)) | Some(NameIO(_)) | Some(NameUNKNOWN) =>
+      case Some(NameTerm(_)) | Some(NameIO(_,_)) | Some(NameUNKNOWN) =>
         ( reftable.get(in) orElse (exprtable.get(in).map((_,false))) ).getOrElse(
           (RefExprERROR("ExprLookup failed"), false)
         )
@@ -135,7 +145,7 @@ object ToFIR {
         newref
       }
       // error cases
-      case Some(NameTerm(_)) | Some(NameIO(_)) | Some(NameUNKNOWN) | Some(NameLit(_)) | None =>
+      case Some(NameTerm(_)) | Some(NameIO(_,_)) | Some(NameUNKNOWN) | Some(NameLit(_)) | None =>
         (RefExprERROR("RefLookup failed"), false)
         // NameTerm/NameIO/NameUNKNOWN -> should have resolved by initial reftable get
         // NameLit -> references can't be directly formed from literals

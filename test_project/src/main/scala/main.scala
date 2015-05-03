@@ -15,15 +15,16 @@ object testmain {
     println(s"# Type Checker ${Console.YELLOW}Warnings${Console.RESET}: ${typechecker.errors.length}")
     
     val solution = gama.internal.frontend.TyperWidthInferer.infer(topModDesc)
-    val inferred = solution.inferredModule
-    println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Expressions Considered = ${solution.unknownsFound}")
-    println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Unknown Type Parts (Solved/Total) = ${solution.solvedParts}/${solution.unknownParts}")
 
     val myJReader = gama.internal.journal.FoldedReader.Colorful
     println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     val myIRReader = gama.internal.frontend.IRReader.Colorful
-    println(s"Module(${Console.GREEN}${myIRReader.parseType(topModDesc.io)}${Console.RESET}, ${myIRReader.parseCmdHW(topModDesc.body)})")
-    println(s"Module(${Console.GREEN}${myIRReader.parseType(inferred.io)}${Console.RESET}, ${myIRReader.parseCmdHW(inferred.body)})")
+
+    println(myIRReader.parseElaboratedModule(topModDesc))
+    println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Expressions Considered = ${solution.unknownsFound}")
+    println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Unknown Type Parts (Solved/Total) = ${solution.solvedParts}/${solution.unknownParts}")
+    println(myIRReader.parseElaboratedModule(solution.inferredModule))
+
   }
 }
 /*

@@ -37,7 +37,7 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
   protected[gama] val ioDesc: PortDesc[IOT] = PortDesc(Port(makeIO, __enclosingmodule), EnclosureInfo(__enclosingmodule, None))
   final val io: IOT = ioDesc.retVal
   io.setDescRef(ioDesc, true)
-  io.forceSetName(NameIO(this), NameFromIO, true)
+  io.forceSetName(NameIO(this,"io"), NameFromIO, true)
   
   // Also, add self to parent, if it exists
   parent.foreach(_.addSubmodule(this))
@@ -47,9 +47,11 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
     getActiveJournal.append(journal.CreateModule(child))
     _children.append(child)
   }
-
   
   def propogateName(newname: NameTree, newsource: NameSource): Unit = {} // do not propogate to IO
+
+  // TODO: Setup utilities to add extra IOs, including reset (via lazy val propogation)
+  val full_io = Map("io"->io)
 }
 object Module {
   private def currentModule: Option[Module[_<:Data]] = modStack.headOption

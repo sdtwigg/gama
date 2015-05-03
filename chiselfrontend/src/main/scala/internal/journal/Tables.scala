@@ -12,11 +12,12 @@ class SubModTable(parent: Option[SubModTable]) {
   }
   
   def get(key: Module[_]): Option[ModuleSub] = table.get(key) orElse parent.flatMap(_.get(key))
-  def addNewMod(in: Module[_<:Data]): ModuleSub = {
+  def addNewMod(in: Module[_<:Data], reftable: RefTable): ModuleSub = {
     if(get(in).isDefined) { throw new Exception("Internal Error: Context Uniqueness Violation") }
-    val newMod = ModuleSub(getFreshId, ToFIR.extractName(in), ToFIR.constructType(in.io))
-    table(in) = newMod
-    newMod
+    val newId = getFreshId
+    val modRef = ToFIR.processIO(in, (thw) => ModuleSub(newId, ToFIR.extractName(in), thw), reftable)
+    table(in) = modRef
+    modRef
   }
 }
 

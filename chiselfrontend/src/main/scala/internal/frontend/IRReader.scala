@@ -4,6 +4,9 @@ package frontend
 
 trait IRReader {
   def HL: Highlighter
+  def parseElaboratedModule(module: ElaboratedModule): String = {
+    s"Module(${HL.CYAN}IO${HL.RESET}: ${HL.GREEN}${parseType(module.io)}${HL.RESET}, ${parseCmdHW(module.body)})"
+  }
 
   def parseCmdHW(cmd: CmdHW): String = cmd match {
     case WireDecl(symbol) => s"${HL.CYAN}wire ${HL.RESET} ${emitFullSymbol(symbol)}"
@@ -106,7 +109,7 @@ trait IRReader {
       case ExprMux(cond, tc, fc, _) => s"((${parseExpr(cond)}) ? (${parseExpr(tc)}) : (${parseExpr(fc)}))"
       case ExprLit(litvalue, _) => s"${HL.RED}${parseLitTree(litvalue)}${HL.RESET}"
 
-      case RefIO(details) => s"${parseModRef(details)}->${HL.CYAN}io${HL.RESET}"
+      case RefIO(details) => s"${parseModRef(details)}->${HL.CYAN}IO${HL.RESET}"
       case RefMSelect(mem, selector)    => s"${emitMemName(mem)}(${parseExpr(selector)})"
       case RefVIndex(parent, index)     => s"${parseExpr(parent)}($index)"
       case RefVSelect(parent, selector) => s"${parseExpr(parent)}(${parseExpr(selector)})"

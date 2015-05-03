@@ -27,13 +27,15 @@ abstract class BaseReader extends Reader {
   
   def parseModule(module: Module[_<:Data]): String = {
     ensureAllChildrenNamed(module)
-    module.io.forceSetName(NameTerm("io"), NameFromIO, true)
+    val module_name = module.name.getOrElse(NameUNKNOWN)
+    val module_src  = module.nameSource.getOrElse(NameFromInit)
+    module.forceSetName(NameTerm(s"${HL.CYAN}this${HL.RESET}"), module_src, true)
       // TODO: kinda hacky although readers are mainly for debugging anyway...
     try{
       val ioType = emitType(module.io)
       val body = parseJournal(module.getActiveJournal)
       s"${HL.CYAN}module${HL.RESET} ${module.getClass.getName}(${HL.GREEN}${ioType}${HL.RESET})${body}"
-    } finally {module.io.forceSetName(NameIO(module), NameFromIO, true)} // restore true io name
+    } finally {module.io.forceSetName(module_name, module_src, true)} // restore true io name
   }
   def ensureAllChildrenNamed(module: Module[_<:Data]): Unit = {
     val childrenToName: Iterable[Nameable] = module.children flatMap(child => {
@@ -186,7 +188,7 @@ abstract class BaseReader extends Reader {
   def emitName(target: Nameable): String = parseNameTree(target.name.getOrElse(NameUNKNOWN))
   def parseNameTree(name: NameTree): String = name match {
     case NameTerm(identifier) => identifier
-    case NameIO(source) => s"${emitName(source)}.io"
+    case NameIO(source, field) => s"${emitName(source)}->$field"
     case NameField(source, field) => s"${emitName(source)}.${field}"
     case NameIndex(source, index) => s"${emitName(source)}(${index})"
 
