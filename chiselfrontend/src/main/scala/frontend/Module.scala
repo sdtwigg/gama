@@ -81,7 +81,8 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
     rdesc
   }
   def reset: Bool = resetDesc.retVal
-  // TODO: Some reset set service so can set reset without first calling for the parent.reset auto-connect
+  // TODO: explReset constructor override so can initialize reset without calling for parent.reset auto-connect
+  //   as this can cause a cascade of needed resets further up
 
   def propogateName(newname: NameTree, newsource: NameSource): Unit = {} // do not propogate to IO
 }
