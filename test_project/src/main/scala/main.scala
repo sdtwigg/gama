@@ -7,7 +7,7 @@ object testmain {
   def main(args: Array[String]) {
 
     //val myTopModule = ExampleModule()
-    val myTopModule = Module(new RegModule)
+    val myTopModule = Module(new InferModule)
     val topModDesc = gama.frontend.implementation.journal.Converter(myTopModule)
     
     val typechecker = new gama.intermediate.ModuleTypeChecker(true)(topModDesc)
@@ -244,7 +244,7 @@ trait Nested2 extends Nested {
   val in  = Input(UInt(width=4))
   val out = Output(UInt(width=4))
 }) {
-  val myReg = Reg(RInit(0.U))
+  val myReg = Wire(UInt())//Reg(RInit(0.U))
   io.in <> myReg
   io.out <> myReg
 }

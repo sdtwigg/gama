@@ -13,6 +13,15 @@ package implementation
 trait ConnectTo[To<:Data, -From<:Data] {
   def monoDetails(sink: Sink[To], source: Source[From]): ConnectDetails
   def monoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo): Unit
+  protected[gama] def preciseMonoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo,
+    targetloc: Tuple2[journal.Journal, journal.Entry]): Unit =
+  {
+    targetloc._1.insertAfter(journal.ConnectData(sink, source, monoDetails(sink,source), info), targetloc._2)
+  }
+    // Use for in the VERY RARE cases that need to override the journal and entry position written to
+    //   e.g. Module uses this to ensure the reset for a child is connected in precisely the right place
+    //        regardless of usercode insanity (likely, abuse of lazy val or def in that child module)
+    // USE WITH EXTREME CAUTION as it is not ensured journal is even on the EnclosingModule's journal stack
 }
 object ConnectTo {
   type From[D<:Data] = {type CB[To<:Data] = ConnectTo[To, D]}

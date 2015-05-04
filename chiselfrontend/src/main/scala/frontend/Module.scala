@@ -2,7 +2,7 @@ package gama
 package frontend
 
 import implementation._
-import journal.{Journal} // journal from internal
+import journal.{Journal, Entry} // journal from implementation
 
 final class EnclosingModule private (incomingEnclosed: Module[_<:Data]) extends EnclosureWeakReference[Module[_<:Data]](incomingEnclosed) {
   protected[this] val lostLinkDetails: String = s"EnclosingModule (previously connected to ${incomingEnclosed.toString})"
@@ -50,30 +50,38 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
   
   // Add self to parent, if it exists
   parent.foreach(_.addSubmodule(this))
-  private[this] var _children = scala.collection.mutable.ListBuffer.empty[Module[_<:Data]]
-  protected[gama] def children = _children.toList
-  private def addSubmodule(child: Module[_<:Data]) = {
-    getActiveJournal.append(journal.CreateModule(child))
-    _children.append(child)
+  private[this] var _children = scala.collection.mutable.LinkedHashMap.empty[Module[_<:Data], Tuple2[Journal, Entry]]
+    // Store both the child and the precise location child is scoped (for use later, see reset)
+  protected[gama] def children = _children.keys.toList
+  private def addSubmodule(child: Module[_<:Data]): Unit = {
+    val entry = journal.CreateModule(child)
+    getActiveJournal.append(entry)
+    _children.update(child, (getActiveJournal, entry))
   }
 
   // Add miscellaneous module utilities
+  private def requestResetConnect(child: Module[_<:Data], childReset: Bool, parentSrc: Bool): Unit = {
+    // child calls this in parent
+    // This service ensures that if reset set is first asked for by submodule to parent
+    //  when parent is in deeper scope
+    // Could happen if the user is doing somewhat absurd operations with addIOPin and lazy vals.
+    // Thus, use preciseMonoConnect service to connect immediately after module was instantiated
+    ConnectTo[Bool,Bool].preciseMonoConnect(Sink(childReset), Source(parentSrc),
+      EnclosureInfo(__enclosingmodule, None), _children(child))
+  }
   lazy private[this] val resetDesc: PortDesc[Bool] = {
     val rdesc = PortDesc(Port(DirectionXFORM.toInput(Bool()), __enclosingmodule),
                         EnclosureInfo(__enclosingmodule, None))
-    val rval = rdesc.retVal
-    rval.setDescRef(rdesc, true)
-    rval.forceSetName(NameIO(this,"reset"), NameFromIO, true)
-    addIOPin("reset", rval)
-    // TODO: CONSIDER: What if some weirdness happens and reset is first asked for by submodule to parent when parent is in deeper scope
-    //  Could happen if the user is doing wacky things with addIOPin and lazy vals as well.
-    //  Likely resolution is for parent to save where the submodule was created and append the reset connect entry
-    //    to that journal directly. Will fix later?
-    parent.foreach(p => rval.doConnectTo(p.reset, EnclosureInfo(p.__enclosingmodule, None)))
+    val ren = rdesc.retVal
+    ren.setDescRef(rdesc, true)
+    ren.forceSetName(NameIO(this,"reset"), NameFromIO, true)
+    addIOPin("reset", ren)
+    for{p <- parent} (p.requestResetConnect(this, ren, p.reset))
 
     rdesc
   }
   def reset: Bool = resetDesc.retVal
+  // TODO: Some reset set service so can set reset without first calling for the parent.reset auto-connect
 
   def propogateName(newname: NameTree, newsource: NameSource): Unit = {} // do not propogate to IO
 }
