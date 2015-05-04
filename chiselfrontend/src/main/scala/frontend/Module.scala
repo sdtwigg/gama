@@ -18,7 +18,8 @@ case object UnwrappedModuleException extends
 case object OverwrappedModuleException extends
   ChiselException("Module() improperly called inside other Module() call without intervening module creation.")
 
-abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
+abstract class Module[+IOT<:Data](makeIO: IOT, defaultReset: Option[Bool] = None) extends Nameable {
+  def this(makeIO: IOT, defaultReset: Bool) = this(makeIO, Some(defaultReset))
   // Setup parent then add self to module stack before an exception that leads to Module stack corruption
   protected[gama] val parent: Option[Module[_<:Data]] = Module.currentModule
   Module.push(this)
@@ -76,13 +77,14 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
     ren.setDescRef(rdesc, true)
     ren.forceSetName(NameIO(this,"reset"), NameFromIO, true)
     addIOPin("reset", ren)
-    for{p <- parent} (p.requestResetConnect(this, ren, p.reset))
+    for{
+      p <- parent
+      rstSrc = defaultReset.getOrElse(p.reset)
+    } (p.requestResetConnect(this, ren, rstSrc))
 
     rdesc
   }
   def reset: Bool = resetDesc.retVal
-  // TODO: explReset constructor override so can initialize reset without calling for parent.reset auto-connect
-  //   as this can cause a cascade of needed resets further up
 
   def propogateName(newname: NameTree, newsource: NameSource): Unit = {} // do not propogate to IO
 }

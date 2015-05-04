@@ -52,7 +52,7 @@ import gama.library._
   val ioWire = Wire(new UBundle)
   io.in2 <> ioWire
 
-  val mySubModule = Module(new SubModule)
+  val mySubModule = Module(new SubModule(defaultReset=myWire(0)))
   val subWire1 = Wire(UInt())
   subWire1 <> mySubModule.io.out
 

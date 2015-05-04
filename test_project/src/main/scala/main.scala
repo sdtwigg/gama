@@ -240,11 +240,13 @@ trait Nested2 extends Nested {
   io.t2_out_vecuint(1) := io.t2_in_vecuint(0)
 }
 
-@module class SubModule extends Module(new Bundle with Anon {
+@module class SubModule(defaultReset: Option[Bool]=None) extends Module(new Bundle with Anon {
   val in  = Input(UInt(width=4))
   val out = Output(UInt(width=4))
-}) {
-  val myReg = Wire(UInt())//Reg(RInit(0.U))
+}, defaultReset) {
+  def this(defaultReset: Bool) = this(Some(defaultReset))
+
+  val myReg = Reg(RInit(0.U))
   io.in <> myReg
   io.out <> myReg
 }
