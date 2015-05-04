@@ -1,3 +1,2 @@
 package gama
-package object intermediate {
-}
+package object intermediate extends GamaIRUtilImpl

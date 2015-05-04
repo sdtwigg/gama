@@ -1,8 +1,6 @@
 package gama
 package intermediate
 
-import IRUtil._
-
 class ExprScanTree {
   def scan(cmd: CmdHW): Unit = cmd match {
     case WireDecl(symbol)  => scan(symbol) 

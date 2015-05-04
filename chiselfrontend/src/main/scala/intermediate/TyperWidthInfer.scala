@@ -1,7 +1,6 @@
 package gama
 package intermediate
 
-import IRUtil._
 import scala.collection.mutable.{HashMap=>HMap, HashSet=>HSet, ListBuffer=>ListB}
 
 object TyperWidthInferer {

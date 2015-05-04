@@ -1,6 +1,7 @@
 package gama
 
-object IRUtil {
+object GamaIRUtil extends GamaIRUtilImpl
+trait GamaIRUtilImpl {
   def getWidth(in: PrimitiveTypeHW): Option[Option[Int]] = in.storage match {
     case rb: RawBits => (Some(rb.width))
     case _ => None
