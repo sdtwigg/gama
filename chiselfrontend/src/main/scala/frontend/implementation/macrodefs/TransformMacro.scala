@@ -85,6 +85,14 @@ protected[gama] object TransformMacro {
       val TP = c.weakTypeOf[D]
       q"$myThis.doNodeXFORM[$TP]($model, $constructInfo)"
     }
+    def xinit[D<:Data: c.WeakTypeTag](init: c.Tree): c.Tree = {
+      val TP = c.weakTypeOf[D]
+      q"$myThis.doNodeXFORM[$TP]($init, $constructInfo)"
+    }
+    def xmodel_init[D<:Data: c.WeakTypeTag](model: c.Tree, init: c.Tree): c.Tree = {
+      val TP = c.weakTypeOf[D]
+      q"$myThis.doNodeXFORM[$TP]($model, $init, $constructInfo)"
+    }
   }
   class doMux(val c: Context) extends CoreTransform {
     import c.universe._
