@@ -1,6 +1,6 @@
 package test
 
-import gama.api._
+import gama.frontend.api._
 import gama.library._
 
 @module class APIModule extends Module(Output(UInt())) {
@@ -38,7 +38,7 @@ import gama.library._
   val myalias = vecreg(notuint)
   myalias := 1.U
   
-  import gama.internal.{LitMap, VecLitMap, SIntLitMap}
+  import gama.frontend.implementation.{LitMap, VecLitMap, SIntLitMap}
   val ivec11 = VecLitMap(Seq(
     SIntLitMap(1,2), SIntLitMap(3,3), SIntLitMap(5,5), SIntLitMap(4,4)
   ))

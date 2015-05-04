@@ -1,6 +1,6 @@
 package test
 
-import gama.api._
+import gama.frontend.api._
 import gama.library._
 
 object testmain {
@@ -8,17 +8,17 @@ object testmain {
 
     //val myTopModule = ExampleModule()
     val myTopModule = Module(new InferModule)
-    val topModDesc = gama.internal.journal.Converter(myTopModule)
+    val topModDesc = gama.frontend.implementation.journal.Converter(myTopModule)
     
-    val typechecker = new gama.internal.frontend.ModuleTypeChecker(true)(topModDesc)
+    val typechecker = new gama.intermediate.ModuleTypeChecker(true)(topModDesc)
     println(s"# Type Checker ${Console.RED}Errors${Console.RESET}: ${typechecker.errors.length}")
     println(s"# Type Checker ${Console.YELLOW}Warnings${Console.RESET}: ${typechecker.errors.length}")
     
-    val solution = gama.internal.frontend.TyperWidthInferer.infer(topModDesc)
+    val solution = gama.intermediate.TyperWidthInferer.infer(topModDesc)
 
-    val myJReader = gama.internal.journal.FoldedReader.Colorful
+    val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
     println(myJReader.parseCircuit(myTopModule) mkString("\n"))
-    val myIRReader = gama.internal.frontend.IRReader.Colorful
+    val myIRReader = gama.intermediate.IRReader.Colorful
 
     println(myIRReader.parseElaboratedModule(topModDesc))
     println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Expressions Considered = ${solution.unknownsFound}")
@@ -244,7 +244,6 @@ trait Nested2 extends Nested {
   val in  = Input(UInt(width=4))
   val out = Output(UInt(width=4))
 }) {
-  reset
   io.in <> io.out
 }
 

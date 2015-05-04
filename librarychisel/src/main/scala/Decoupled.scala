@@ -1,7 +1,7 @@
 package gama
 package library
 
-import gama.api._
+import gama.frontend.api._
 
 final class Decoupled[+T<:Data] private (model: T) extends HardwareTuple with BundleReflection {
   val valid = Output(Bool())
@@ -14,7 +14,6 @@ final class Decoupled[+T<:Data] private (model: T) extends HardwareTuple with Bu
 object Decoupled {
   def apply[T<:Data](model: T): Decoupled[T] = new Decoupled(model)
  
-  import gama.internal._
   implicit def selfMuxer[D<:Data: Muxable]: Muxable[Decoupled[D]] = new Muxable[Decoupled[D]] {
     def muxRetVal(tc: Decoupled[D], fc: Decoupled[D]) = {
       Decoupled(implicitly[Muxable[D]].muxRetVal(tc.bits, fc.bits))

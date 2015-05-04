@@ -1,6 +1,6 @@
 package test
 
-import gama.api._
+import gama.frontend.api._
 import gama.library._
 
 @bundle class UBundle extends Bundle {
