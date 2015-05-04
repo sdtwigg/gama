@@ -119,7 +119,7 @@ object TyperWidthInferer {
           ConstrainFrom.start(expr, Seq(left, right))
         case OpMult | OpCat   => // l + r
           ConstrainAdd2.start(expr, Seq(left, right))
-        case OpDiv  | OpRShft => // l
+        case OpDiv  | OpRShft => // l // TODO: Div should grow width when signed: INTMIN/-1
           ConstrainFrom.start(expr, Seq(left))
         case OpMod   => // r?
           ConstrainFrom.start(expr, Seq(right))

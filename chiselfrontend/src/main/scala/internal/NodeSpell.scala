@@ -11,6 +11,15 @@ sealed trait NodeSpell[+Out<:Node] {
     case spec: SPEC => (apply(spec))
   }
 }
+case object GenericizeSpell extends NodeSpell[SPEC] {
+  // For Mux, some reg ops, although Mux COULD be clever and try to propogate some width info
+  // Intentionally wipes out width information
+  def apply(in: SPEC) = SPEC(in.storage.generic, in.direction)
+}
+case class NodeAssignSpell(node: Node) extends NodeSpell[Node] {
+  // Used by literals, since they want to just assign a node and ignore old SPEC
+  def apply(in: SPEC) = node
+}
 
 // These are all meant to be used to internal adjust a node to conform to some property
 //   like, become a Reg, adjust direction, etc.
@@ -58,19 +67,10 @@ case class NonConnectableExtractedSpell(em: EnclosingModule) extends NodeSpell[N
   def apply(in: SPEC) = NonConnectableExtractedNode(in.storage, em)
 }
 
-case class OpCopySpell(em: EnclosingModule) extends NodeSpell[OpNode] {
-  // Don't expect to use this
+case class OpSpell(em: EnclosingModule) extends NodeSpell[OpNode] {
   def apply(in: SPEC) = OpNode(in.storage, em)
 }
-case class OpGenericSpell(em: EnclosingModule) extends NodeSpell[OpNode] {
-  // For Mux, although Mux COULD be clever and try to propogate some width info
-  def apply(in: SPEC) = OpNode(in.storage.generic, em)
-}
 
-case class LitAssignSpell(litnode: LitNode) extends NodeSpell[LitNode] {
-  // intentionally ignoring SPEC since literals construction from nether
-  def apply(in: SPEC) = litnode
-}
 
 case class MemSpecSpell(em: EnclosingModule) extends NodeSpell[MemSpec] {
   def apply(in: SPEC) = MemSpec(in.storage, em)

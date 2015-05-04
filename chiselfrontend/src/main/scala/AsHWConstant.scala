@@ -11,7 +11,7 @@ object AsHWConstant {
   // external->internal API
   def doConstant[D<:Data](in: D, info: EnclosureInfo): D = {
     NodeCheck.assertSynthesizable(in)
-    Desc.generate(in.copy.rebind(OpCopySpell(info.em)))(rv =>
+    Desc.generate(in.copy.rebind(OpSpell(info.em)))(rv =>
       UnaryOpDesc(OpIDENT, in, rv, info)
     )
   }

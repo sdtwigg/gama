@@ -43,7 +43,7 @@ protected[gama] object LitMap {
 trait LitMapElementImpl[T<:Element] {
   self: LitMap[T] =>
     protected[this] def bind(in: T): Unit = {
-      in.rebind(LitAssignSpell( LitNode(constructData.node.storage) ))
+      in.rebind(NodeAssignSpell( LitNode(constructData.node.storage) ))
         // TODO: could just trust that in is OKAY
         //   as if constructed with constructData, it will be
     }
