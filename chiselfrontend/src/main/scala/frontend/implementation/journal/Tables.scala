@@ -3,8 +3,6 @@ package frontend
 package implementation
 package journal
 
-import intermediate._
-
 class SubModTable(parent: Option[SubModTable]) {
   private val table = scala.collection.mutable.HashMap.empty[Module[_],ModuleSub]
   private[this] var lastid = 0 // only the module-level SubModTable should end up using this

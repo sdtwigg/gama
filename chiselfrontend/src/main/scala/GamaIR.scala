@@ -1,6 +1,6 @@
 package gama
-package intermediate
 
+import IRUtil._
 // TODO: WRITE TYPE CHECKER
 // TODO: ADD TRANSLATED DEBUGGING INFO
 sealed trait TreeHW extends Product {

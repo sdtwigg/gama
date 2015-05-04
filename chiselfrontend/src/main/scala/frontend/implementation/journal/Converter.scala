@@ -3,8 +3,6 @@ package frontend
 package implementation
 package journal
 
-import intermediate._
-
 object Converter {
   def apply(module: Module[_<:Data]): ElaboratedModule = {
     val reftable = new RefTable(None)

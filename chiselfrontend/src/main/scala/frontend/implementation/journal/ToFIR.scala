@@ -3,9 +3,6 @@ package frontend
 package implementation
 package journal
 
-import intermediate._
-
-
 object ToFIR {
   def processIO[MR<:ModuleRef](target: Module[_<:Data], toModuleRef: TypeHW=>MR, reftable: RefTable): MR = {
     val full_io_type = TupleHW(target.full_io.toMap.map({ case (field, elem) => (field, constructType(elem)) }))

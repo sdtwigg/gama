@@ -2,8 +2,6 @@ package gama
 package frontend
 package implementation
 
-import intermediate.{LitTree, LitRawBits, LitVec, LitTuple}
-
 // A thin wrapper around the LitMap workhorse, really just a simple tag
 trait LitDescImpl[T<:Data] {
   self: LitDesc[T] => 
