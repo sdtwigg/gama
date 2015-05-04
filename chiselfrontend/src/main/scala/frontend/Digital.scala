@@ -41,7 +41,9 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   // BINARY OPERATIONS
   def  ##(that: Digital): UInt   = macro XFORM.do_cat.thatarg
   def  <<(that: UInt): MultiSelf = macro XFORM.do_lshft.thatarg
+  def  <<(that: Int ): MultiSelf = macro XFORM.do_lshft.thatarg
   def  >>(that: UInt): MultiSelf = macro XFORM.do_rshft.thatarg
+  def  >>(that: Int ): MultiSelf = macro XFORM.do_rshft.thatarg
   
   def +(that: UIntLike): MultiSelf = macro XFORM.do_add.thatarg
   def -(that: UIntLike): MultiSelf = macro XFORM.do_sub.thatarg
@@ -82,7 +84,9 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   // BINARY OPERATIONS
   def do_cat(that: Digital, info: EnclosureInfo): UInt = BinaryOp.UInt(OpCat, (this, that), info)
   def do_lshft(that: UInt, info: EnclosureInfo): MultiSelf
+  def do_lshft(that: Int,  info: EnclosureInfo): MultiSelf
   def do_rshft(that: UInt, info: EnclosureInfo): MultiSelf
+  def do_rshft(that: Int,  info: EnclosureInfo): MultiSelf = this.do_rshft(LiteralUInt(that), info)
   
   def do_add(that: UIntLike, info: EnclosureInfo): MultiSelf
   def do_sub(that: UIntLike, info: EnclosureInfo): MultiSelf

@@ -84,7 +84,9 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def do_asSInt(info: EnclosureInfo): SInt = UnaryOp.SInt(OpIDENT, this, getWidth, info)
   
   // BINARY OPERATIONS
-  def do_lshft(that: UInt, info: EnclosureInfo): MultiSelf = BinaryOp.SInt(OpLShft, (this, that), info)
+  def do_lshft(that: UInt, info: EnclosureInfo): MultiSelf =
+    that.getLiteralValue.map(this.do_lshft(_, info)).getOrElse(BinaryOp.SInt(OpLShft, (this, that), info))
+  def do_lshft(that: Int,  info: EnclosureInfo): MultiSelf = this.do_cat(LiteralUInt(0, that), info).do_asSInt(info)
   def do_rshft(that: UInt, info: EnclosureInfo): MultiSelf = BinaryOp.SInt(OpRShft, (this, that), info)
   
   def do_add(that: SInt, info: EnclosureInfo): SInt = BinaryOp.SInt(OpPlus, (this, that), info)

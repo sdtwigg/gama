@@ -36,6 +36,9 @@ import gama.library._
 
   val myOp3 = (2.U * 2.U)
   val myOp4 = (2.U << 2.U)
+  val myOp5 = (2.U << 2)
+  val myOp6 = (2.U >> 2.U)
+  val myOp7 = (2.U >> 2)
 
   val myUB = Reg(new UBundle)
   myUB.a := myWire

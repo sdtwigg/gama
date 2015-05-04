@@ -44,8 +44,16 @@ final class UInt(initialNode: Node) extends UIntLike(initialNode) {
   def doBiConnect(right: SInt, info: EnclosureInfo): Unit =
     BiConnect[UInt,SInt].biConnect(Left(this), Right(right), info)
   // TODO: See above
-
   
   // implementation for parent abstracts
   def do_not(info: EnclosureInfo): Self = UnaryOp.UInt(OpNot, this, this.getWidth, info)
+
+  // Internal API
+  protected[gama] def getLiteralValue: Option[Int] = descRef.flatMap({
+    case LitDesc(_, lmap) => Some(lmap.asLitTree)
+    case _ => None
+  }).flatMap({
+    case LitRawBits(value, _, _) => Some(value.toInt)
+    case _ => None
+  })
 }
