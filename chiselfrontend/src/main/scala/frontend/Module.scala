@@ -59,10 +59,9 @@ abstract class Module[+IOT<:Data](makeIO: IOT) extends Nameable {
 
   // Add miscellaneous module utilities
   lazy private[this] val resetDesc: PortDesc[Bool] = {
-    val rdesc = PortDesc(Port(Bool().rebind(DirectionSpells.SetInput), __enclosingmodule),
+    val rdesc = PortDesc(Port(DirectionXFORM.toInput(Bool()), __enclosingmodule),
                         EnclosureInfo(__enclosingmodule, None))
     val rval = rdesc.retVal
-    // TODO: Cleanup this declaration
     rval.setDescRef(rdesc, true)
     rval.forceSetName(NameIO(this,"reset"), NameFromIO, true)
     addIOPin("reset", rval)
