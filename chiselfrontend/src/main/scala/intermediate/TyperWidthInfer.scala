@@ -80,28 +80,35 @@ object TyperWidthInferer {
     // STEP 2: CONSTRAINT CONSTRUCTION
     //  Find all constraints from expressions with unknowns and constraining commands
     // First, the constraint builders
+    object ConstrainConnect extends ConstraintBuilder(constraints) {
+      def buildConstraints(terms: Iterable[WidthConstraint], selfns: NodeStore, widthns: Iterable[NodeStore]): Iterable[WidthConstraint] =
+      if(selfns.isInstanceOf[SBits])
+        for((term, sourcens) <- (terms zip widthns))
+          yield if(sourcens.isInstanceOf[UBits]) WidthAdd(Vector(term, WidthLit(1))) else term
+      else terms // Just build a >= constraint from each term, unless signed to unsigned then make >= signedw + 1
+    }
     object ConstrainFrom extends ConstraintBuilder(constraints) {
-      def buildConstraints(terms: Iterable[WidthConstraint]): Iterable[WidthConstraint] = terms
-      // Just build a >= constraint from each term
+      def buildConstraints(terms: Iterable[WidthConstraint], selfns: NodeStore, widthns: Iterable[NodeStore]): Iterable[WidthConstraint] =
+        terms // Just build a >= constraint from each term
     }
     object ConstrainAdd2 extends ConstraintBuilder(constraints) {
-      def buildConstraints(terms: Iterable[WidthConstraint]): Iterable[WidthConstraint] = {
+      def buildConstraints(terms: Iterable[WidthConstraint], selfns: NodeStore, widthns: Iterable[NodeStore]): Iterable[WidthConstraint] = {
         require(terms.size==2, "Internal Error from malformed AST: Type Linked Scan failure")
         Seq(WidthAdd(terms.toVector))
       }
     }
     object ConstrainIncr extends ConstraintBuilder(constraints) {
-      def buildConstraints(terms: Iterable[WidthConstraint]): Iterable[WidthConstraint] = 
+      def buildConstraints(terms: Iterable[WidthConstraint], selfns: NodeStore, widthns: Iterable[NodeStore]): Iterable[WidthConstraint] = 
         terms.map( term => WidthAdd(Vector(term, WidthLit(1))) )
     }
     object ConstrainLShft extends ConstraintBuilder(constraints) {
-      def buildConstraints(terms: Iterable[WidthConstraint]): Iterable[WidthConstraint] = {
+      def buildConstraints(terms: Iterable[WidthConstraint], selfns: NodeStore, widthns: Iterable[NodeStore]): Iterable[WidthConstraint] = {
         require(terms.size==2, "Internal Error from malformed AST: Type Linked Scan failure")
         Seq(WidthAdd(Vector(terms.head,WidthBitM(terms.last))))
       }
     }
     case class ForceWidth(width: Int) extends ConstraintBuilder(constraints) {
-      def buildConstraints(terms: Iterable[WidthConstraint]): Iterable[WidthConstraint] =
+      def buildConstraints(terms: Iterable[WidthConstraint], selfns: NodeStore, widthns: Iterable[NodeStore]): Iterable[WidthConstraint] =
         Seq(FORCEWidthLit(width))
     }
     // Look at all expression definitions where an expression holds an unknown
@@ -141,9 +148,9 @@ object TyperWidthInferer {
       case ConstDecl(symbol, expr) => ConstrainFrom.start(symbol, Seq(expr))
       case AliasDecl(symbol, ref)  => ConstrainFrom.start(symbol, Seq(ref)) // treat like ConstDecl
       case ConnectStmt(sink, source, details) =>
-        ConstrainFrom.startguided(details, dealiaser.dealias(sink), Seq(source))
+        ConstrainConnect.startguided(details, dealiaser.dealias(sink), Seq(source))
       case BiConnectStmt(left, right, details) => 
-        ConstrainFrom.startbiguided(details, dealiaser.dealias(left), dealiaser.dealias(right))
+        ConstrainConnect.startbiguided(details, dealiaser.dealias(left), dealiaser.dealias(right))
       case _ => ??? // These shouldn't show up as the others are not constraining commands
     })
 
@@ -243,16 +250,20 @@ object TyperWidthInferer {
     def leafwork(leader: PrimitiveTypeHW, leadPath: TypeTrace,
                  followers: Iterable[Tuple2[PrimitiveTypeHW, TypeTrace]]) =
       for(lwidth <- getWidth(leader) if lwidth.isEmpty) { // No work to be done if width known
-        val widthterms = for {
+        val newfollowers = for {
           (fPType, fPath) <- followers
           fwidth <- getWidth(fPType)
           widthterm = buildWidthTerm(fwidth, fPath)
-        } yield widthterm    //} yield (fwidth, fPath): Tuple2[Option[Int], TypeTrace]
+        } yield (widthterm, fPType.storage)    //} yield (fwidth, fPath): Tuple2[Option[Int], TypeTrace]
+        val (widthterms, widthns) = newfollowers.unzip
+        val selfns = leader.storage
 
-        buildConstraints(widthterms).foreach(constraint => constraintTable.add(leadPath, constraint))
+        buildConstraints(widthterms, selfns, widthns).foreach(constraint =>
+          constraintTable.add(leadPath, constraint)
+        )
       }
 
-    def buildConstraints(terms: Iterable[WidthConstraint]): Iterable[WidthConstraint]
+    def buildConstraints(terms: Iterable[WidthConstraint], selfns: NodeStore, widthns: Iterable[NodeStore]): Iterable[WidthConstraint]
   }
 }
 
