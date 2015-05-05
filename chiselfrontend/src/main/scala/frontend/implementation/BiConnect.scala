@@ -14,7 +14,9 @@ package implementation
 @annotation.implicitNotFound("Cannot bidirectionally connect data between type ${LT} and type ${RT}. No implicit BiConnect[${LT},${RT}] resolvable.")
 trait BiConnect[LT<:Data, RT<:Data] {
   def biDetails(left: Left[LT], right: Right[RT], info: EnclosureInfo): BiConnectDetails
-  def biConnect(left: Left[LT], right: Right[RT], info: EnclosureInfo): Unit
+  // TODO: See discussion in ConnectTo on hole-y connects with injected statements
+  def biConnect(left: Left[LT], right: Right[RT], info: EnclosureInfo): Unit = 
+    info.em.getActiveJournal.append(journal.BiConnectData(left, right, biDetails(left,right, info), info))
 }
   // Note: em for biDetails is required to resolve when connecting same module's input to output
   //   if inside the module
@@ -29,17 +31,11 @@ object BiConnect {
 
   implicit def reverser[LT<:Data,RT<:Data](implicit ev: BiConnect[LT, RT]): BiConnect[RT,LT] = new BiConnect[RT,LT] {
     def biDetails(left: Left[RT], right: Right[LT], info: EnclosureInfo): BiConnectDetails =
-      ev.biDetails(Left(right.data), Right(left.data), info)
-    def biConnect(left: Left[RT], right: Right[LT], info: EnclosureInfo): Unit = 
-      ev.biConnect(Left(right.data), Right(left.data), info)
+      ev.biDetails(Left(right.data), Right(left.data), info).flipped
   }
   // TODO: IS THIS OK? Probably, BiConnect should be totally commutative
   
   def apply[LT<:Data,RT<:Data](implicit ev: BiConnect[LT, RT]) = ev
-  trait BiConnectImpl[LT<:Data,RT<:Data] extends BiConnect[LT,RT] {
-    def biConnect(left: Left[LT], right: Right[RT], info: EnclosureInfo): Unit =
-      info.em.getActiveJournal.append(journal.BiConnectData(left, right, biDetails(left,right, info), info))
-  } // should this just be BiConnect?
 
   implicit def genBundleBiConnectBundle[LT<:Bundle,RT<:Bundle]: BiConnect[LT,RT] = new BundleBiConnectBundleImpl[LT,RT]{}
 

@@ -38,11 +38,11 @@ class BundleMuxableImpl[B<:Bundle] extends Muxable[B] {
   }
 }
 // HELPER TRAITS FOR CONNECTING A BUNDLE TO ANY OTHER BUNDLE
-trait BundleConnectToBundleImpl[B<:Bundle] extends ConnectTo.ConnectToImpl[B, Bundle] {
+trait BundleConnectToBundleImpl[B<:Bundle] extends ConnectTo[B, Bundle] {
   def monoDetails(sink: Sink[B], source: Source[Bundle]): ConnectDetails =
     UnsafeConnectToDataImpl.monoDetails(sink, source)
 }
-trait BundleBiConnectBundleImpl[LT<:Bundle,RT<:Bundle] extends BiConnect.BiConnectImpl[LT, RT] {
+trait BundleBiConnectBundleImpl[LT<:Bundle,RT<:Bundle] extends BiConnect[LT, RT] {
   def biDetails(left: Left[LT], right: Right[RT], info: EnclosureInfo): BiConnectDetails =
     UnsafeConnectToDataImpl.biDetails(left, right, info)
 }

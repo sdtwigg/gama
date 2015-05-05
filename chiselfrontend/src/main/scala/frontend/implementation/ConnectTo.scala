@@ -12,16 +12,25 @@ package implementation
 @annotation.implicitNotFound("Cannot connect data of type ${From} to data of type ${To}. No implicit ConnectTo[${To},${From}] resolvable.")
 trait ConnectTo[To<:Data, -From<:Data] {
   def monoDetails(sink: Sink[To], source: Source[From]): ConnectDetails
-  def monoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo): Unit
+  // TODO: Better facilities for when want to do logic on the source before connect
+  //  e.g. a fixed point class that may need to shift or extract first. Note that the connect details returned
+  //    would likely have a 'hole' where that class's fields would be connected, then this returns a list
+  //    of other entries to append after the connect. Note, need separate channel so this info also propogates
+  //    to bundle
+  //  Note: SInt := UInt does not have to use this feature... width inference currently can do a 1 bit zext
+  //    However, if this is added, then the width inference functionality would just be skipped (as SInt would
+  //    no longer be connected to UInt but toSInt(UInt), which is an SInt)`
+  def monoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo): Unit = 
+    info.em.getActiveJournal.append(journal.ConnectData(sink, source, monoDetails(sink,source), info))
   protected[gama] def preciseMonoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo,
     targetloc: Tuple2[journal.Journal, journal.Entry]): Unit =
   {
     targetloc._1.insertAfter(journal.ConnectData(sink, source, monoDetails(sink,source), info), targetloc._2)
   }
-    // Use for in the VERY RARE cases that need to override the journal and entry position written to
-    //   e.g. Module uses this to ensure the reset for a child is connected in precisely the right place
-    //        regardless of usercode insanity (likely, abuse of lazy val or def in that child module)
-    // USE WITH EXTREME CAUTION as it is not ensured journal is even on the EnclosingModule's journal stack
+  // Use for in the VERY RARE cases that need to override the journal and entry position written to
+  //   e.g. Module uses this to ensure the reset for a child is connected in precisely the right place
+  //        regardless of usercode insanity (likely, abuse of lazy val or def in that child module)
+  // USE WITH EXTREME CAUTION as it is not ensured journal is even on the EnclosingModule's journal stack
 }
 object ConnectTo {
   type From[D<:Data] = {type CB[To<:Data] = ConnectTo[To, D]}
@@ -33,10 +42,6 @@ object ConnectTo {
   //   supplied D must be able to connect from D (itself)
 
   def apply[To<:Data,From<:Data](implicit ev: ConnectTo[To, From]) = ev
-  trait ConnectToImpl[To<:Data,From<:Data] extends ConnectTo[To,From] {
-    def monoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo): Unit =
-      info.em.getActiveJournal.append(journal.ConnectData(sink, source, monoDetails(sink,source), info))
-  } // should this just be ConnectTo?
 
   implicit def genBundleConnectToBundle[B<:Bundle]: ConnectTo[B,Bundle] = new BundleConnectToBundleImpl[B]{}
 }

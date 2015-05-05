@@ -35,10 +35,10 @@ abstract class ElementImpl(initialNode: Node) { // MUTABLE STATE: node
 }
 
 trait ElementObjectImpl {
-  trait ConnectToImpl[To<:Element,From<:Element] extends ConnectTo.ConnectToImpl[To,From] {
+  trait ConnectToImpl[To<:Element,From<:Element] extends ConnectTo[To,From] {
     def monoDetails(sink: Sink[To], source: Source[From]): ConnectDetails = ConnectAll
   }
-  trait BiConnectImpl[LT<:Element,RT<:Element] extends BiConnect.BiConnectImpl[LT,RT] {
+  trait BiConnectImpl[LT<:Element,RT<:Element] extends BiConnect[LT,RT] {
     def biDetails(left: Left[LT], right: Right[RT], info: EnclosureInfo): BiConnectDetails = 
       BiConnect.elemDetails(left.data.node, right.data.node, info)
   }

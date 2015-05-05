@@ -98,7 +98,7 @@ trait VecObjectImpl {
       Vec(tc.elements.length, implicitly[Muxable[D]].muxRetVal(tc.elemType, fc.elemType))
     }
   }
-  implicit def connectTo[To<:Data,From<:Data](implicit eltconnect: ConnectTo[To,From]): ConnectTo[Vec[To],Vec[From]] = new ConnectTo.ConnectToImpl[Vec[To],Vec[From]] {
+  implicit def connectTo[To<:Data,From<:Data](implicit eltconnect: ConnectTo[To,From]): ConnectTo[Vec[To],Vec[From]] = new ConnectTo[Vec[To],Vec[From]] {
     def monoDetails(sink: Sink[Vec[To]], source: Source[Vec[From]]): ConnectDetails = {
       require(source.data.elements.length==sink.data.elements.length, "Cannot assign to/from two vectors of different length")
       eltconnect.monoDetails(Sink(sink.data.elemType), Source(source.data.elemType)) match {
@@ -107,7 +107,7 @@ trait VecObjectImpl {
       }
     }
   }
-  implicit def biConnect[LT<:Data,RT<:Data](implicit eltconnect: BiConnect[LT,RT]): BiConnect[Vec[LT],Vec[RT]] = new BiConnect.BiConnectImpl[Vec[LT],Vec[RT]] {
+  implicit def biConnect[LT<:Data,RT<:Data](implicit eltconnect: BiConnect[LT,RT]): BiConnect[Vec[LT],Vec[RT]] = new BiConnect[Vec[LT],Vec[RT]] {
     def biDetails(left: Left[Vec[LT]], right: Right[Vec[RT]], info: EnclosureInfo): BiConnectDetails = {
       require(left.data.elements.length==right.data.elements.length, "Cannot assign to/from two vectors of different length")
       eltconnect.biDetails(Left(left.data.elemType), Right(right.data.elemType), info) match {

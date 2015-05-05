@@ -6,7 +6,7 @@ package implementation
 // Only meant to be used by Bundle ConnectTo
 case class RuntimeMisconnectException(sink: String, source: String)
   extends ChiselException(s"In a non-typechecked connect, improper attempted connection: tried to connect a $source to a $sink.")
-object UnsafeConnectToDataImpl extends ConnectTo.ConnectToImpl[Data, Data] with BiConnect.BiConnectImpl[Data, Data] {
+object UnsafeConnectToDataImpl extends ConnectTo[Data, Data] with BiConnect[Data, Data] {
   def monoDetails(sink: Sink[Data], source: Source[Data]): ConnectDetails = {
     sink.data match {
       case left_e: Element => (source.data match {
