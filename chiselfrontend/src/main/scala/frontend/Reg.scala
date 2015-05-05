@@ -16,12 +16,18 @@ object Reg {
   def apply[D<:Data](model: RModel[D], init: RInit[D]): D = macro XFORM.doNodeXFORM.xmodel_init[D]
 
   // external->internal API
-  def doNodeXFORM[D<:Data](model: D, info: EnclosureInfo): D =         RegInternals(model, None, info)
-  def doNodeXFORM[D<:Data](model: RModel[D], info: EnclosureInfo): D = RegInternals(model.data, None, info)
-  def doNodeXFORM[D<:Data](init:  RInit[D], info: EnclosureInfo): D  = RegInternals(genericize(init.rval), handleInit(init, info), info)
-  def doNodeXFORM[D<:Data](init:  RInitModel[D], info: EnclosureInfo): D = RegInternals(init.rval, handleInit(init, info), info)
-  def doNodeXFORM[D<:Data](model: D, init: RInit[D], info: EnclosureInfo): D = RegInternals(model, handleInit(init, info), info)
-  def doNodeXFORM[D<:Data](model: RModel[D], init: RInit[D], info: EnclosureInfo): D = RegInternals(model.data, handleInit(init, info), info)
+  def doNodeXFORM[D<:Data](model: D, storer: Storable[D], info: EnclosureInfo): D =
+    RegInternals(model, None, info)
+  def doNodeXFORM[D<:Data](model: RModel[D], storer: Storable[D], info: EnclosureInfo): D =
+    RegInternals(model.data, None, info)
+  def doNodeXFORM[D<:Data](init:  RInit[D], storer: Storable[D], info: EnclosureInfo): D =
+    RegInternals(genericize(init.rval), handleInit(init, info), info)
+  def doNodeXFORM[D<:Data](init:  RInitModel[D], storer: Storable[D], info: EnclosureInfo): D =
+    RegInternals(init.rval, handleInit(init, info), info)
+  def doNodeXFORM[D<:Data](model: D, init: RInit[D], storer: Storable[D], info: EnclosureInfo): D =
+    RegInternals(model, handleInit(init, info), info)
+  def doNodeXFORM[D<:Data](model: RModel[D], init: RInit[D], storer: Storable[D], info: EnclosureInfo): D =
+    RegInternals(model.data, handleInit(init, info), info)
 
   private[this] def genericize[D<:Data](in: D): D = in.copy.rebind(GenericizeSpell)
   private[this] def handleInit[D<:Data](init: RInitBase[D], info: EnclosureInfo): Some[Tuple2[Bool, D]] = init.ren match {

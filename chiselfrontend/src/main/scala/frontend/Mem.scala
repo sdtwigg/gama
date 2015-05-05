@@ -7,13 +7,6 @@ import implementation._
 import scala.language.experimental.macros
 import implementation.macrodefs.{TransformMacro => XFORM}
 
-@annotation.implicitNotFound("""Cannot create Storable[${D}] for Mem[${D}]. 
-Most common reason is that no connect operation (ConnectTo[${D},${D}]) available and thus the memory would not be writable""")
-trait Storable[D<:Data] { def writer: ConnectTo[D,D] }
-// Only reason Storable trait exists is so that failing to create a Vec gives a specialized error message
-object Storable {
-  implicit def storer[D<:Data](implicit ev: ConnectTo[D,D]): Storable[D] = new Storable[D] {val writer = implicitly[ConnectTo[D,D]]}
-}
 
 object Mem {
   // External API
