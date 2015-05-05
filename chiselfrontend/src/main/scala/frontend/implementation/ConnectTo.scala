@@ -11,7 +11,7 @@ package implementation
 // - that might be strange for hwtuple
 @annotation.implicitNotFound("Cannot connect data of type ${From} to data of type ${To}. No implicit ConnectTo[${To},${From}] resolvable.")
 trait ConnectTo[To<:Data, -From<:Data] {
-  def monoDetails(sink: Sink[To], source: Source[From]): ConnectDetails
+  def monoDetails(sink: Sink[To], source: Source[From], info: EnclosureInfo): ConnectDetails
   // TODO: Better facilities for when want to do logic on the source before connect
   //  e.g. a fixed point class that may need to shift or extract first. Note that the connect details returned
   //    would likely have a 'hole' where that class's fields would be connected, then this returns a list
@@ -21,11 +21,11 @@ trait ConnectTo[To<:Data, -From<:Data] {
   //    However, if this is added, then the width inference functionality would just be skipped (as SInt would
   //    no longer be connected to UInt but toSInt(UInt), which is an SInt)`
   def monoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo): Unit = 
-    info.em.getActiveJournal.append(journal.ConnectData(sink, source, monoDetails(sink,source), info))
+    info.em.getActiveJournal.append(journal.ConnectData(sink, source, monoDetails(sink,source,info), info))
   protected[gama] def preciseMonoConnect(sink: Sink[To], source: Source[From], info: EnclosureInfo,
     targetloc: Tuple2[journal.Journal, journal.Entry]): Unit =
   {
-    targetloc._1.insertAfter(journal.ConnectData(sink, source, monoDetails(sink,source), info), targetloc._2)
+    targetloc._1.insertAfter(journal.ConnectData(sink, source, monoDetails(sink,source,info), info), targetloc._2)
   }
   // Use for in the VERY RARE cases that need to override the journal and entry position written to
   //   e.g. Module uses this to ensure the reset for a child is connected in precisely the right place

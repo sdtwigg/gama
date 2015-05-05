@@ -99,9 +99,9 @@ trait VecObjectImpl {
     }
   }
   implicit def connectTo[To<:Data,From<:Data](implicit eltconnect: ConnectTo[To,From]): ConnectTo[Vec[To],Vec[From]] = new ConnectTo[Vec[To],Vec[From]] {
-    def monoDetails(sink: Sink[Vec[To]], source: Source[Vec[From]]): ConnectDetails = {
+    def monoDetails(sink: Sink[Vec[To]], source: Source[Vec[From]], info: EnclosureInfo): ConnectDetails = {
       require(source.data.elements.length==sink.data.elements.length, "Cannot assign to/from two vectors of different length")
-      eltconnect.monoDetails(Sink(sink.data.elemType), Source(source.data.elemType)) match {
+      eltconnect.monoDetails(Sink(sink.data.elemType), Source(source.data.elemType), info) match {
         case ConnectAll => ConnectAll
         case other => ConnectVec(other)
       }

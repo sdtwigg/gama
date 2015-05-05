@@ -7,7 +7,7 @@ package implementation
 case class RuntimeMisconnectException(sink: String, source: String)
   extends ChiselException(s"In a non-typechecked connect, improper attempted connection: tried to connect a $source to a $sink.")
 object UnsafeConnectToDataImpl extends ConnectTo[Data, Data] with BiConnect[Data, Data] {
-  def monoDetails(sink: Sink[Data], source: Source[Data]): ConnectDetails = {
+  def monoDetails(sink: Sink[Data], source: Source[Data], info: EnclosureInfo): ConnectDetails = {
     sink.data match {
       case left_e: Element => (source.data match {
         case right_e: Element => (ConnectAll)
@@ -15,21 +15,21 @@ object UnsafeConnectToDataImpl extends ConnectTo[Data, Data] with BiConnect[Data
       }) // TODO: VERIFY ELEMENT CONNECTION SANE?
       case left_v: Vec[Data @unchecked] => (source.data match {
         case right_v: Vec[Data @unchecked] =>
-          ( Vec.connectTo[Data,Data](this).monoDetails(Sink(left_v),Source(right_v)) )
+          ( Vec.connectTo[Data,Data](this).monoDetails(Sink(left_v),Source(right_v),info) )
         case _ => throw RuntimeMisconnectException(sink.data.getClass.getName,source.data.getClass.getName)
       })
       case left_t: HardwareTuple => (source.data match {
-        case right_t: HardwareTuple => ( monoTuple(left_t, right_t) ) // in own function since so complicated
+        case right_t: HardwareTuple => ( monoTuple(left_t, right_t, info) ) // in own function since so complicated
         case _ => throw RuntimeMisconnectException(sink.data.getClass.getName,source.data.getClass.getName)
       })
     }
   }
-  def monoTuple(sink: HardwareTuple, source: HardwareTuple): ConnectDetails = {
+  def monoTuple(sink: HardwareTuple, source: HardwareTuple, info: EnclosureInfo): ConnectDetails = {
     val candidates = sink.subfields_ordered
     val connect_list: Seq[Tuple2[String,ConnectDetails]] = candidates.flatMap({case (field, sink_elem) => {
       val source_elem_opt = source.subfields.get(field)
       val details = source_elem_opt.map(source_elem =>
-        try { monoDetails(Sink(sink_elem), Source(source_elem)) }
+        try { monoDetails(Sink(sink_elem), Source(source_elem), info) }
         catch { case e: ChiselException => {throw TraversalException(field, sink.getClass.getName, e)} }
       )
       details.map((field, _))
