@@ -41,9 +41,9 @@ object BiConnect {
 
   def elemDetails(left: Node, right: Node, info: EnclosureInfo): BiConnectDetails = {
     import DirectionIO.{Input, Output} // Using these extensively here so save some typing....
-    val context_m: Module[_] = info.em.enclosure
-    val left_m: Module[_]  = left.oem.getOrElse(throw AmbiguousBiConnectException).enclosure
-    val right_m: Module[_] = right.oem.getOrElse(throw AmbiguousBiConnectException).enclosure
+    val context_m: Module[_<:Data] = info.em.enclosure
+    val left_m: Module[_<:Data]    = left.oem.map(_.enclosure).getOrElse(context_m)
+    val right_m: Module[_<:Data]   = right.oem.map(_.enclosure).getOrElse(context_m)
 
     // CASE: Context is same module as left node and right node is in a child module
     if( (left_m == context_m) && (right_m.parent.map(_ == context_m).getOrElse(false)) ) {

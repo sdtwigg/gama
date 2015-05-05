@@ -9,17 +9,17 @@ case class RuntimeMisconnectException(sink: String, source: String)
 object UnsafeConnectToDataImpl extends ConnectTo[Data, Data] with BiConnect[Data, Data] {
   def monoDetails(sink: Sink[Data], source: Source[Data], info: EnclosureInfo): ConnectDetails = {
     sink.data match {
-      case left_e: Element => (source.data match {
-        case right_e: Element => (ConnectAll)
+      case sink_e: Element => (source.data match {
+        case source_e: Element => (ConnectTo.elemDetails(sink_e.node, source_e.node, info))
         case _ => throw RuntimeMisconnectException(sink.data.getClass.getName,source.data.getClass.getName)
       }) // TODO: VERIFY ELEMENT CONNECTION SANE?
-      case left_v: Vec[Data @unchecked] => (source.data match {
-        case right_v: Vec[Data @unchecked] =>
-          ( Vec.connectTo[Data,Data](this).monoDetails(Sink(left_v),Source(right_v),info) )
+      case sink_v: Vec[Data @unchecked] => (source.data match {
+        case source_v: Vec[Data @unchecked] =>
+          ( Vec.connectTo[Data,Data](this).monoDetails(Sink(sink_v),Source(source_v),info) )
         case _ => throw RuntimeMisconnectException(sink.data.getClass.getName,source.data.getClass.getName)
       })
-      case left_t: HardwareTuple => (source.data match {
-        case right_t: HardwareTuple => ( monoTuple(left_t, right_t, info) ) // in own function since so complicated
+      case sink_t: HardwareTuple => (source.data match {
+        case source_t: HardwareTuple => ( monoTuple(sink_t, source_t, info) ) // in own function since so complicated
         case _ => throw RuntimeMisconnectException(sink.data.getClass.getName,source.data.getClass.getName)
       })
     }

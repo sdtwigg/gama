@@ -30,5 +30,8 @@ Cannot resolve bidirectional connection attempt. This is likely due to one of th
   4) Similar to 3), but the associated ports are of different submodules within the same module.
   5) An improper cross-module connection is being attempted.
 """)
-
+case object MonoConnectDirectionException
+  extends ChiselException("Improper MonoConnect Exception: Attempt to connect driver to module input or submodule output.")
+case object CrossModuleAccessException
+  extends ChiselException("Improper Cross Module Access exception: Attempt to access logic between modules without using IO ports.")
 }
