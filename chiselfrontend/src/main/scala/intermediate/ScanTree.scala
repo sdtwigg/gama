@@ -33,20 +33,40 @@ class ExprScanTree {
   }
 }
 
+object LinkedTypeScanTree {
+    // Similar to aliasing from AliasDecl: since RefVIndex/VSelect/TLookup will not show up with
+    //   uninferred types, will need to jump past them so we don't build a type constraint on them
+    // This is because those 3 references have computed types
+  def bypassCompRef(in: ExprHW): Tuple2[TypeHW, TypeTrace] = in match {
+    case RefVIndex(source, _,_) => {
+      val res = bypassCompRef(source)
+      (in.rType, TTIndexALL(res._2))
+    }
+    case RefVSelect(source, _,_) => {
+      val res = bypassCompRef(source)
+      (in.rType, TTIndexALL(res._2))
+    }
+    case RefTLookup(source, field, _) => {
+      val res = bypassCompRef(source)
+      (in.rType, TTField(res._2, field))
+    }
+    case _ => (in.rType, TTStart(in))
+  }
+}
 trait LinkedTypeScanTree {
   def start(leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
-    val (ltype, lpath) = TyperWidthInferer.bypassCompRef(leader)
-    val newf = followers.map(TyperWidthInferer.bypassCompRef(_))
+    val (ltype, lpath) = LinkedTypeScanTree.bypassCompRef(leader)
+    val newf = followers.map(LinkedTypeScanTree.bypassCompRef(_))
     pathscan(ltype, lpath, newf)
   }
   def startguided(details: ConnectDetails, leader: ExprHW, followers: Iterable[ExprHW]): Unit = {
-    val (ltype, lpath) = TyperWidthInferer.bypassCompRef(leader)
-    val newf = followers.map(TyperWidthInferer.bypassCompRef(_))
+    val (ltype, lpath) = LinkedTypeScanTree.bypassCompRef(leader)
+    val newf = followers.map(LinkedTypeScanTree.bypassCompRef(_))
     guidedscan(details, ltype, lpath, newf)
   }
   def startbiguided(details: BiConnectDetails, left: ExprHW, right: ExprHW): Unit = {
-    val (ltype, lpath) = TyperWidthInferer.bypassCompRef(left)
-    val (rtype, rpath) = TyperWidthInferer.bypassCompRef(right)
+    val (ltype, lpath) = LinkedTypeScanTree.bypassCompRef(left)
+    val (rtype, rpath) = LinkedTypeScanTree.bypassCompRef(right)
     biguidedscan(details, ltype, lpath, rtype, rpath)
   }
   def pathscan(leader: TypeHW, leadPath: TypeTrace,

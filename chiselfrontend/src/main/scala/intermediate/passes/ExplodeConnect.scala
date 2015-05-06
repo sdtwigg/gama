@@ -1,5 +1,6 @@
 package gama
 package intermediate
+package passes
 
 object ExplodeConnect {
   def transform(target: ElaboratedModule): ElaboratedModule = {

@@ -6,10 +6,13 @@ import gama.library._
 object testmain {
   def main(args: Array[String]) {
     import gama.intermediate.{
-      IRReader, IRReaderOptions, TyperWidthInferer, ExplodeConnect, ModuleTypeChecker}
+      IRReader, IRReaderOptions, ModuleTypeChecker}
+    import gama.intermediate.passes.{
+      TyperWidthInferer, ExplodeConnect
+    }
 
     //val myTopModule = ExampleModule()
-    val myTopModule = Module(new BiConnectModule)
+    val myTopModule = Module(new InferModule)
     val topModDesc = gama.frontend.implementation.journal.Converter(myTopModule)
     
     val typechecker = new ModuleTypeChecker(true)(topModDesc)

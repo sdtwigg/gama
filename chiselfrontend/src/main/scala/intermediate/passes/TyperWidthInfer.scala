@@ -1,5 +1,6 @@
 package gama
 package intermediate
+package passes
 
 import scala.collection.mutable.{HashMap=>HMap, HashSet=>HSet, ListBuffer=>ListB}
 
@@ -224,24 +225,6 @@ object TyperWidthInferer {
     }
 */  
 
-    // Similar to aliasing from AliasDecl: since RefVIndex/VSelect/TLookup will not show up with
-    //   uninferred types, will need to jump past them so we don't build a type constraint on them
-    // This is because those 3 references have computed types
-  def bypassCompRef(in: ExprHW): Tuple2[TypeHW, TypeTrace] = in match {
-    case RefVIndex(source, _,_) => {
-      val res = bypassCompRef(source)
-      (in.rType, TTIndexALL(res._2))
-    }
-    case RefVSelect(source, _,_) => {
-      val res = bypassCompRef(source)
-      (in.rType, TTIndexALL(res._2))
-    }
-    case RefTLookup(source, field, _) => {
-      val res = bypassCompRef(source)
-      (in.rType, TTField(res._2, field))
-    }
-    case _ => (in.rType, TTStart(in))
-  }
 
   abstract class ConstraintBuilder(constraintTable: ConstraintTable) extends LinkedTypeScanTree {
     def buildWidthTerm(width: Option[Int], path: TypeTrace): WidthConstraint = 
