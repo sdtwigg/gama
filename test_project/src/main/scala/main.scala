@@ -5,6 +5,7 @@ import gama.library._
 
 object testmain {
   def main(args: Array[String]) {
+    import gama.intermediate.{IRReader, IRReaderOptions}
 
     //val myTopModule = ExampleModule()
     val myTopModule = Module(new InferModule)
@@ -18,7 +19,7 @@ object testmain {
 
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
     println(myJReader.parseCircuit(myTopModule) mkString("\n"))
-    val myIRReader = gama.intermediate.IRReader.Colorful
+    val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
     println(myIRReader.parseElaboratedModule(topModDesc))
     println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Expressions Considered = ${solution.unknownsFound}")

@@ -1,46 +1,54 @@
 package gama
 package intermediate
 
-trait IRReader {
+case class IRReaderOptions(emitNotes: Boolean, emitExprTypes: Boolean)
+
+abstract class IRReader(options: IRReaderOptions) {
   def HL: Highlighter
   def parseElaboratedModule(module: ElaboratedModule): String = {
     s"Module(${HL.CYAN}IO${HL.RESET}: ${HL.GREEN}${parseType(module.io)}${HL.RESET}, ${parseCmdHW(module.body)})"
   }
 
   def parseCmdHW(cmd: CmdHW): String = cmd match {
-    case WireDecl(symbol, note) => s"${HL.CYAN}wire ${HL.RESET} ${emitFullSymbol(symbol)}"
+    case WireDecl(symbol, note) => s"${HL.CYAN}wire ${HL.RESET} ${emitFullSymbol(symbol)}  ${emitGamaNote(note)}"
     case RegDecl(symbol, reset, note)  => {
       val rinfo: String = reset match {
-        case Some((ren, rval)) => s"=> ${HL.CYAN}reset${HL.RESET} en = ${parseExpr(ren)}, rval = ${parseExpr(rval)}"
+        case Some((ren, rval)) => s"${HL.CYAN}with reset${HL.RESET}(en = ${parseExpr(ren)}, rval = ${parseExpr(rval)})"
         case None => ""
       }
-      s"${HL.CYAN}reg  ${HL.RESET} ${emitFullSymbol(symbol)} $rinfo"
+      s"${HL.CYAN}reg  ${HL.RESET} ${emitFullSymbol(symbol)} $rinfo  ${emitGamaNote(note)}"
     }
     case ConstDecl(symbol, expr, note) =>
-      s"${HL.CYAN}const${HL.RESET} ${emitFullSymbol(symbol)} = ${parseExpr(expr)}"
+      s"${HL.CYAN}const${HL.RESET} ${emitFullSymbol(symbol)} = ${parseExpr(expr)}  ${emitGamaNote(note)}"
     case AliasDecl(symbol, expr, note) =>
-      s"${HL.CYAN}alias${HL.RESET} ${emitFullSymbol(symbol)} = ${parseExpr(expr)}"
+      s"${HL.CYAN}alias${HL.RESET} ${emitFullSymbol(symbol)} = ${parseExpr(expr)}  ${emitGamaNote(note)}"
 
     case BlockHW(cmds, note) =>
       if(cmds.isEmpty) "{}"
       else 
         (cmds flatMap(cmd => parseCmdHW(cmd).split("\n")) map("  " + _) mkString("{\n","\n","\n}"))
     case WhenHW(cond, tc, fc, note) =>
-      s"${HL.CYAN}when${HL.RESET}(${parseExpr(cond)}) ${parseCmdHW(tc)} ${HL.CYAN}else${HL.RESET} ${parseCmdHW(fc)}"
+      s"${HL.CYAN}when${HL.RESET}(${parseExpr(cond)}) ${parseCmdHW(tc)} ${HL.CYAN}else${HL.RESET} ${parseCmdHW(fc)}  ${emitGamaNote(note)}"
 
     case MemDecl(desc, note) => {
       val name = desc.identifier.getOrElse("")
-      s"${HL.CYAN}mem${HL.RESET} ${emitMemName(desc)} = MEM(${desc.depth}, ${HL.GREEN}${parseType(desc.sourceType)}${HL.RESET})"
+      s"${HL.CYAN}mem${HL.RESET} ${emitMemName(desc)} = MEM(${desc.depth}, ${HL.GREEN}${parseType(desc.sourceType)}${HL.RESET})  ${emitGamaNote(note)}"
     }
 
     case ConnectStmt(sink, source, details, note) =>
-      s"${parseExpr(sink)} := ${parseExpr(source)} ${HL.YELLOW}${parseConnectDetails(details)}${HL.RESET}"
+      s"${parseExpr(sink)} := ${parseExpr(source)} ${HL.YELLOW}${parseConnectDetails(details)}${HL.RESET}  ${emitGamaNote(note)}"
     case BiConnectStmt(left, right, details, note) =>
-      s"${parseExpr(left)} <-> ${parseExpr(right)} ${HL.YELLOW}${parseBiConnectDetails(details)}${HL.RESET}"
+      s"${parseExpr(left)} <-> ${parseExpr(right)} ${HL.YELLOW}${parseBiConnectDetails(details)}${HL.RESET}  ${emitGamaNote(note)}"
 
     case SubModuleDecl(details, placeholder, note) =>
-      s"${HL.CYAN}inst${HL.RESET} ${emitModName(details)}: ${HL.GREEN}$placeholder${HL.RESET}, ${HL.CYAN}IO${HL.RESET}: ${HL.GREEN}${parseType(details.ioType)}${HL.RESET}"
+      s"${HL.CYAN}inst${HL.RESET} ${emitModName(details)}: ${HL.GREEN}$placeholder${HL.RESET}, ${HL.CYAN}IO${HL.RESET}: ${HL.GREEN}${parseType(details.ioType)}${HL.RESET}  ${emitGamaNote(note)}"
   }
+  def emitGamaNote(note: GamaNote): String = note match {
+    case GamaNote(Some(UserspaceInfo(file, line))) if options.emitNotes =>
+      s"${HL.BLUE}/* ${file} @ ${line} */${HL.RESET}"
+    case _ => ""
+  }
+
   def emitModName(desc: ModuleSub): String = {
     val name = desc.identifier.getOrElse("")
     s"$name${HL.WHITE}#S${desc.modid}${HL.RESET}"
@@ -101,7 +109,7 @@ trait IRReader {
         case OpGrEq  => infix(">=")
       }
     }
-    expr match {
+    val exprstring = expr match {
       case symbol @ RefSymbol(_,_,_,_) => emitSymbol(symbol)
       case ExprUnary(op, target, _, note) => parseUnary(op, target, note)
       case ExprBinary(op, left, right, _, note) => parseBinary(op, left, right, note)
@@ -117,6 +125,8 @@ trait IRReader {
 
       case RefExprERROR(cause) => "$$$$RefExprERROR: " + cause + " $$$$"
     }
+    if(options.emitExprTypes) s"$exprstring: ${HL.GREEN}${parseType(expr.rType)}${HL.RESET}"
+    else exprstring // emitExprTypes is slightly verbose because it emits all references
   }
 
   def parseModRef(in: ModuleRef) = in match {
@@ -175,6 +185,6 @@ trait IRReader {
 }
 
 object IRReader {
-  object Colorful    extends IRReader {def HL = Highlighters.Colorful}
-  object NonColorful extends IRReader {def HL = Highlighters.NonColorful}
+  case class Colorful(options: IRReaderOptions)    extends IRReader(options) {def HL = Highlighters.Colorful}
+  case class NonColorful(options: IRReaderOptions) extends IRReader(options) {def HL = Highlighters.NonColorful}
 }

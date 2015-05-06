@@ -10,7 +10,7 @@ import gama.library._
 }
 
 @module class InferModule extends Module(new ExampleIO) {
-  val myKnownReg = Reg(UInt(4))
+  val myKnownReg = Reg(UInt(4), RInit(0.U))
   myKnownReg := 2.U
 
   val myRegU = Reg(UInt())
