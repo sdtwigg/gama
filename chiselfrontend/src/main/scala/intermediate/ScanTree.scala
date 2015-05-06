@@ -3,33 +3,33 @@ package intermediate
 
 class ExprScanTree {
   def scan(cmd: CmdHW): Unit = cmd match {
-    case WireDecl(symbol)  => scan(symbol) 
-    case RegDecl(symbol, reset)   => {scan(symbol); reset.foreach({
+    case WireDecl(symbol, _)  => scan(symbol) 
+    case RegDecl(symbol, reset, _)   => {scan(symbol); reset.foreach({
       case (ren, rval) => {scan(ren); scan(rval)}
     })}
-    case ConstDecl(symbol, expr) => {scan(symbol); scan(expr)}
-    case AliasDecl(symbol, ref) => {scan(symbol); scan(ref)}
-    case BlockHW(stmts) => stmts.foreach(scan(_))
-    case WhenHW(cond, tc, fc) => {scan(cond); scan(tc); scan(fc)}
+    case ConstDecl(symbol, expr, _) => {scan(symbol); scan(expr)}
+    case AliasDecl(symbol, ref, _) => {scan(symbol); scan(ref)}
+    case BlockHW(stmts, _) => stmts.foreach(scan(_))
+    case WhenHW(cond, tc, fc, _) => {scan(cond); scan(tc); scan(fc)}
 
-    case ConnectStmt(sink, source, _)  => {scan(sink); scan(source)}
-    case BiConnectStmt(left, right, _) => {scan(left); scan(right)}
+    case ConnectStmt(sink, source, _,_)  => {scan(sink); scan(source)}
+    case BiConnectStmt(left, right, _,_) => {scan(left); scan(right)}
 
-    case MemDecl(_) | SubModuleDecl(_,_) =>
+    case MemDecl(_,_) | SubModuleDecl(_,_,_) =>
   }
 
   def scan(expr: ExprHW): Unit = expr match {
-    case ExprUnary(_, target, _) => {scan(target)}
-    case ExprBinary(_, left, right, _) => {scan(left); scan(right)}
-    case ExprMux(cond, tc, fc, rType) => {scan(cond); scan(tc); scan(fc)}
+    case ExprUnary(_, target, _,_) => {scan(target)}
+    case ExprBinary(_, left, right, _,_) => {scan(left); scan(right)}
+    case ExprMux(cond, tc, fc, rType, _) => {scan(cond); scan(tc); scan(fc)}
 
-    case RefMSelect(_, selector) => scan(selector)
-    case RefVIndex(source, _) => scan(source)
-    case RefVSelect(source, selector) => {scan(source); scan(selector)}
-    case RefTLookup(source, _) => scan(source)
-    case RefExtract(source, _, _, _) => {scan(source)}
+    case RefMSelect(_, selector, _) => scan(selector)
+    case RefVIndex(source, _,_) => scan(source)
+    case RefVSelect(source, selector, _) => {scan(source); scan(selector)}
+    case RefTLookup(source, _,_) => scan(source)
+    case RefExtract(source, _,_,_,_) => {scan(source)}
 
-    case ExprLit(_, _) | RefSymbol(_, _, _) | RefIO(_) | RefExprERROR(_) => 
+    case ExprLit(_,_,_) | RefSymbol(_,_,_,_) | RefIO(_,_) | RefExprERROR(_) => 
   }
 }
 

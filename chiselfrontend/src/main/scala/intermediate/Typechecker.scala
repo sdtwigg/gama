@@ -20,7 +20,7 @@ class ModuleTypeChecker(warnWidthUnknown: Boolean)(target: ElaboratedModule) {
   
   // CHECK TO ENSURE PORT IS OK
 
-  val ioRef = RefIO(ModuleThis(target.io))
+  val ioRef = RefIO(ModuleThis(target.io), GamaNote())
   checkPort(ioRef.mod.ioType, PTStart(ioRef))
 
   val moduleLeafTable = new LeafTable(None)
@@ -34,13 +34,13 @@ class ModuleTypeChecker(warnWidthUnknown: Boolean)(target: ElaboratedModule) {
     block.statements.foreach(stmt => checkCmdHW(stmt, leafTable))
   }
   def checkCmdHW(cmd: CmdHW, leafTable: LeafTable): Unit = cmd match {
-    case WireDecl(symbol)  => 
-    case RegDecl(symbol, reset)   =>
-    case ConstDecl(symbol, expr) =>
-    case AliasDecl(symbol, ref) =>
+    case WireDecl(symbol, note)  => 
+    case RegDecl(symbol, reset, note)   =>
+    case ConstDecl(symbol, expr, note) =>
+    case AliasDecl(symbol, ref, note) =>
 
-    case b @ BlockHW(_) => checkBlockHW(b, leafTable)
-    case WhenHW(cond, tc, fc) => {
+    case b @ BlockHW(_,_) => checkBlockHW(b, leafTable)
+    case WhenHW(cond, tc, fc, note) => {
       checkExpr(cond, leafTable)
       cond.rType match {
         case PrimitiveNode(UBits(Some(1))) => // OK
@@ -51,11 +51,11 @@ class ModuleTypeChecker(warnWidthUnknown: Boolean)(target: ElaboratedModule) {
       checkCmdHW(fc, leafTable)
     }
 
-    case ConnectStmt(sink, source, details) => 
-    case BiConnectStmt(left, right, details) => 
+    case ConnectStmt(sink, source, details, note) => 
+    case BiConnectStmt(left, right, details, note) => 
     
-    case MemDecl(desc) => 
-    case SubModuleDecl(details, ph) => 
+    case MemDecl(desc, note) => 
+    case SubModuleDecl(details, ph, note) => 
   }
   
   def checkNodeStore(check: NodeStore, path: PathTrace): Unit = check match {

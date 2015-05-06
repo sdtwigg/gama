@@ -9,7 +9,7 @@ object ToFIR {
     val moduleRef = toModuleRef(full_io_type)
 
     target.full_io.foreach({
-      case (field, elem) => reftable.add(elem, (RefTLookup(RefIO(moduleRef), field), true))
+      case (field, elem) => reftable.add(elem, (RefTLookup(RefIO(moduleRef, GamaNote()), field, GamaNote()), true))
     })
 
     moduleRef
@@ -27,11 +27,11 @@ object ToFIR {
       case None | Some(NameUNKNOWN) => false
       case Some(_) => true
     }
-    def handleAliasCandidate(rv: Data, alias: RefHW, connectable: Boolean): Option[CmdHW] = {
+    def handleAliasCandidate(rv: Data, alias: RefHW, connectable: Boolean, note: GamaNote): Option[CmdHW] = {
       if(hasName(rv)) {
         val newref =
-          if(connectable) AliasDecl(reftable.addNewSymbol(rv, extractName(rv), true), alias)
-          else            ConstDecl(reftable.addNewSymbol(rv, extractName(rv), false), alias)
+          if(connectable) AliasDecl(reftable.addNewSymbol(rv, extractName(rv), true, note), alias, note)
+          else            ConstDecl(reftable.addNewSymbol(rv, extractName(rv), false, note), alias, note)
         Some(newref)
       }
       else {
@@ -45,64 +45,71 @@ object ToFIR {
         // Symbol creators
         case CreateOp(opdesc) => {
           val expr = convertOp(opdesc, reftable, exprtable)
+          val note = GamaNote(opdesc.info.debug)
           if(hasName(opdesc.retVal)) {
-            Some(ConstDecl(reftable.addNewSymbol(opdesc.retVal, extractName(opdesc), false), expr))
+            Some(ConstDecl(reftable.addNewSymbol(opdesc.retVal, extractName(opdesc), false, note), expr, note))
           } else {
             exprtable.add(opdesc.retVal, expr)
             None
           }
         }
         
-        case CreateWire(wiredesc) =>
-          Some(WireDecl(reftable.addNewSymbol(wiredesc.retVal, extractName(wiredesc), true)))
+        case CreateWire(wiredesc) => {
+          val note = GamaNote(wiredesc.info.debug)
+          Some(WireDecl(reftable.addNewSymbol(wiredesc.retVal, extractName(wiredesc), true, note), note))
+        }
         case CreateReg(regdesc) => {
+          val note = GamaNote(regdesc.info.debug)
           val reset: Option[Tuple2[ExprHW, ExprHW]] = regdesc.reset.map({
             case (ren, rval) => (exprLookup(ren)._1, exprLookup(rval)._1)
           })
-          Some(RegDecl(reftable.addNewSymbol(regdesc.retVal, extractName(regdesc), true), reset))
+          Some(RegDecl(reftable.addNewSymbol(regdesc.retVal, extractName(regdesc), true, note), reset, note))
         }
 
         case CreateAccessor(accdesc) => {
-          val (newref, connectable) = accdesc.accRef match {
+          val note = GamaNote(accdesc.info.debug)
+          val (newref: RefHW, connectable: Boolean) = accdesc.accRef match {
             case va: VecAccessible[_] => {
               val (srcexpr, connectable) = exprLookup(va.collection)
-              (RefVSelect(srcexpr, exprLookup(accdesc.selector)._1), connectable)
+              (RefVSelect(srcexpr, exprLookup(accdesc.selector)._1, note), connectable)
             }
             case ma: MemAccessible[_] =>
               val nref = memtable.get(ma.collection).map(memdesc =>
-                RefMSelect(memdesc, exprLookup(accdesc.selector)._1)
+                RefMSelect(memdesc, exprLookup(accdesc.selector)._1, note)
               ).getOrElse(RefExprERROR("MemLookup failed"))
               (nref, true)
           }
-          handleAliasCandidate(accdesc.retVal, newref, connectable)
+          handleAliasCandidate(accdesc.retVal, newref, connectable, note)
         }
         case CreateExtract(extdesc) => {
+          val note = GamaNote(extdesc.info.debug)
           val (srcexpr, connectable) = exprLookup(extdesc.base)
-          val newref = RefExtract(srcexpr, extdesc.left_pos, extdesc.right_pos, constructType(extdesc.retVal))
-          handleAliasCandidate(extdesc.retVal, newref, connectable)
+          val newref = RefExtract(srcexpr, extdesc.left_pos, extdesc.right_pos, constructType(extdesc.retVal), note)
+          handleAliasCandidate(extdesc.retVal, newref, connectable, note)
         }
 
         // Sort-of symbol creators 
         case CreateModule(module) => {
           val modref = modtable.addNewMod(module, reftable)
-          Some(SubModuleDecl(modref, module.getClass.getName))
+          Some(SubModuleDecl(modref, module.getClass.getName, GamaNote())) // TODO: Add note
         }
-        case CreateMem(mem) => Some(MemDecl(memtable.addNewMem(mem)))
+        case CreateMem(mem) => Some(MemDecl(memtable.addNewMem(mem), GamaNote(mem.info.debug)))
         // Control Flow
         case Conditionally(cond, tc, fc) =>
           Some(WhenHW(exprLookup(cond)._1,
             convertJournal(tc, Some(reftable), Some(exprtable), Some(memtable), Some(modtable)), 
-            convertJournal(fc, Some(reftable), Some(exprtable), Some(memtable), Some(modtable))
+            convertJournal(fc, Some(reftable), Some(exprtable), Some(memtable), Some(modtable)),
+            GamaNote() // TODO: Add note
           ))
-        case AddBlock(code) => Some(convertJournal(code, Some(reftable), Some(exprtable), Some(memtable), Some(modtable)))
+        case AddBlock(code) => Some( convertJournal(code, Some(reftable), Some(exprtable), Some(memtable), Some(modtable)) )
         // Connection operators
         case ConnectData(Sink(sink), Source(source), details, info) =>
-          Some(ConnectStmt(refLookup(sink)._1, exprLookup(source)._1, details))
+          Some( ConnectStmt(refLookup(sink)._1, exprLookup(source)._1, details, GamaNote(info.debug)) )
         case BiConnectData(Left(left), Right(right), details, info) =>
-          Some(BiConnectStmt(refLookup(left)._1, refLookup(right)._1, details))
+          Some( BiConnectStmt(refLookup(left)._1, refLookup(right)._1, details, GamaNote(info.debug)) )
       }): Iterable[CmdHW]
     )
-    BlockHW(statements)
+    BlockHW(statements, GamaNote()) // TODO: Add note
   }
 
   def extractName(desc: Desc): Option[String] = extractName(desc.retVal)
@@ -120,9 +127,9 @@ object ToFIR {
         ( reftable.get(in) orElse (exprtable.get(in).map((_,false))) ).getOrElse(
           (RefExprERROR("ExprLookup failed"), false)
         )
-      case Some(NameLit(litdesc)) => (ExprLit(litdesc.litMap.asLitTree, constructType(litdesc.retVal)), false)
+      case Some(NameLit(litdesc)) => (ExprLit(litdesc.litMap.asLitTree, constructType(litdesc.retVal), GamaNote()), false) // TODO: OK not to have note?
       // refinements
-      case Some(NameField(_, _)) => refLookup(in) 
+      case Some(NameField(_, _)) => refLookup(in)
       case Some(NameIndex(_, _)) => refLookup(in)
       // error cases
       case None => (RefExprERROR("Name Unknown (Contract failure)"), false) // at this stage, name should be known...
@@ -132,13 +139,13 @@ object ToFIR {
       // refinements - Note: can reference expressions so call exprLookup!
       case Some(NameField(source, field)) => {
         val srcexpr = exprLookup(source)
-        val newref = (RefTLookup(srcexpr._1, field), srcexpr._2)
+        val newref = (RefTLookup(srcexpr._1, field, GamaNote()), srcexpr._2)
         reftable.add(in, newref)
         newref
       }
       case Some(NameIndex(source, index)) => {
         val srcexpr = exprLookup(source)
-        val newref = (RefVIndex(srcexpr._1, index), srcexpr._2)
+        val newref = (RefVIndex(srcexpr._1, index, GamaNote()), srcexpr._2)
         reftable.add(in, newref)
         newref
       }
@@ -153,9 +160,9 @@ object ToFIR {
   def convertOp(opdesc: OpDesc, reftable: RefTable, exprtable: ExprTable): ExprHW = {
     def lookup(in: Data): ExprHW = (exprLookup(in)(reftable, exprtable))._1
     opdesc match {
-      case UnaryOpDesc(op, input, rv, _)          => ExprUnary(op, lookup(input), constructType(rv))
-      case BinaryOpDesc(op, (left, right), rv, _) => ExprBinary(op, lookup(left), lookup(right), constructType(rv))
-      case MuxDesc(cond, tc, fc, rv, _)           => ExprMux(lookup(cond), lookup(tc), lookup(fc), constructType(rv))
+      case UnaryOpDesc(op, input, rv, info)          => ExprUnary(op, lookup(input), constructType(rv), GamaNote(info.debug))
+      case BinaryOpDesc(op, (left, right), rv, info) => ExprBinary(op, lookup(left), lookup(right), constructType(rv), GamaNote(info.debug))
+      case MuxDesc(cond, tc, fc, rv, info)           => ExprMux(lookup(cond), lookup(tc), lookup(fc), constructType(rv), GamaNote(info.debug))
     }
   }
 

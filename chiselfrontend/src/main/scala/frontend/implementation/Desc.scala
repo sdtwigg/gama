@@ -38,7 +38,6 @@ trait EnclosedDesc extends Desc   {
       info.em.getActiveJournal.append(entry)
     }
   }
-
 }
 trait UnenclosedDesc extends Desc
 

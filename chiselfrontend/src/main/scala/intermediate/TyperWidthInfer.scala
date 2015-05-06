@@ -54,12 +54,12 @@ object TyperWidthInferer {
     val prescanner = new ExprScanTree {
       override def scan(cmd: CmdHW): Unit = {
         cmd match {
-          case AliasDecl(symbol, ref) => dealiaser.addAlias(symbol, ref)
+          case AliasDecl(symbol, ref, _) => dealiaser.addAlias(symbol, ref)
           case _ =>
         }
         cmd match {
-          case RegDecl(_,_) | ConstDecl(_,_) | AliasDecl(_,_) |
-               ConnectStmt(_,_,_) | BiConnectStmt(_,_,_)
+          case RegDecl(_,_,_) | ConstDecl(_,_,_) | AliasDecl(_,_,_) |
+               ConnectStmt(_,_,_,_) | BiConnectStmt(_,_,_,_)
             => constrainingCmds += cmd
           case _ =>
         }
@@ -67,8 +67,8 @@ object TyperWidthInferer {
       }
       override def scan(expr: ExprHW): Unit = {
         expr match {
-          case ExprUnary(_,_,_) | ExprBinary(_,_,_,_) | ExprMux(_,_,_,_) |
-               RefSymbol(_,_,_) | RefExtract(_,_,_,_)
+          case ExprUnary(_,_,_,_) | ExprBinary(_,_,_,_,_) | ExprMux(_,_,_,_,_) |
+               RefSymbol(_,_,_,_) | RefExtract(_,_,_,_,_)
                 => findUnknowns(expr.rType, TTStart(expr), expr)
           case _ =>
         }
@@ -114,13 +114,13 @@ object TyperWidthInferer {
     // Look at all expression definitions where an expression holds an unknown
     unknownTable.keys.foreach(expr => expr match {
         // TODO: Actually look at op...
-      case ExprUnary(op, target, _) => op match {
+      case ExprUnary(op, target, _,_) => op match {
         case OpIDENT | OpToUInt | OpAsUInt | OpAsSInt | OpNot =>
           ConstrainFrom.start(expr, Seq(target))
         case OpToSInt => ConstrainIncr.start(expr, Seq(target)) // add 1 bit
         case OpXorRed => ForceWidth(1).start(expr, None)
       }
-      case ExprBinary(op, left, right, _) => op match {
+      case ExprBinary(op, left, right, _,_) => op match {
         case OpPlus | OpSubt | OpAnd | OpOr | OpXor | OpPadTo => // max(l, r)
           ConstrainFrom.start(expr, Seq(left, right))
         case OpMult | OpCat   => // l + r
@@ -134,22 +134,22 @@ object TyperWidthInferer {
         case OpEqual | OpNotEq | OpLess | OpLeEq | OpGrt | OpGrEq =>
           ForceWidth(1).start(expr, None)
       } 
-      case ExprMux(_, tc, fc, _) => ConstrainFrom.start(expr, Seq(tc, fc))
-      case RefExtract(source, lp, rp, _) => ForceWidth(lp-rp+1).start(expr, None)
+      case ExprMux(_, tc, fc, _,_) => ConstrainFrom.start(expr, Seq(tc, fc))
+      case RefExtract(source, lp, rp, _,_) => ForceWidth(lp-rp+1).start(expr, None)
 
-      case RefSymbol(_,_,_) => // RefSymbols must be constrained by commands
+      case RefSymbol(_,_,_,_) => // RefSymbols must be constrained by commands
       case _ => ??? // No other expressions are directly inferred
     })
     // Look at all constraining commands
     // TODO: quickly skip ones that are irrelevant
     constrainingCmds.foreach(cmd => cmd match {
-      case RegDecl(symbol, Some((_,rval))) => ConstrainFrom.start(symbol, Seq(rval))
-      case RegDecl(symbol, None) => 
-      case ConstDecl(symbol, expr) => ConstrainFrom.start(symbol, Seq(expr))
-      case AliasDecl(symbol, ref)  => ConstrainFrom.start(symbol, Seq(ref)) // treat like ConstDecl
-      case ConnectStmt(sink, source, details) =>
+      case RegDecl(symbol, Some((_,rval)), _) => ConstrainFrom.start(symbol, Seq(rval))
+      case RegDecl(symbol, None, _) => 
+      case ConstDecl(symbol, expr, _) => ConstrainFrom.start(symbol, Seq(expr))
+      case AliasDecl(symbol, ref, _)  => ConstrainFrom.start(symbol, Seq(ref)) // treat like ConstDecl
+      case ConnectStmt(sink, source, details, _) =>
         ConstrainConnect.startguided(details, dealiaser.dealias(sink), Seq(source))
-      case BiConnectStmt(left, right, details) => 
+      case BiConnectStmt(left, right, details, _) => 
         ConstrainConnect.startbiguided(details, dealiaser.dealias(left), dealiaser.dealias(right))
       case _ => ??? // These shouldn't show up as the others are not constraining commands
     })
@@ -173,24 +173,24 @@ object TyperWidthInferer {
     }})
 
     // STEP 5: WALK THE TREE REPLACING TYPES FROM THE TABLE
-//          case ExprUnary(_,_,_) | ExprBinary(_,_,_,_) | ExprMux(_,_,_,_) |
- //              RefSymbol(_,_,_) | RefExtract(_,_,_,_)
+//          case ExprUnary(_,_,_,_) | ExprBinary(_,_,_,_,_) | ExprMux(_,_,_,_,_) |
+ //              RefSymbol(_,_,_,_) | RefExtract(_,_,_,_,_)
     object Transformer extends ExprTransformTree {
       def getNewType(in: ExprHW): TypeHW = typeReplaceTable.get(in).getOrElse(in.rType)
 
       override def transform(symbol: RefSymbol): RefSymbol = symbol.copy(rType=getNewType(symbol))
       override def transform(ref: RefHW): RefHW  = ref match {
-        case RefExtract(source, lp, rp, rType) =>
-             RefExtract(transform(source), lp, rp, getNewType(ref))
+        case RefExtract(source, lp, rp, rType, note) =>
+             RefExtract(transform(source), lp, rp, getNewType(ref), note)
         case _ => super.transform(ref)
       }
       override def transform(expr: ExprHW): ExprHW = expr match {
-        case ExprUnary(op, target, rType) =>
-             ExprUnary(op, transform(target), getNewType(expr))
-        case ExprBinary(op, left, right, rType) =>
-             ExprBinary(op, transform(left), transform(right), getNewType(expr))
-        case ExprMux(cond, tc, fc, rType) =>
-             ExprMux(transform(cond), transform(tc), transform(fc), getNewType(expr))
+        case ExprUnary(op, target, rType, note) =>
+             ExprUnary(op, transform(target), getNewType(expr), note)
+        case ExprBinary(op, left, right, rType, note) =>
+             ExprBinary(op, transform(left), transform(right), getNewType(expr), note)
+        case ExprMux(cond, tc, fc, rType, note) =>
+             ExprMux(transform(cond), transform(tc), transform(fc), getNewType(expr), note)
         case _ => super.transform(expr)
       }
     }
@@ -228,15 +228,15 @@ object TyperWidthInferer {
     //   uninferred types, will need to jump past them so we don't build a type constraint on them
     // This is because those 3 references have computed types
   def bypassCompRef(in: ExprHW): Tuple2[TypeHW, TypeTrace] = in match {
-    case RefVIndex(source, _)      => {
+    case RefVIndex(source, _,_) => {
       val res = bypassCompRef(source)
       (in.rType, TTIndexALL(res._2))
     }
-    case RefVSelect(source, _)     => {
+    case RefVSelect(source, _,_) => {
       val res = bypassCompRef(source)
       (in.rType, TTIndexALL(res._2))
     }
-    case RefTLookup(source, field) => {
+    case RefTLookup(source, field, _) => {
       val res = bypassCompRef(source)
       (in.rType, TTField(res._2, field))
     }

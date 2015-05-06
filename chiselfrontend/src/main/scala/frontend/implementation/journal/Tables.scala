@@ -56,9 +56,9 @@ class RefTable(parent: Option[RefTable]) {
     d2r_table(key) = value._1
     r2c_table(value._1) = value._2
   }
-  def addNewSymbol(in: Data, identifier: Option[String], connectable: Boolean): RefSymbol = {
+  def addNewSymbol(in: Data, identifier: Option[String], connectable: Boolean, note: GamaNote): RefSymbol = {
     if(get(in).isDefined) { throw new Exception("Internal Error: Context Uniqueness Violation") }
-    val newSymbol = RefSymbol(getFreshSymbol, identifier, ToFIR.constructType(in))
+    val newSymbol = RefSymbol(getFreshSymbol, identifier, ToFIR.constructType(in), note)
     add(in, (newSymbol, connectable))
     newSymbol
   }

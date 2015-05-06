@@ -8,37 +8,37 @@ trait IRReader {
   }
 
   def parseCmdHW(cmd: CmdHW): String = cmd match {
-    case WireDecl(symbol) => s"${HL.CYAN}wire ${HL.RESET} ${emitFullSymbol(symbol)}"
-    case RegDecl(symbol, reset)  => {
+    case WireDecl(symbol, note) => s"${HL.CYAN}wire ${HL.RESET} ${emitFullSymbol(symbol)}"
+    case RegDecl(symbol, reset, note)  => {
       val rinfo: String = reset match {
         case Some((ren, rval)) => s"=> ${HL.CYAN}reset${HL.RESET} en = ${parseExpr(ren)}, rval = ${parseExpr(rval)}"
         case None => ""
       }
       s"${HL.CYAN}reg  ${HL.RESET} ${emitFullSymbol(symbol)} $rinfo"
     }
-    case ConstDecl(symbol, expr) =>
+    case ConstDecl(symbol, expr, note) =>
       s"${HL.CYAN}const${HL.RESET} ${emitFullSymbol(symbol)} = ${parseExpr(expr)}"
-    case AliasDecl(symbol, expr) =>
+    case AliasDecl(symbol, expr, note) =>
       s"${HL.CYAN}alias${HL.RESET} ${emitFullSymbol(symbol)} = ${parseExpr(expr)}"
 
-    case BlockHW(cmds) =>
+    case BlockHW(cmds, note) =>
       if(cmds.isEmpty) "{}"
       else 
         (cmds flatMap(cmd => parseCmdHW(cmd).split("\n")) map("  " + _) mkString("{\n","\n","\n}"))
-    case WhenHW(cond, tc, fc) =>
+    case WhenHW(cond, tc, fc, note) =>
       s"${HL.CYAN}when${HL.RESET}(${parseExpr(cond)}) ${parseCmdHW(tc)} ${HL.CYAN}else${HL.RESET} ${parseCmdHW(fc)}"
 
-    case MemDecl(desc) => {
+    case MemDecl(desc, note) => {
       val name = desc.identifier.getOrElse("")
       s"${HL.CYAN}mem${HL.RESET} ${emitMemName(desc)} = MEM(${desc.depth}, ${HL.GREEN}${parseType(desc.sourceType)}${HL.RESET})"
     }
 
-    case ConnectStmt(sink, source, details) =>
+    case ConnectStmt(sink, source, details, note) =>
       s"${parseExpr(sink)} := ${parseExpr(source)} ${HL.YELLOW}${parseConnectDetails(details)}${HL.RESET}"
-    case BiConnectStmt(left, right, details) =>
+    case BiConnectStmt(left, right, details, note) =>
       s"${parseExpr(left)} <-> ${parseExpr(right)} ${HL.YELLOW}${parseBiConnectDetails(details)}${HL.RESET}"
 
-    case SubModuleDecl(details, placeholder) =>
+    case SubModuleDecl(details, placeholder, note) =>
       s"${HL.CYAN}inst${HL.RESET} ${emitModName(details)}: ${HL.GREEN}$placeholder${HL.RESET}, ${HL.CYAN}IO${HL.RESET}: ${HL.GREEN}${parseType(details.ioType)}${HL.RESET}"
   }
   def emitModName(desc: ModuleSub): String = {
@@ -59,7 +59,7 @@ trait IRReader {
   }
   
   def parseExpr(expr: ExprHW): String = {
-    def parseUnary(opid: OpIdUnary, input: ExprHW): String = {
+    def parseUnary(opid: OpIdUnary, input: ExprHW, note: GamaNote): String = {
       val opname = opid match {
         case OpIDENT  => ""
         
@@ -74,7 +74,7 @@ trait IRReader {
       }
       s"$opname(${parseExpr(input)})"
     }
-    def parseBinary(opid: OpIdBinary, left: ExprHW, right: ExprHW): String = {
+    def parseBinary(opid: OpIdBinary, left: ExprHW, right: ExprHW, note: GamaNote): String = {
       def infix(opname: String)   = s"(${parseExpr(left)} $opname ${parseExpr(right)})"
       def postfix(opname: String) = s"$opname(${parseExpr(left)}, ${parseExpr(right)})"
       opid match {
@@ -102,18 +102,18 @@ trait IRReader {
       }
     }
     expr match {
-      case symbol @ RefSymbol(_,_,_) => emitSymbol(symbol)
-      case ExprUnary(op, target, _) => parseUnary(op, target)
-      case ExprBinary(op, left, right, _) => parseBinary(op, left, right)
-      case ExprMux(cond, tc, fc, _) => s"((${parseExpr(cond)}) ? (${parseExpr(tc)}) : (${parseExpr(fc)}))"
-      case ExprLit(litvalue, _) => s"${HL.RED}${parseLitTree(litvalue)}${HL.RESET}"
+      case symbol @ RefSymbol(_,_,_,_) => emitSymbol(symbol)
+      case ExprUnary(op, target, _, note) => parseUnary(op, target, note)
+      case ExprBinary(op, left, right, _, note) => parseBinary(op, left, right, note)
+      case ExprMux(cond, tc, fc, _, note) => s"((${parseExpr(cond)}) ? (${parseExpr(tc)}) : (${parseExpr(fc)}))"
+      case ExprLit(litvalue, _, note) => s"${HL.RED}${parseLitTree(litvalue)}${HL.RESET}"
 
-      case RefIO(details) => s"${parseModRef(details)}->${HL.CYAN}IO${HL.RESET}"
-      case RefMSelect(mem, selector)    => s"${emitMemName(mem)}(${parseExpr(selector)})"
-      case RefVIndex(parent, index)     => s"${parseExpr(parent)}($index)"
-      case RefVSelect(parent, selector) => s"${parseExpr(parent)}(${parseExpr(selector)})"
-      case RefTLookup(source, field)    => s"${parseExpr(source)}.$field"
-      case RefExtract(source, left_pos, right_pos, _) => s"${parseExpr(source)}($left_pos,$right_pos)"
+      case RefIO(details, note) => s"${parseModRef(details)}->${HL.CYAN}IO${HL.RESET}"
+      case RefMSelect(mem, selector, note)    => s"${emitMemName(mem)}(${parseExpr(selector)})"
+      case RefVIndex(parent, index, note)     => s"${parseExpr(parent)}($index)"
+      case RefVSelect(parent, selector, note) => s"${parseExpr(parent)}(${parseExpr(selector)})"
+      case RefTLookup(source, field, note)    => s"${parseExpr(source)}.$field"
+      case RefExtract(source, left_pos, right_pos, _, note) => s"${parseExpr(source)}($left_pos,$right_pos)"
 
       case RefExprERROR(cause) => "$$$$RefExprERROR: " + cause + " $$$$"
     }

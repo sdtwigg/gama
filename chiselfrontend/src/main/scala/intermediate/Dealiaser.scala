@@ -9,22 +9,22 @@ class Dealiaser {
   }
   
   def dealias(expr: RefHW): RefHW = expr match {
-    case rs @ RefSymbol(_, _, _) => aliasTable.getOrElse(rs,rs) // Key case
+    case rs @ RefSymbol(_, _, _, _) => aliasTable.getOrElse(rs,rs) // Key case
 
-    case RefMSelect(mem, selector) => RefMSelect(mem, dealias(selector))
-    case RefVIndex(source, index) => RefVIndex(dealias(source), index)
-    case RefVSelect(source, selector) => RefVSelect(dealias(source), dealias(selector))
-    case RefTLookup(source, field) => RefTLookup(dealias(source), field)
-    case RefExtract(source, lp, rp, rt) => RefExtract(dealias(source), lp, rp, rt)
-    case RefIO(_) | RefMSelect(_,_) | RefExprERROR(_) => expr
+    case RefMSelect(mem, selector, note)      => RefMSelect(mem, dealias(selector), note)
+    case RefVIndex(source, index, note)       => RefVIndex(dealias(source), index, note)
+    case RefVSelect(source, selector, note)   => RefVSelect(dealias(source), dealias(selector), note)
+    case RefTLookup(source, field, note)      => RefTLookup(dealias(source), field, note)
+    case RefExtract(source, lp, rp, rt, note) => RefExtract(dealias(source), lp, rp, rt, note)
+    case RefIO(_,_) | RefMSelect(_,_,_) | RefExprERROR(_) => expr
   }
   def dealias(expr: ExprHW): ExprHW = expr match {
     case ref: RefHW => (dealias(ref))
 
-    case ExprUnary(op, target, rt) => ExprUnary(op, dealias(target), rt)
-    case ExprBinary(op, left, right, rt) => ExprBinary(op, dealias(left), dealias(right), rt)
-    case ExprMux(cond, tc, fc, rt) => ExprMux(dealias(cond), dealias(tc), dealias(fc), rt)
+    case ExprUnary(op, target, rt, note) => ExprUnary(op, dealias(target), rt, note)
+    case ExprBinary(op, left, right, rt, note) => ExprBinary(op, dealias(left), dealias(right), rt, note)
+    case ExprMux(cond, tc, fc, rt, note) => ExprMux(dealias(cond), dealias(tc), dealias(fc), rt, note)
 
-    case ExprLit(_,_) => expr
+    case ExprLit(_,_,_) => expr
   }
 }

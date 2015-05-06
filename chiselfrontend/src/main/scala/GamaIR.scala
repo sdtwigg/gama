@@ -13,14 +13,14 @@ sealed trait TreeHW extends Product {
 sealed trait FIRERROR extends TreeHW
 ///////////////////
 // Commands
-sealed trait CmdHW extends TreeHW
+sealed trait CmdHW extends TreeHW { def note: GamaNote }
 sealed trait CreatesRefSymbol extends CmdHW { def symbol: RefSymbol }
 // Symbol creators
-case class WireDecl(symbol: RefSymbol) extends CmdHW with CreatesRefSymbol
-case class RegDecl(symbol: RefSymbol, reset: Option[Tuple2[ExprHW, ExprHW]]) extends CmdHW with CreatesRefSymbol
+case class WireDecl(symbol: RefSymbol, note: GamaNote) extends CmdHW with CreatesRefSymbol
+case class RegDecl(symbol: RefSymbol, reset: Option[Tuple2[ExprHW, ExprHW]], note: GamaNote) extends CmdHW with CreatesRefSymbol
   // Note, first element is boolean for reset enable, second is reset value... Force to be ExprLit?
-case class ConstDecl(symbol: RefSymbol, expr: ExprHW) extends CmdHW with CreatesRefSymbol
-case class AliasDecl(symbol: RefSymbol, ref: RefHW) extends CmdHW with CreatesRefSymbol
+case class ConstDecl(symbol: RefSymbol, expr: ExprHW, note: GamaNote) extends CmdHW with CreatesRefSymbol
+case class AliasDecl(symbol: RefSymbol, ref: RefHW, note: GamaNote) extends CmdHW with CreatesRefSymbol
   // basically, a reference/pointer... good for holding named accessors/extractors?
   // However, there are other types of 'aliased' connects, like connect on an aggregate
   //   so the presence of this type isn't TOO ridiculous
@@ -28,40 +28,39 @@ case class AliasDecl(symbol: RefSymbol, ref: RefHW) extends CmdHW with CreatesRe
   // de-aliasing pass converts to const (for r-value use) and rewrites l-value use
   // I think can be done after type infer BUT definitley must be de-aliased before connect smashing
 // Control flow related
-case class BlockHW(statements: List[CmdHW]) extends CmdHW // have reference to enclosing context?
-case class WhenHW(cond: ExprHW, tc: CmdHW, fc: CmdHW) extends CmdHW
+case class BlockHW(statements: List[CmdHW], note: GamaNote) extends CmdHW // have reference to enclosing context?
+case class WhenHW(cond: ExprHW, tc: CmdHW, fc: CmdHW, note: GamaNote) extends CmdHW
 // Connection details
-case class ConnectStmt(sink: RefHW, source: ExprHW, details: ConnectDetails) extends CmdHW
-case class BiConnectStmt(left: RefHW, right: RefHW, details: BiConnectDetails) extends CmdHW
+case class ConnectStmt(sink: RefHW, source: ExprHW, details: ConnectDetails, note: GamaNote) extends CmdHW
+case class BiConnectStmt(left: RefHW, right: RefHW, details: BiConnectDetails, note: GamaNote) extends CmdHW
 // Memory related
-case class MemDecl(desc: MemDesc) extends CmdHW
+case class MemDecl(desc: MemDesc, note: GamaNote) extends CmdHW
 //case class MemRead(symbol: RefSymbol, mem: MemDesc, selector: ExprHW) extends CmdHW with CreatesRefSymbol
 //case class MemWrite(mem: MemDesc, selector: ExprHW, source: ExprHW) extends CmdHW
   // TODO: Masked and partial mem writes....
   // TODO: Add these properly
 // Other
-case class SubModuleDecl(details: ModuleSub, ph: String) extends CmdHW
+case class SubModuleDecl(details: ModuleSub, ph: String, note: GamaNote) extends CmdHW
   // TODO: Other fields, like module type? ph = placeholder
 
 ///////////////////
 // Expressions, References, Types, etc.
-sealed trait ExprHW extends TreeHW { def rType: TypeHW }
+sealed trait ExprHW extends TreeHW { def rType: TypeHW; def note: GamaNote }
 sealed trait ExprLeaf extends ExprHW // for certain lookup tables
-case class ExprUnary(op: OpIdUnary, target: ExprHW, rType: TypeHW) extends ExprHW
-case class ExprBinary(op: OpIdBinary, left: ExprHW, right: ExprHW, rType: TypeHW) extends ExprHW
-case class ExprMux(cond: ExprHW, tc: ExprHW, fc: ExprHW, rType: TypeHW) extends ExprHW
-case class ExprLit(litvalue: LitTree, rType: TypeHW) extends ExprHW with ExprLeaf
+case class ExprUnary(op: OpIdUnary, target: ExprHW, rType: TypeHW, note: GamaNote) extends ExprHW
+case class ExprBinary(op: OpIdBinary, left: ExprHW, right: ExprHW, rType: TypeHW, note: GamaNote) extends ExprHW
+case class ExprMux(cond: ExprHW, tc: ExprHW, fc: ExprHW, rType: TypeHW, note: GamaNote) extends ExprHW
+case class ExprLit(litvalue: LitTree, rType: TypeHW, note: GamaNote) extends ExprHW with ExprLeaf
 // References are also all possible expressions
 sealed trait RefHW extends ExprHW
-case class RefSymbol(symbol: Int, identifier: Option[String], rType: TypeHW) extends RefHW with ExprLeaf
-case class RefIO(mod: ModuleRef) extends RefHW with ExprLeaf {def rType = mod.ioType}
-case class RefMSelect(mem: MemDesc, selector: ExprHW) extends RefHW with ExprLeaf {def rType = mem.sourceType}
-case class RefVIndex(source: ExprHW, index: Int) extends RefHW {val rType = getVecEType(source.rType)}
-case class RefVSelect(source: ExprHW, selector: ExprHW) extends RefHW {val rType = getVecEType(source.rType)}
-case class RefTLookup(source: ExprHW, field: String) extends RefHW {val rType = getTupleFType(source.rType, field)}
-case class RefExtract(source: ExprHW, left_pos: Int, right_pos: Int, rType: TypeHW) extends RefHW
-// TODO: only RefSymbol actually needs to regen type, others can derive it
-case class RefExprERROR(cause: String) extends RefHW with FIRERROR {def rType = TypeHWUNKNOWN}
+case class RefSymbol(symbol: Int, identifier: Option[String], rType: TypeHW, note: GamaNote) extends RefHW with ExprLeaf
+case class RefIO(mod: ModuleRef, note: GamaNote) extends RefHW with ExprLeaf {def rType = mod.ioType}
+case class RefMSelect(mem: MemDesc, selector: ExprHW, note: GamaNote) extends RefHW with ExprLeaf {def rType = mem.sourceType}
+case class RefVIndex(source: ExprHW, index: Int, note: GamaNote) extends RefHW {val rType = getVecEType(source.rType)}
+case class RefVSelect(source: ExprHW, selector: ExprHW, note: GamaNote) extends RefHW {val rType = getVecEType(source.rType)}
+case class RefTLookup(source: ExprHW, field: String, note: GamaNote) extends RefHW {val rType = getTupleFType(source.rType, field)}
+case class RefExtract(source: ExprHW, left_pos: Int, right_pos: Int, rType: TypeHW, note: GamaNote) extends RefHW
+case class RefExprERROR(cause: String) extends RefHW with FIRERROR {def rType = TypeHWUNKNOWN; def note = GamaNote()}
 
 sealed trait TypeHW extends TreeHW 
 sealed trait PrimitiveTypeHW extends TypeHW {def storage: NodeStore}
