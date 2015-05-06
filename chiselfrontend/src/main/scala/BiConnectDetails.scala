@@ -7,6 +7,6 @@ case object BiConnectToRight extends BiConnectDetails {def flipped = BiConnectTo
 case class  BiConnectTuple(fields: Seq[Tuple2[String,BiConnectDetails]]) extends BiConnectDetails {
   def flipped = BiConnectTuple(fields.map({case (field, elem) => (field, elem.flipped)}))
 }
-case class  BiConnectVec(elemdetails: BiConnectDetails) extends BiConnectDetails {
-  def flipped = BiConnectVec(elemdetails.flipped)
+case class  BiConnectVec(numelems: Int, elemdetails: BiConnectDetails) extends BiConnectDetails {
+  def flipped = BiConnectVec(numelems, elemdetails.flipped)
 }

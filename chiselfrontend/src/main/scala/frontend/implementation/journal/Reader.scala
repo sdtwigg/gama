@@ -91,14 +91,14 @@ abstract class BaseReader extends Reader {
 
   def emitConnectDetails(details: ConnectDetails): String = details match {
     case ConnectAll => "<ALL>"
-    case ConnectVec(elemdetails) => s"${emitConnectDetails(elemdetails)}*"
+    case ConnectVec(_,elemdetails) => s"${emitConnectDetails(elemdetails)}*"
     case ConnectTuple(fields) =>
       (fields map ({case (field, subd) => s"$field:${emitConnectDetails(subd)}"}) mkString("(",", ",")"))
   }
   def emitBiConnectDetails(details: BiConnectDetails): String = details match {
     case BiConnectToLeft  => "<<=="
     case BiConnectToRight => "==>>"
-    case BiConnectVec(elemdetails) => s"${emitBiConnectDetails(elemdetails)}*"
+    case BiConnectVec(_, elemdetails) => s"${emitBiConnectDetails(elemdetails)}*"
     case BiConnectTuple(fields) =>
       (fields map ({case (field, subd) => s"$field:${emitBiConnectDetails(subd)}"}) mkString("(",", ",")"))
   }

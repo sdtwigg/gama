@@ -163,7 +163,7 @@ abstract class IRReader(options: IRReaderOptions) {
   
   def parseConnectDetails(details: ConnectDetails): String = details match {
     case ConnectAll => "<ALL>"
-    case ConnectVec(elemdetails) => s"${parseConnectDetails(elemdetails)}*"
+    case ConnectVec(_,elemdetails) => s"${parseConnectDetails(elemdetails)}*"
     case ConnectTuple(fields) =>
       (fields.toSeq.sortBy(_._1) map ({
         case (field, subd) => s"$field:${parseConnectDetails(subd)}"
@@ -172,7 +172,7 @@ abstract class IRReader(options: IRReaderOptions) {
   def parseBiConnectDetails(details: BiConnectDetails): String = details match {
     case BiConnectToLeft  => "<<=="
     case BiConnectToRight => "==>>"
-    case BiConnectVec(elemdetails) => s"${parseBiConnectDetails(elemdetails)}*"
+    case BiConnectVec(_, elemdetails) => s"${parseBiConnectDetails(elemdetails)}*"
     case BiConnectTuple(fields) =>
       (fields map ({case (field, subd) => s"$field:${parseBiConnectDetails(subd)}"}) mkString("(",", ",")"))
   }

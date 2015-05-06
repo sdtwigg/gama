@@ -103,7 +103,7 @@ trait VecObjectImpl {
       require(source.data.elements.length==sink.data.elements.length, "Cannot assign to/from two vectors of different length")
       eltconnect.monoDetails(Sink(sink.data.elemType), Source(source.data.elemType), info) match {
         case ConnectAll => ConnectAll
-        case other => ConnectVec(other)
+        case other => ConnectVec(sink.data.elements.length, other)
       }
     }
   }
@@ -113,7 +113,7 @@ trait VecObjectImpl {
       eltconnect.biDetails(Left(left.data.elemType), Right(right.data.elemType), info) match {
         case BiConnectToLeft  => BiConnectToLeft
         case BiConnectToRight => BiConnectToRight
-        case other => BiConnectVec(other)
+        case other => BiConnectVec(left.data.elements.length, other)
       }
     }
   }

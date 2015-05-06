@@ -5,26 +5,30 @@ import gama.library._
 
 object testmain {
   def main(args: Array[String]) {
-    import gama.intermediate.{IRReader, IRReaderOptions}
+    import gama.intermediate.{
+      IRReader, IRReaderOptions, TyperWidthInferer, ExplodeConnect, ModuleTypeChecker}
 
     //val myTopModule = ExampleModule()
-    val myTopModule = Module(new InferModule)
+    val myTopModule = Module(new BiConnectModule)
     val topModDesc = gama.frontend.implementation.journal.Converter(myTopModule)
     
-    val typechecker = new gama.intermediate.ModuleTypeChecker(true)(topModDesc)
+    val typechecker = new ModuleTypeChecker(true)(topModDesc)
     println(s"# Type Checker ${Console.RED}Errors${Console.RESET}: ${typechecker.errors.length}")
     println(s"# Type Checker ${Console.YELLOW}Warnings${Console.RESET}: ${typechecker.errors.length}")
     
-    val solution = gama.intermediate.TyperWidthInferer.infer(topModDesc)
+    val solution = TyperWidthInferer.infer(topModDesc)
 
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
     println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
+    val transformed = ExplodeConnect.transform(solution.inferredModule)
+
     println(myIRReader.parseElaboratedModule(topModDesc))
     println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Expressions Considered = ${solution.unknownsFound}")
     println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Unknown Type Parts (Solved/Total) = ${solution.solvedParts}/${solution.unknownParts}")
     println(myIRReader.parseElaboratedModule(solution.inferredModule))
+    println(myIRReader.parseElaboratedModule(transformed))
 
   }
 }

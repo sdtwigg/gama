@@ -1,6 +1,20 @@
 package gama
 package intermediate
 
+class CmdMultiTransformTree {
+  final def asOne(cmds: Iterable[CmdHW]): CmdHW =
+    if(cmds.size == 1) cmds.head else BlockHW(cmds.toList, GamaNote())
+  def multiTransform(cmd: CmdHW): Iterable[CmdHW] = cmd match {
+    case BlockHW(stmts, note) => Some( BlockHW(stmts.flatMap(multiTransform(_)), note) )
+    case WhenHW(cond, tc, fc, note) => {
+      Some(WhenHW(cond, asOne(multiTransform(tc)), asOne(multiTransform(fc)), note))
+    }
+    case WireDecl(_,_) | RegDecl(_,_,_) | ConstDecl(_,_,_) | AliasDecl(_,_,_) |
+         ConnectStmt(_,_,_,_) | BiConnectStmt(_,_,_,_) | MemDecl(_,_) | SubModuleDecl(_,_,_) => Some(cmd)
+  }
+  final def transform(cmd: CmdHW) = asOne(multiTransform(cmd))
+}
+
 class ExprTransformTree {
   def transform(cmd: CmdHW): CmdHW = cmd match {
     case WireDecl(symbol, note)  => WireDecl(transform(symbol), note)

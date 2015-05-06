@@ -84,7 +84,7 @@ trait LinkedTypeScanTree {
     details match {
       case ConnectAll => pathscan(leader, leadPath, followers)
 
-      case ConnectVec(elemd) => for{
+      case ConnectVec(_,elemd) => for{
         lType <- asVecHW(leader)
         lEType = lType.elemType
         lPath  = TTIndexALL(leadPath)
@@ -118,7 +118,7 @@ trait LinkedTypeScanTree {
       case BiConnectToLeft  => pathscan(leftType,  leftPath,  Some((rightType, rightPath)))
       case BiConnectToRight => pathscan(rightType, rightPath, Some((leftType,  leftPath)))
 
-      case BiConnectVec(elemd) => for{
+      case BiConnectVec(_, elemd) => for{
         lType <- asVecHW(leftType)
         lEType = lType.elemType
         lPath  = TTIndexALL(leftPath)
