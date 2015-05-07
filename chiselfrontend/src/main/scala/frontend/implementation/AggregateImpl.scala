@@ -24,7 +24,7 @@ abstract class AggregateImpl {
     val slice_borders = elem_widths.scanLeft(0)(_+_)
     elements.zipWithIndex.foreach({case (elem: Data, idx: Int) =>
       if(elem_widths(idx) > 0)
-        elem.do_connectFromUInt(in.doExtract(slice_borders(idx), slice_borders(idx+1)-1, info) ,info)
+        elem.do_connectFromUInt(in.doExtract(slice_borders(idx+1)-1, slice_borders(idx), info) ,info)
     })
     this
   }
