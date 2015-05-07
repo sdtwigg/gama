@@ -18,9 +18,9 @@ import gama.library._
 
   val myOp = myRegU + 1.U + 1.U
 
-  val myRegVU = Reg(Vec(4, UInt()))
+  val myRegVU = Reg(Vec(8, UInt()))
   
-  val wp = myRegVU(0.U)
+  val wp = myRegVU(myKnownReg)
   wp := 1.U
 
   val rp = myRegVU(1.U)
@@ -44,9 +44,9 @@ import gama.library._
   myUB.a := myWire
   myUB.b := myUB.a
 
-  val myUBVV = Reg(Vec(5,Vec(5,new UBundle)))
+  val myUBVV = Reg(Vec(4,Vec(4,new UBundle)))
   val myWire2 = Mux(False, Mux(True, myUBVV(0), myUBVV(1))(2), myUBVV(2)(2))
-  val myAcc = myUBVV(0.U)(0.U)
+  val myAcc = myUBVV(myRegU)(myRegU + 1.U)
   myAcc := myUB
 
   val ioWire = Wire(new UBundle)
