@@ -9,7 +9,7 @@ trait HardwareTupleImpl extends SimpleCopy {
   lazy val subfields_ordered: Seq[Tuple2[String,Data]] = subfields.toSeq.sortBy(_._1)
     // lexicographically sorted
 
-  private[this] def elements: Iterable[Data] = subfields.values
+  protected[gama] def elements: Seq[Data] = subfields_ordered.map(_._2)
   protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type = {
     subfields.foreach({case (subfield: String, elem: Data) =>
       try {elem.rebind(xform)}
@@ -30,12 +30,11 @@ trait HardwareTupleImpl extends SimpleCopy {
     }
   }
 
-  def nodes: Seq[Node] = elements.flatMap(_.nodes).toSeq
-
   protected[gama] def propogateName(newname: NameTree, newsource: NameSource): Unit = {
     subfields.foreach({case (subfield: String, elem: Data) =>
       elem.forceSetName(NameField(this, subfield), newsource, true)
     })
   }
-  protected[gama] def propogateDescRef(newdesc: Desc): Unit = elements.foreach( elem => {elem.setDescRef(newdesc, true)} )
+  protected[gama] def propogateDescRef(newdesc: Desc): Unit = subfields.values.foreach( elem => {elem.setDescRef(newdesc, true)} )
 }
+

@@ -16,7 +16,7 @@ object testmain {
     ))
 
     //val myTopModule = ExampleModule()
-    val myTopModule = Module(new InferModule)
+    val myTopModule = Module(new SandboxModule)
     val topModDesc = gama.frontend.implementation.journal.Converter(myTopModule)
     
     val typechecker = new ModuleTypeChecker(true)(topModDesc)

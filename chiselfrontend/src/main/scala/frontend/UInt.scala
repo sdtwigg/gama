@@ -46,8 +46,13 @@ final class UInt(initialNode: Node) extends UIntLike(initialNode) {
   // TODO: See above
   
   // implementation for parent abstracts
-  def do_not(info: EnclosureInfo): Self = UnaryOp.UInt(OpNot, this, this.getWidth, info)
+  def do_connectFromUInt(in: UInt, info: EnclosureInfo): this.type = {
+    this.doConnectTo(in, info)
+    this
+  }
 
+  def do_not(info: EnclosureInfo): Self = UnaryOp.UInt(OpNot, this, this.getWidth, info)
+  
   // Internal API
   protected[gama] def getLiteralValue: Option[Int] = descRef.flatMap({
     case LitDesc(_, lmap) => Some(lmap.asLitTree)

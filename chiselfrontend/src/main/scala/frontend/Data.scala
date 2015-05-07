@@ -23,6 +23,23 @@ sealed trait Data extends Nameable with DescReference {
     // TODO: 2 separate functions?
 
   def nodes: Seq[Node]
+  
+  import scala.language.experimental.macros
+  import implementation.macrodefs.{TransformMacro => XFORM}
+
+  def getWidth: Option[Int]
+
+  def asUInt: UInt = macro XFORM.do_asUInt.noparen
+  def connectFromUInt(that: UInt): this.type = macro XFORM.do_connectFromUInt.thatarg
+  def fromUInt(that: UInt): this.type = macro XFORM.do_fromUInt.thatarg
+  
+  def do_asUInt(info: EnclosureInfo): UInt
+  def do_connectFromUInt(in: UInt, info: EnclosureInfo): this.type
+  def do_fromUInt(in: UInt, info: EnclosureInfo): this.type = {
+    val copyWire = Wire.doWire(this, info)
+    copyWire.do_connectFromUInt(in, info)
+    copyWire.asInstanceOf[this.type]
+  }
 }
 
 // ELEMENT
@@ -31,7 +48,7 @@ abstract class Element(initialNode: Node) extends ElementImpl(initialNode) with 
 object Element extends ElementObjectImpl 
 
 // AGGREGATE
-sealed trait Aggregate extends Data
+sealed trait Aggregate extends AggregateImpl with Data
 
 final class Vec[D<:Data: Vectorizable](val length: Int, initialModel: D) extends VecImpl(initialModel) with Aggregate
   with VecAccessible[D] with Iterable[D]

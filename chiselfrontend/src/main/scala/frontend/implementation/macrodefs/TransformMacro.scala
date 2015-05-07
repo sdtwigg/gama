@@ -126,6 +126,12 @@ protected[gama] object TransformMacro {
   class do_toSInt(val c: Context) extends  UnaryOpTransform("do_toSInt")
   class do_asUInt(val c: Context) extends  UnaryOpTransform("do_asUInt")
   class do_asSInt(val c: Context) extends  UnaryOpTransform("do_asSInt")
+  
+  // Pseudo-Binary transforms
+  class do_connectFromUInt(val c: Context)
+    extends BinaryOpTransform("do_connectFromUInt")
+  class do_fromUInt(val c: Context)
+    extends BinaryOpTransform("do_fromUInt")
 
   // Binary transforms
   class do_cat  (val c: Context)  extends BinaryOpTransform("do_cat")

@@ -72,6 +72,11 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def do_xor(that: SInt, info: EnclosureInfo): SInt = BinaryOp.SInt(OpXor, (this, that), info)
 
   // Implementations for parent abstracts
+  def do_connectFromUInt(in: UInt, info: EnclosureInfo): this.type = {
+    this.doConnectTo(in.do_asSInt(info), info)
+    this
+  }
+  
   def do_not(info: EnclosureInfo): Self = UnaryOp.SInt(OpNot, this, this.getWidth, info)
   def do_neg(info: EnclosureInfo): MultiSelf = this.do_sub(LiteralSInt(0), info)
   

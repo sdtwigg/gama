@@ -41,6 +41,11 @@ final class Bool(initialNode: Node) extends UIntLike(initialNode) {
   def doBiConnect(right: Bool, info: EnclosureInfo): Unit =
     BiConnect[Bool,Bool].biConnect(Left(this), Right(right), info)
   
+  def do_connectFromUInt(in: UInt, info: EnclosureInfo): this.type = {
+    this.doConnectTo(in.doExtract(0, info), info)
+    this
+  }
+  
   def do_not(info: EnclosureInfo): Self = UnaryOp.Bool(OpNot, this, info)
   
   def do_andB(that: Bool, info: EnclosureInfo): Bool = BinaryOp.Bool(OpAnd, (this, that), info)

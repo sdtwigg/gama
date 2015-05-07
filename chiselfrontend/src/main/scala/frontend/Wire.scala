@@ -12,6 +12,7 @@ object Wire {
   def apply[D<:Data](model: D): D = macro XFORM.doNodeXFORM.xform[D]
 
   // external->internal API
-  def doNodeXFORM[D<:Data](model: D, storer: Storable[D], info: EnclosureInfo): D = WireInternals(model, info)
+  def doNodeXFORM[D<:Data](model: D, storer: Storable[D], info: EnclosureInfo): D = doWire(model, info)
+  protected[gama] def doWire[D<:Data](model: D, info: EnclosureInfo): D = WireInternals(model, info)
 }
 

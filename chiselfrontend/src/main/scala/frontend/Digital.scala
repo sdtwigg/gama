@@ -7,11 +7,6 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   protected type Self <: Digital // Traces all the way down to concrete
   protected type MultiSelf <: Digital // Can hold multiple bits
 
-  // Helper operations used internally and possibly externally
-  def getWidth: Option[Int] = this.node.storage match {
-    case b: RawBits => (b.width)
-    case _ => throw new ChiselException("Catastrophic error: Digital bound to non-RawBits NodeStorage") {}
-  }
   // Prepare for macro use
   import scala.language.experimental.macros
   import implementation.macrodefs.{TransformMacro => XFORM}
@@ -35,7 +30,7 @@ abstract class Digital(initialNode: Node) extends Element(initialNode) with Extr
   def toUInt: UInt = macro XFORM.do_toUInt.noparen
   def toSInt: SInt = macro XFORM.do_toSInt.noparen
   
-  def asUInt: UInt = macro XFORM.do_asUInt.noparen
+  //def asUInt: UInt = macro XFORM.do_asUInt.noparen - IN Data.scala
   def asSInt: SInt = macro XFORM.do_asSInt.noparen
   
   // BINARY OPERATIONS

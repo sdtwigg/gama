@@ -24,6 +24,7 @@ abstract class ElementImpl(initialNode: Node) { // MUTABLE STATE: node
   }
 
   def nodes = Seq(node)
+  
 
   protected[gama] def rebind(xform: NodeSpell[_<:Node]): this.type = {
     node = xform(node)
@@ -32,6 +33,11 @@ abstract class ElementImpl(initialNode: Node) { // MUTABLE STATE: node
 
   def propogateName(newname: NameTree, newsource: NameSource): Unit = {}
   def propogateDescRef(newdesc: Desc): Unit = {NodeCheck.assertSynthesizable(this)}
+  
+  def getWidth: Option[Int] = this.node.storage match {
+    case b: RawBits => (b.width)
+    case _ => throw new ChiselException("Error: getWidth called on Element bound to non-RawBits NodeStorage") {}
+  }
 }
 
 trait ElementObjectImpl {

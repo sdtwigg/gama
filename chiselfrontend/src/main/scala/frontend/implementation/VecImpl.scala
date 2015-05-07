@@ -8,11 +8,12 @@ import scala.collection.{immutable=>immutable}
 import scala.language.experimental.macros
 import macrodefs.{TransformMacro => XFORM}
 
-abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
+abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) extends AggregateImpl {
   self: Vec[D] =>
   // D must be invariant because of assignment (:=), amongst other reasons
   // TODO: INDEXED SEQ MAY BE SUBTLY INCORRECT
- 
+
+  // external API
   def :=(source: Data): Unit = macro XFORM.doConnectTo.sourcearg
   def <>(right:  Data): Unit = macro XFORM.doBiConnect.rightarg
   // TODO: CONSIDER: Note how doConnectTo/doBiConnect introduce an implicit
@@ -32,7 +33,6 @@ abstract class VecImpl[D<:Data: Vectorizable](initialModel: D) {
   // TODO: BETTER DEFINE WHAT elemType is
 
   protected[gama] val elements: immutable.IndexedSeq[D] = Vector.fill(length)(elemType.copy)
-  def nodes = elements.flatMap(_.nodes)
 
   def iterator: Iterator[D] = new Iterator[D] { // from IndexedSeqLike.scala
     private[this] var position = 0
