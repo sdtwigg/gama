@@ -2,7 +2,7 @@ package gama
 package intermediate
 package passes
 
-object ExplodeConnect {
+object ExplodeConnect extends GamaPass {
   def transform(target: ElaboratedModule): ElaboratedModule = {
     // This pass converts all ConnectStmt and BiConnectStmt in the module into ConnectStmt with only ConnectALL
     def explodeConnect(cmd: ConnectStmt): Iterable[ConnectStmt] = cmd.details match {

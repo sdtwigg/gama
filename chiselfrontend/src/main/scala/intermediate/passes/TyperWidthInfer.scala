@@ -4,7 +4,9 @@ package passes
 
 import scala.collection.mutable.{HashMap=>HMap, HashSet=>HSet, ListBuffer=>ListB}
 
-object TyperWidthInferer {
+object TyperWidthInferer extends GamaPass{
+  def transform(target: ElaboratedModule): ElaboratedModule = infer(target).inferredModule
+
   case class InferenceSolution(inferredModule: ElaboratedModule, unknownsFound: Int, unknownParts: Int, solvedParts: Int)
   /*
   Summary of how each expression is inferred

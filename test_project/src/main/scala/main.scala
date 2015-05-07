@@ -6,10 +6,11 @@ import gama.library._
 object testmain {
   def main(args: Array[String]) {
     import gama.intermediate.{
-      IRReader, IRReaderOptions, ModuleTypeChecker}
+      IRReader, IRReaderOptions, ModuleTypeChecker, PassMerger}
     import gama.intermediate.passes.{
       TyperWidthInferer, ExplodeConnect, SubstituteAliases
     }
+    object MergedPasses extends PassMerger(Seq(ExplodeConnect, SubstituteAliases))
 
     //val myTopModule = ExampleModule()
     val myTopModule = Module(new InferModule)
@@ -25,7 +26,7 @@ object testmain {
     println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
-    val transformed = SubstituteAliases.transform(ExplodeConnect.transform(solution.inferredModule))
+    val transformed = MergedPasses.transform(solution.inferredModule)
 
     println(myIRReader.parseElaboratedModule(topModDesc))
     println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Expressions Considered = ${solution.unknownsFound}")

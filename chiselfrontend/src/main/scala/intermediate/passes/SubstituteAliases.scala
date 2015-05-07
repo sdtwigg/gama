@@ -2,7 +2,7 @@ package gama
 package intermediate
 package passes
 
-object SubstituteAliases {
+object SubstituteAliases extends GamaPass {
   def transform(target: ElaboratedModule): ElaboratedModule = {
     val dealiaser = new Dealiaser
 
