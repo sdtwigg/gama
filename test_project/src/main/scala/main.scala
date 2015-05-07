@@ -8,7 +8,7 @@ object testmain {
     import gama.intermediate.{
       IRReader, IRReaderOptions, ModuleTypeChecker}
     import gama.intermediate.passes.{
-      TyperWidthInferer, ExplodeConnect
+      TyperWidthInferer, ExplodeConnect, SubstituteAliases
     }
 
     //val myTopModule = ExampleModule()
@@ -25,7 +25,7 @@ object testmain {
     println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
-    val transformed = ExplodeConnect.transform(solution.inferredModule)
+    val transformed = SubstituteAliases.transform(ExplodeConnect.transform(solution.inferredModule))
 
     println(myIRReader.parseElaboratedModule(topModDesc))
     println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Expressions Considered = ${solution.unknownsFound}")
