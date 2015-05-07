@@ -178,7 +178,7 @@ object TyperWidthInferer extends GamaPass{
     // STEP 5: WALK THE TREE REPLACING TYPES FROM THE TABLE
 //          case ExprUnary(_,_,_,_) | ExprBinary(_,_,_,_,_) | ExprMux(_,_,_,_,_) |
  //              RefSymbol(_,_,_,_) | RefExtract(_,_,_,_,_)
-    object Transformer extends ExprTransformTree {
+    object Transformer extends ExprTransformTreeFullSegregation {
       def getNewType(in: ExprHW): TypeHW = typeReplaceTable.get(in).getOrElse(in.rType)
 
       override def transform(symbol: RefSymbol): RefSymbol = symbol.copy(rType=getNewType(symbol))

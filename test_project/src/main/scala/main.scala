@@ -8,10 +8,11 @@ object testmain {
     import gama.intermediate.{
       IRReader, IRReaderOptions, ModuleTypeChecker, PassMerger}
     import gama.intermediate.passes.{
-      TyperWidthInferer, ExplodeConnect, SubstituteAliases, ExpandVSelectSink
+      TyperWidthInferer, ExplodeConnect, SubstituteAliases, ExpandVSelectSink,
+      ExpandVSelectSource
     }
     object MergedPasses extends PassMerger(Seq(
-      ExplodeConnect, SubstituteAliases, ExpandVSelectSink
+      ExplodeConnect, SubstituteAliases, ExpandVSelectSink, ExpandVSelectSource
     ))
 
     //val myTopModule = ExampleModule()
