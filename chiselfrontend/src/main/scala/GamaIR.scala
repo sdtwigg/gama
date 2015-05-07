@@ -42,6 +42,7 @@ case class MemDecl(desc: MemDesc, note: GamaNote) extends CmdHW
 // Other
 case class SubModuleDecl(details: ModuleSub, ph: String, note: GamaNote) extends CmdHW
   // TODO: Other fields, like module type? ph = placeholder
+case class CmdERROR(message: String, note: GamaNote) extends CmdHW
 
 ///////////////////
 // Expressions, References, Types, etc.

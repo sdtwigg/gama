@@ -10,7 +10,8 @@ class CmdMultiTransformTree {
       Some(WhenHW(cond, asOne(multiTransform(tc)), asOne(multiTransform(fc)), note))
     }
     case WireDecl(_,_) | RegDecl(_,_,_) | ConstDecl(_,_,_) | AliasDecl(_,_,_) |
-         ConnectStmt(_,_,_,_) | BiConnectStmt(_,_,_,_) | MemDecl(_,_) | SubModuleDecl(_,_,_) => Some(cmd)
+         ConnectStmt(_,_,_,_) | BiConnectStmt(_,_,_,_) |
+         MemDecl(_,_) | SubModuleDecl(_,_,_) | CmdERROR(_,_) => Some(cmd)
   }
   final def transform(cmd: CmdHW) = asOne(multiTransform(cmd))
 }
@@ -29,7 +30,7 @@ class ExprTransformTree {
     case ConnectStmt(sink, source, details, note)  => ConnectStmt(transform(sink), transform(source), details, note)
     case BiConnectStmt(left, right, details, note) => BiConnectStmt(transform(left), transform(right), details, note)
 
-    case MemDecl(_,_) | SubModuleDecl(_,_,_) => cmd
+    case MemDecl(_,_) | SubModuleDecl(_,_,_) | CmdERROR(_,_) => cmd
   }
 
   def transform(symbol: RefSymbol): RefSymbol = symbol

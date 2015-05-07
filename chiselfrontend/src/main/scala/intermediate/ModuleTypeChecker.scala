@@ -56,6 +56,7 @@ class ModuleTypeChecker(warnWidthUnknown: Boolean)(target: ElaboratedModule) {
     
     case MemDecl(desc, note) => 
     case SubModuleDecl(details, ph, note) => 
+    case CmdERROR(message, note) =>
   }
   
   def checkNodeStore(check: NodeStore, path: PathTrace): Unit = check match {

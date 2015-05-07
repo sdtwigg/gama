@@ -6,6 +6,7 @@ object ExpandVSelectSink extends GamaPass {
   // This pass converts all instances of having a RefVSelect as a sink into
   //   a series of whens with RefVIndex as the sink
   // TODO: store the source as a ConstDecl?
+  // TODO: Must be run after SubstituteAliases and ExplodeConnect (no AliasDecl or BiConnectStmt)
   def transform(target: ElaboratedModule): ElaboratedModule = {
     case class ConnectParams(source: ExprHW, details: ConnectDetails, note: GamaNote)
     def expandConnect(cmd: ConnectStmt): Iterable[CmdHW] = {
@@ -35,22 +36,26 @@ object ExpandVSelectSink extends GamaPass {
       }
 
       searchSink(cmd.sink) match {
-        case Some((newsinkbuilder, oldrefvs)) => {
-          val depth = getVecDepth(oldrefvs.source.rType).getOrElse(throw new Exception("Malformed AST: RefVSelect on non-vec type")) // TODO: avoid exception?
+        case Some((newsinkbuilder, oldrefvs)) => getVecDepth(oldrefvs.source.rType).map(depth => {
+        //{getOrElse(throw new Exception("Malformed AST: RefVSelect on non-vec type")) // TODO: avoid exception?
           val newstmts = (0 until depth).map(i => {
             val newsink = newsinkbuilder(i)
             val cond = ExprBinary(OpEqual, oldrefvs.selector, ExprLitU(i), PrimitiveNode(UBits(Some(1))), GamaNote())
             WhenHW(cond, ConnectStmt(newsink, cmd.source, cmd.details, cmd.note), NOPHW, GamaNote())
           })
           newstmts.map(Transformer.transform(_))
-        }
+        }).getOrElse(Some( CmdERROR("Malformed AST: Could not convert ConnectStmt: RefVSelect on non-vec type", cmd.note) ))
+
         case None => Some( cmd ) // Sink had no RefVSelect in it so just return current command
       }
 
     }
     object Transformer extends CmdMultiTransformTree {
       override def multiTransform(cmd: CmdHW) = cmd match {
-        case  c @ ConnectStmt(_,_,_,_)   => expandConnect(c)
+        case c @ ConnectStmt(_,_,_,_)   => expandConnect(c)
+
+        case BiConnectStmt(_,_,_,note) => Some( CmdERROR("BiConnect found during ExpandVSelectSink", note) )
+        case AliasDecl(_,_,note) => Some( CmdERROR("AliasDecl found during ExpandVSelectSink", note) )
         case _ => super.multiTransform(cmd)
       }
     }

@@ -42,6 +42,7 @@ abstract class IRReader(options: IRReaderOptions) {
 
     case SubModuleDecl(details, placeholder, note) =>
       s"${HL.CYAN}inst${HL.RESET} ${emitModName(details)}: ${HL.GREEN}$placeholder${HL.RESET}, ${HL.CYAN}IO${HL.RESET}: ${HL.GREEN}${parseType(details.ioType)}${HL.RESET}  ${emitGamaNote(note)}"
+    case CmdERROR(message, note) => "${HL.RED}!!ERROR!!${HL.RESET}: $message ${emitGamaNote(note)}"
   }
   def emitGamaNote(note: GamaNote): String = note match {
     case GamaNote(Some(UserspaceInfo(file, line))) if options.emitNotes =>

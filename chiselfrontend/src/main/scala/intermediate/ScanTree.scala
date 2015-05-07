@@ -16,6 +16,7 @@ class ExprScanTree {
     case BiConnectStmt(left, right, _,_) => {scan(left); scan(right)}
 
     case MemDecl(_,_) | SubModuleDecl(_,_,_) =>
+    case CmdERROR(_,_) => 
   }
 
   def scan(expr: ExprHW): Unit = expr match {
