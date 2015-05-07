@@ -114,6 +114,23 @@ protected[gama] object TransformMacro {
     }
   }
   
+  class doCatObj(val c: Context) extends CoreTransform {
+    import c.universe._
+    def multiarg(term: c.Tree, terms: c.Tree*): c.Tree = {
+      val termSeq = q"_root_.scala.collection.Seq($term, ..$terms)"
+      seqarg(termSeq)
+    }
+    def seqarg(terms: c.Tree): c.Tree = {
+      q"$myThis.doCat($terms, $constructInfo)"
+    }
+  }
+  class doFill(val c: Context) extends CoreTransform {
+    import c.universe._
+    def twoarg(n: c.Tree, mod: c.Tree): c.Tree = {
+      q"$myThis.doFill($n, $mod, $constructInfo)"
+    }
+  }
+  
   // Unary transforms
   class do_andR(val c: Context) extends  UnaryOpTransform("do_andR")
   class do_orR (val c: Context) extends  UnaryOpTransform("do_orR")

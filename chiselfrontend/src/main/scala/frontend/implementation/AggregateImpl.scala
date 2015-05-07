@@ -15,7 +15,9 @@ abstract class AggregateImpl {
   
   def do_asUInt(info: EnclosureInfo): UInt =
     if(elements.length > 0) elements.reverse.map(_.do_asUInt(info)).reduceLeft((left, right) => left.do_cat(right, info))
-    else UInt(0)
+    else LiteralUInt(0,0)
+  // TODO: This code is effectively duplicated in Cat.scala
+
   def do_connectFromUInt(in: UInt, info: EnclosureInfo): this.type = {
     require(getWidth.isDefined, "Cannot use fromUInt on Aggregate where some element has unknown width.")
     val elem_widths = elements.map(_.getWidth.get)

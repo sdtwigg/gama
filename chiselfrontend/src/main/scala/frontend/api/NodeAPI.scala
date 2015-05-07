@@ -11,7 +11,11 @@ trait NodeAPI {
   val AsHWConstant = gama.frontend.AsHWConstant
 
   // Case Classes for specializing the Reg Transform
-  val RModel = gama.frontend.RModel
-  val RInit = gama.frontend.RInit
-  val RInitModel = gama.frontend.RInitModel
+  val RModel = gama.frontend.Reg.RModel
+  val RInit = gama.frontend.Reg.RInit
+  val RInitModel = gama.frontend.Reg.RInitModel
+
+  // Some other things
+  val Cat  = gama.frontend.Cat
+  val Fill = gama.frontend.Fill
 }

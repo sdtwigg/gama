@@ -34,17 +34,18 @@ object Reg {
     case Some(reset) => Some((reset, init.rval))
     case None        => Some((info.em.reset, init.rval))
   }
+
+  case class RModel[+D<:Data](data: D)
+  sealed trait RInitBase[+D<:Data] {def rval: D; def ren: Option[Bool]}
+  case class RInit[+D<:Data](rval: D, ren: Option[Bool]) extends RInitBase[D]
+  object RInit {
+    def apply[D<:Data](rval: D): RInit[D] = RInit(rval, None)
+    def apply[D<:Data](rval: D, ren: Bool): RInit[D] = RInit(rval, Some(ren))
+  }
+  case class RInitModel[+D<:Data](rval: D, ren: Option[Bool]) extends RInitBase[D]
+  object RInitModel {
+    def apply[D<:Data](rval: D): RInitModel[D] = RInitModel(rval, None)
+    def apply[D<:Data](rval: D, ren: Bool): RInitModel[D] = RInitModel(rval, Some(ren))
+  }
 }
 
-case class RModel[+D<:Data](data: D)
-sealed trait RInitBase[+D<:Data] {def rval: D; def ren: Option[Bool]}
-case class RInit[+D<:Data](rval: D, ren: Option[Bool]) extends RInitBase[D]
-object RInit {
-  def apply[D<:Data](rval: D): RInit[D] = RInit(rval, None)
-  def apply[D<:Data](rval: D, ren: Bool): RInit[D] = RInit(rval, Some(ren))
-}
-case class RInitModel[+D<:Data](rval: D, ren: Option[Bool]) extends RInitBase[D]
-object RInitModel {
-  def apply[D<:Data](rval: D): RInitModel[D] = RInitModel(rval, None)
-  def apply[D<:Data](rval: D, ren: Bool): RInitModel[D] = RInitModel(rval, Some(ren))
-}

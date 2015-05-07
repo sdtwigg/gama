@@ -17,5 +17,9 @@ import gama.library._
 
   myVVB2.connectFromUInt(io.in_uint)
   myVVB3 := myVVB3.fromUInt(io.in_uint)
+
+  io.out_uint := Cat(io.in_uint, io.in_bool)
+  
+  io.out_uint := Fill(4, io.in_uint)
 }
 
