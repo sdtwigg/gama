@@ -121,7 +121,7 @@ abstract class IRReader(options: IRReaderOptions) {
       case ExprLit(litvalue, _, note) => s"${HL.RED}${parseLitTree(litvalue)}${HL.RESET}"
 
       case RefIO(details, note) => s"${parseModRef(details)}->${HL.CYAN}IO${HL.RESET}"
-      case RefMSelect(mem, selector, note)    => s"${emitMemName(mem)}(${parseExpr(selector)})"
+      case RefMSelect(mem, selector, note)    => s"${emitMemName(mem)}#${HL.CYAN}MEM${HL.RESET}(${parseExpr(selector)})"
       case RefVIndex(parent, index, note)     => s"${parseExpr(parent)}($index)"
       case RefVSelect(parent, selector, note) => s"${parseExpr(parent)}(${parseExpr(selector)})"
       case RefTLookup(source, field, note)    => s"${parseExpr(source)}.$field"
