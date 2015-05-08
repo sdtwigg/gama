@@ -7,12 +7,11 @@ object testmain {
   def main(args: Array[String]) {
     import gama.intermediate.{
       IRReader, IRReaderOptions, ModuleTypeChecker, PassMerger}
-    import gama.intermediate.passes.{
-      TyperWidthInferer, ExplodeConnect, SubstituteAliases, ExpandVSelectSink,
-      ExpandVSelectSource, DistributeRef
-    }
+    import gama.intermediate.passes._
+    
     object MergedPasses extends PassMerger(Seq(
-      ExplodeConnect, SubstituteAliases, ExpandVSelectSink, ExpandVSelectSource, DistributeRef
+      ExplodeConnect, SubstituteAliases, ExpandVSelectSink, ExpandVSelectSource,
+      AggregateConnectExplode, DistributeRef
     ))
     
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
