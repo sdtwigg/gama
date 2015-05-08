@@ -19,9 +19,10 @@ object testmain {
     val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
     //val myTopModule = ExampleModule()
-    val myTopModule = Module(new InferModule)
+    val myTopModule = Module(new SandboxModule)
     
-    println(myJReader.parseCircuit(myTopModule) mkString("\n"))
+    //println(myJReader.parseCircuit(myTopModule) mkString("\n"))
+    // WARNING: If uncommented, will give names to everything
     
     val circuitDesc = gama.frontend.implementation.journal.Converter(myTopModule)
     circuitDesc.modules.zipWithIndex.foreach({case (module, ptr) => {
