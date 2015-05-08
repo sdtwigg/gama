@@ -17,7 +17,6 @@ object ExpandVSelectSource extends GamaPass {
           def refvibuild(idx: Int) = RefVIndex(newsrc, idx, oldrefvs.note)
           if(depth > 0) {
             (1 until depth).foldLeft(refvibuild(0): ExprHW)((fc, idx) => {
-              println("here")
               val cond = ExprBinary(OpEqual, oldrefvs.selector, ExprLitU(idx), PrimitiveNode(UBits(Some(1))), GamaNote())
               ExprMux(cond, refvibuild(idx), fc, oldrefvs.rType, oldrefvs.note)
             })
@@ -34,7 +33,7 @@ object ExpandVSelectSource extends GamaPass {
       }
     }
 
-    ElaboratedModule(target.io, Transformer.transform(target.body))
+    target.copy(body = Transformer.transform(target.body))
   }
 }
 

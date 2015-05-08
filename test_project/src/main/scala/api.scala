@@ -3,9 +3,11 @@ package test
 import gama.frontend.api._
 import gama.library._
 
-@module class APIModule extends Module(Output(UInt())) {
+@module class APIModule extends Module(Input(UInt(4))) {
   val uint1 = Wire(UInt())
   val uint2 = Reg(UInt())
+  uint1 := io
+  uint2 := uint1
 
   val cat = uint1 ## uint2
 

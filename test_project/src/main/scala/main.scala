@@ -14,29 +14,32 @@ object testmain {
     object MergedPasses extends PassMerger(Seq(
       ExplodeConnect, SubstituteAliases, ExpandVSelectSink, ExpandVSelectSource, DistributeRef
     ))
-
-    //val myTopModule = ExampleModule()
-    val myTopModule = Module(new SandboxModule)
-    val topModDesc = gama.frontend.implementation.journal.Converter(myTopModule)
     
-    val typechecker = new ModuleTypeChecker(true)(topModDesc)
-    println(s"# Type Checker ${Console.RED}Errors${Console.RESET}: ${typechecker.errors.length}")
-    println(s"# Type Checker ${Console.YELLOW}Warnings${Console.RESET}: ${typechecker.errors.length}")
-    
-    val solution = TyperWidthInferer.infer(topModDesc)
-
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
-    println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
-    val transformed = MergedPasses.transform(solution.inferredModule)
+    //val myTopModule = ExampleModule()
+    val myTopModule = Module(new InferModule)
+    
+    println(myJReader.parseCircuit(myTopModule) mkString("\n"))
+    
+    val circuitDesc = gama.frontend.implementation.journal.Converter(myTopModule)
+    circuitDesc.modules.zipWithIndex.foreach({case (module, ptr) => {
+      println(s"${Console.CYAN}Analyzing position ${ptr}${Console.RESET}: ${Console.GREEN}${module.selftype}${Console.RESET}")
+      val typechecker = new ModuleTypeChecker(true)(module)
+      println(s"# Type Checker ${Console.RED}Errors${Console.RESET}: ${typechecker.errors.length}")
+      println(s"# Type Checker ${Console.YELLOW}Warnings${Console.RESET}: ${typechecker.errors.length}")
+      
+      val solution = TyperWidthInferer.infer(module)
+      val transformed = MergedPasses.transform(solution.inferredModule)
 
-    println(myIRReader.parseElaboratedModule(topModDesc))
-    println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Expressions Considered = ${solution.unknownsFound}")
-    println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Unknown Type Parts (Solved/Total) = ${solution.solvedParts}/${solution.unknownParts}")
-    println(myIRReader.parseElaboratedModule(solution.inferredModule))
-    println(myIRReader.parseElaboratedModule(transformed))
-
+      println(myIRReader.parseElaboratedModule(module, Some(circuitDesc)))
+      println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Expressions Considered = ${solution.unknownsFound}")
+      println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Unknown Type Parts (Solved/Total) = ${solution.solvedParts}/${solution.unknownParts}")
+      println(myIRReader.parseElaboratedModule(solution.inferredModule, Some(circuitDesc)))
+      println(myIRReader.parseElaboratedModule(transformed, Some(circuitDesc)))
+      println("")
+    }})
   }
 }
 /*

@@ -5,11 +5,12 @@ case class IRReaderOptions(emitNotes: Boolean, emitExprTypes: Boolean)
 
 abstract class IRReader(options: IRReaderOptions) {
   def HL: Highlighter
-  def parseElaboratedModule(module: ElaboratedModule): String = {
+  def parseElaboratedModule(module: ElaboratedModule, enclosingCircuit: Option[ElaboratedCircuit]): String = {
+    implicit val circuitLUT = enclosingCircuit
     s"Module(${HL.CYAN}IO${HL.RESET}: ${HL.GREEN}${parseType(module.io)}${HL.RESET}, ${parseCmdHW(module.body)})"
   }
 
-  def parseCmdHW(cmd: CmdHW): String = cmd match {
+  def parseCmdHW(cmd: CmdHW)(implicit circuitLUT: Option[ElaboratedCircuit]): String = cmd match {
     case WireDecl(symbol, note) => s"${HL.CYAN}wire ${HL.RESET} ${emitFullSymbol(symbol)}  ${emitGamaNote(note)}"
     case RegDecl(symbol, reset, note)  => {
       val rinfo: String = reset match {
@@ -40,8 +41,10 @@ abstract class IRReader(options: IRReaderOptions) {
     case BiConnectStmt(left, right, details, note) =>
       s"${parseExpr(left)} <-> ${parseExpr(right)} ${HL.YELLOW}${parseBiConnectDetails(details)}${HL.RESET}  ${emitGamaNote(note)}"
 
-    case SubModuleDecl(details, placeholder, note) =>
-      s"${HL.CYAN}inst${HL.RESET} ${emitModName(details)}: ${HL.GREEN}$placeholder${HL.RESET}, ${HL.CYAN}IO${HL.RESET}: ${HL.GREEN}${parseType(details.ioType)}${HL.RESET}  ${emitGamaNote(note)}"
+    case SubModuleDecl(details, smptr, note) => {
+      val submoduletype = circuitLUT.map(lut => if(smptr>=0 && smptr < lut.modules.size) s"${lut.modules(smptr).selftype} " else "").getOrElse("")
+      s"${HL.CYAN}inst${HL.RESET} ${emitModName(details)}: ${HL.GREEN}${submoduletype}($smptr)${HL.RESET}, ${HL.CYAN}IO${HL.RESET}: ${HL.GREEN}${parseType(details.ioType)}${HL.RESET}  ${emitGamaNote(note)}"
+    }
     case CmdERROR(message, note) => "${HL.RED}!!ERROR!!${HL.RESET}: $message ${emitGamaNote(note)}"
   }
   def emitGamaNote(note: GamaNote): String = note match {

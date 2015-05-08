@@ -40,7 +40,8 @@ case class MemDecl(desc: MemDesc, note: GamaNote) extends CmdHW
   // TODO: Masked and partial mem writes....
   // TODO: Add these properly
 // Other
-case class SubModuleDecl(details: ModuleSub, ph: String, note: GamaNote) extends CmdHW
+case class SubModuleDecl(details: ModuleSub, circuitptr: Int, note: GamaNote) extends CmdHW
+  // circuitptr is the index in the ElaboratedCircuit, -1 is error value
   // TODO: Other fields, like module type? ph = placeholder
 case class CmdERROR(message: String, note: GamaNote) extends CmdHW
 
@@ -86,5 +87,5 @@ case class ModuleSub(modid: Int, identifier: Option[String], ioType: TypeHW) ext
 case class MemDesc(memid: Int, identifier: Option[String], depth: Int, sourceType: TypeHW) extends TreeHW
 
 // NOT A TreeHW
-case class ElaboratedModule(io: TypeHW, body: CmdHW)
-
+case class ElaboratedModule(selftype: String, io: TypeHW, body: CmdHW)
+case class ElaboratedCircuit(modules: Vector[ElaboratedModule])

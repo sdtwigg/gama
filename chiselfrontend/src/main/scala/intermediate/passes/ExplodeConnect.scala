@@ -41,7 +41,7 @@ object ExplodeConnect extends GamaPass {
       }
     }
 
-    ElaboratedModule(target.io, Transformer.transform(target.body))
+    target.copy(body = Transformer.transform(target.body))
   }
 }
 

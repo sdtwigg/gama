@@ -198,8 +198,8 @@ object TyperWidthInferer extends GamaPass{
       }
     }
     val pathsUnknown = unknownTable.values.map(_.size).sum
-    InferenceSolution(ElaboratedModule(target.io, Transformer.transform(target.body)),
-                      unknownTable.size, pathsUnknown, solution.pathsSolved)
+    val newModule = target.copy(body = Transformer.transform(target.body))
+    InferenceSolution(newModule, unknownTable.size, pathsUnknown, solution.pathsSolved)
   }
 
 /*

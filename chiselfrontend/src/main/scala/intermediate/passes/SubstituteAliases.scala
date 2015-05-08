@@ -27,6 +27,6 @@ object SubstituteAliases extends GamaPass {
         case _ => super.multiTransform(cmd)
       }
     }
-    ElaboratedModule(target.io, Transformer.transform(target.body))
+    target.copy(body = Transformer.transform(target.body))
   }
 }

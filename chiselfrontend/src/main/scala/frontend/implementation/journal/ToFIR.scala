@@ -16,7 +16,8 @@ object ToFIR {
   }
 
   def convertJournal(journal: Journal, parentref: Option[RefTable], parentexpr: Option[ExprTable],
-                                       parentmem: Option[MemTable], parentmod: Option[SubModTable]): BlockHW = 
+                                       parentmem: Option[MemTable], parentmod: Option[SubModTable])
+                    (implicit modulePtrLUT: Converter.ModulePtrLUT): BlockHW = 
   {
     implicit val reftable  = new RefTable(parentref)
     implicit val exprtable = new ExprTable(parentexpr)
@@ -91,7 +92,8 @@ object ToFIR {
         // Sort-of symbol creators 
         case CreateModule(module) => {
           val modref = modtable.addNewMod(module, reftable)
-          Some(SubModuleDecl(modref, module.getClass.getName, GamaNote())) // TODO: Add note
+          val submodulePtr = modulePtrLUT.getOrElse(module, -1)
+          Some(SubModuleDecl(modref, submodulePtr, GamaNote())) // TODO: Add note
         }
         case CreateMem(mem) => Some(MemDecl(memtable.addNewMem(mem), GamaNote(mem.info.debug)))
         // Control Flow
