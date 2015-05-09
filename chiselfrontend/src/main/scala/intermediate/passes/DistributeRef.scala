@@ -7,6 +7,7 @@ object DistributeRef extends GamaPass {
   //   as close to the 'roots' as possible (i.e. ExprLit, RefSymbol, RefIO, RefMSelect)
   // DOES NOT MOVE RefExtract (because it could change type)
   // TODO: Move RefExtract?
+  // TODO: Simplify ExprLit
   object Transformer extends ExprOnlyTransformTree {
     def attemptSwap(outerref: RefHW, innersource: ExprHW): ExprHW = {
       def rewrap(newsrc: ExprHW): ExprHW = outerref match {

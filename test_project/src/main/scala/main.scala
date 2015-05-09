@@ -10,15 +10,15 @@ object testmain {
     import gama.intermediate.passes._
     
     object MergedPasses extends PassMerger(Seq(
-      ExplodeConnect, SubstituteAliases, ExpandVSelectSink, ExpandVSelectSource,
-      AggregateConnectExplode, DistributeRef
+      ExplodeConnect, SubstituteAliases, ExpandVSelect,
+      AggregateConnectExplode, DistributeRef, SymbolDeclAggregateExplode
     ))
     
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
     val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
     //val myTopModule = ExampleModule()
-    val myTopModule = Module(new SandboxModule)
+    val myTopModule = Module(new InferModule)
     
     //println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     // WARNING: If uncommented, will give names to everything
