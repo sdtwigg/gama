@@ -10,8 +10,8 @@ object testmain {
     import gama.intermediate.passes._
     
     object MergedPasses extends PassMerger(Seq(
-      ExplodeConnect, SubstituteAliases, ExpandVSelect,
-      AggregateConnectExplode, DistributeRef, SymbolDeclAggregateExplode
+      ExplodeConnect, SubstituteAliases, ExpandVSelect, ProcessReset, 
+      ConnectAggregateExplode, DistributeRef, SymbolDeclAggregateExplode
     ))
     
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful

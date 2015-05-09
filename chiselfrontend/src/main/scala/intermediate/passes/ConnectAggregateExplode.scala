@@ -2,7 +2,7 @@ package gama
 package intermediate
 package passes
 
-object AggregateConnectExplode extends GamaPass {
+object ConnectAggregateExplode extends GamaPass {
   def transform(target: ElaboratedModule): ElaboratedModule = {
     // This pass converts all ConnectStmt on Aggregates into multiple on primitives
     // TODO: Assumes ExplodeConnect has been run
