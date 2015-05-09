@@ -7,6 +7,7 @@ import scala.collection.mutable.{HashMap=>HMap, HashSet=>HSet, ListBuffer=>ListB
 object SymbolDeclAggregateExplode extends GamaPass {
   // WILL NOT ADJUST ANY RefIO OR RefMSelect, this must be done separately!
   // TODO: Assumes ExpandVSelect, AggregateConnectExplode already run
+  // TODO: Uses DistributeRef
   def transform(target: ElaboratedModule): ElaboratedModule = {
     // Need these in order to properly split up aggregate Memories
     val symbolGen = new AppendableRefSymbolTable(target)
@@ -82,7 +83,7 @@ object SymbolDeclAggregateExplode extends GamaPass {
           })
         }
         case TypeHWUNKNOWN =>
-          Some( CmdERROR("Unknown Type encountered during InternalAggregateDeclExplode", target.note ) )
+          Some( CmdERROR("Unknown Type encountered during SymbolDeclAggregateExplode", target.note ) )
       }
     object DeclExplodeTransformer extends CmdMultiTransformTree {
       override def multiTransform(cmd: CmdHW): Iterable[CmdHW] = cmd match {
