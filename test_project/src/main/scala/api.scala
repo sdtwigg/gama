@@ -64,6 +64,7 @@ import gama.library._
   val vecvec2 = VecLitMap(Seq(ivec21, ivec22, ivec23))
   val vecvecvec = VecLitMap(Seq(vecvec1, vecvec2))
   val vecvecveclit = AsHWConstant(vecvecvec.manifest)
+  val myOp = AsHWConstant(vecvecveclit(0.U)(1.U)(2.U))
  
   // Test empty literal vecs
   val zeroveclit = AsHWConstant(LitVec.S(Seq.empty))

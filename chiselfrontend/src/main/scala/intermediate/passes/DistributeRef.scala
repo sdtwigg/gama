@@ -16,13 +16,20 @@ object DistributeRef extends GamaPass {
         case RefTLookup(_, field, note)    => attemptSwap(RefTLookup(newsrc, field, note), newsrc)
         case _ => throw new Exception("Catastrophic Error: Non-dependent reference found")
       }
+      def simplifyExprLit: ExprHW = (outerref, innersource) match {
+        case (RefVIndex(_, index, _), ExprLit(LitVec(elements),_, note)) if index < elements.length =>
+          ExprLit(elements(index), outerref.rType, note)
+        case (RefTLookup(_, field, _), ExprLit(LitTuple(fields),_, note)) =>
+          fields.get(field).map(litv => ExprLit(litv, outerref.rType, note)).getOrElse(outerref)
+        case _ => outerref
+      }
       innersource match {
         // Swappable Expressions
         case ExprUnary(op, target, _, note) => ExprUnary(op, rewrap(target), outerref.rType, note)
         case ExprBinary(op, left, right, _, note) => ExprBinary(op, rewrap(left), rewrap(right), outerref.rType, note)
         case ExprMux(cond, tc, fc, _, note) => ExprMux(cond, rewrap(tc), rewrap(fc), outerref.rType, note)
         // Cannot swap these expressions so just use old outterref
-        case ExprLit(_,_,_) => outerref // TODO: simplify ExprLit?
+        case ExprLit(_,_,_) => simplifyExprLit
         case _ => outerref // TODO: Elaborate? Would properly cause compile errors when ExprHW, RefHW, etc. change
       }
     }
