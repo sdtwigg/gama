@@ -3,6 +3,7 @@ package intermediate
 package passes
 
 object ConnectAggregateExplode extends GamaPass {
+  val name = "ConnectAggregateExplode"
   def transform(target: ElaboratedModule): ElaboratedModule = {
     // This pass converts all ConnectStmt on Aggregates into multiple on primitives
     // TODO: Assumes ExplodeConnect has been run
@@ -20,15 +21,15 @@ object ConnectAggregateExplode extends GamaPass {
                                  ConnectAll, cmd.note)
         explodeConnect(newcmd)
       })
-      case TypeHWUNKNOWN => Some( CmdERROR("Unknown Type encountered during AggregateConnectExplode", cmd.note ) )
+      case TypeHWUNKNOWN => Some( CmdERROR(s"Unknown Type encountered during $name", cmd.note ) )
     }
     object Transformer extends CmdMultiTransformTree {
       override def multiTransform(cmd: CmdHW) = cmd match {
         case c @ ConnectStmt(_,_,details,_) if details == ConnectAll  => explodeConnect(c)
         case ConnectStmt(_,_,_,note) =>
-          Some( CmdERROR("non-ConnectAll Connect found during AggregateConnectExplode", note) )
+          Some( CmdERROR(s"non-ConnectAll Connect found during $name", note) )
         case BiConnectStmt(_,_,_,note) =>
-          Some( CmdERROR("BiConnect found during AggregateConnectExplode", note) )
+          Some( CmdERROR(s"BiConnect found during $name", note) )
 
         case _ => super.multiTransform(cmd)
       }

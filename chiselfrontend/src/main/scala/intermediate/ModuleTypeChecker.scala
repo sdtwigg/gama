@@ -20,7 +20,7 @@ class ModuleTypeChecker(warnWidthUnknown: Boolean)(target: ElaboratedModule) {
   
   // CHECK TO ENSURE PORT IS OK
 
-  val ioRef = RefIO(ModuleThis(target.io), GamaNote())
+  val ioRef = RefIO(ModuleThis(target.io), GamaNote(GTSourcePass(this.toString)))
   checkPort(ioRef.mod.ioType, PTStart(ioRef))
 
   val moduleLeafTable = new LeafTable(None)

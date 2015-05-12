@@ -48,8 +48,10 @@ abstract class IRReader(options: IRReaderOptions) {
     case CmdERROR(message, note) => "${HL.RED}!!ERROR!!${HL.RESET}: $message ${emitGamaNote(note)}"
   }
   def emitGamaNote(note: GamaNote): String = note match {
-    case GamaNote(Some(UserspaceInfo(file, line))) if options.emitNotes =>
+    case GamaNote(GTSourceUserspace(UserspaceInfo(file, line))) if options.emitNotes =>
       s"${HL.BLUE}/* ${file} @ ${line} */${HL.RESET}"
+    case GamaNote(GTSourcePass(passid)) if options.emitNotes =>
+      s"${HL.BLUE}/* $passid */${HL.RESET}"
     case _ => ""
   }
 

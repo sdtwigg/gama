@@ -5,7 +5,7 @@ class CmdMultiTransformTree {
   // USE WHEN: Want to transform one command into multiple commands
   //   No inherent expression-level transform
   final def asOne(cmds: Iterable[CmdHW]): CmdHW =
-    if(cmds.size == 1) cmds.head else BlockHW(cmds.toList, GamaNote())
+    if(cmds.size == 1) cmds.head else BlockHW(cmds.toList, GamaNote.unknown) // Is this ok?
   def multiTransform(cmd: CmdHW): Iterable[CmdHW] = cmd match {
     case BlockHW(stmts, note) => Some( BlockHW(stmts.flatMap(multiTransform(_)), note) )
     case WhenHW(cond, tc, fc, note) => {

@@ -2,15 +2,16 @@ package gama
 
 object GamaIRUtil extends GamaIRUtilImpl
 trait GamaIRUtilImpl {
-  def NOPHW: CmdHW = BlockHW(List.empty, GamaNote())
+  def NOPHW(passid: String): CmdHW = BlockHW(List.empty, GamaNote(GTSourcePass(passid)))
+  def NOPHW: CmdHW = BlockHW(List.empty, GamaNote.unknown)
   def ExprLitU(litval: BigInt) = {
     require(litval>=0)
     val width = math.max(litval.bitLength, 1)
-    ExprLit(LitRawBits(litval, width, false), PrimitiveNode(UBits(Some(width))), GamaNote())
+    ExprLit(LitRawBits(litval, width, false), PrimitiveNode(UBits(Some(width))), GamaNote.unknown)
   }
   def ExprLitS(litval: BigInt) = {
     val width = litval.bitLength + 1
-    ExprLit(LitRawBits(litval, width, false), PrimitiveNode(UBits(Some(width))), GamaNote())
+    ExprLit(LitRawBits(litval, width, false), PrimitiveNode(UBits(Some(width))), GamaNote.unknown)
   }
 
   def getWidth(in: PrimitiveTypeHW): Option[Option[Int]] = in.storage match {

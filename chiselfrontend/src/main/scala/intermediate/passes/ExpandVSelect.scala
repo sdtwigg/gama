@@ -5,6 +5,7 @@ package passes
 object ExpandVSelect extends PassMerger(Vector(ExpandVSelectSink, ExpandVSelectSource))
 
 object ExpandVSelectSink extends GamaPass {
+  val name = "ExpandVSelectSink"
   // This pass converts all instances of having a RefVSelect as a sink into
   //   a series of whens with RefVIndex as the sink
   // TODO: store the source as a ConstDecl?
@@ -42,11 +43,11 @@ object ExpandVSelectSink extends GamaPass {
         //{getOrElse(throw new Exception("Malformed AST: RefVSelect on non-vec type")) // TODO: avoid exception?
           val newstmts = (0 until depth).map(i => {
             val newsink = newsinkbuilder(i)
-            val cond = ExprBinary(OpEqual, oldrefvs.selector, ExprLitU(i), PrimitiveNode(UBits(Some(1))), GamaNote())
-            WhenHW(cond, ConnectStmt(newsink, cmd.source, cmd.details, cmd.note), NOPHW, GamaNote())
+            val cond = ExprBinary(OpEqual, oldrefvs.selector, ExprLitU(i), PrimitiveNode(UBits(Some(1))), passNote)
+            WhenHW(cond, ConnectStmt(newsink, cmd.source, cmd.details, cmd.note), NOPHW, passNote)
           })
           newstmts.map(Transformer.transform(_))
-        }).getOrElse(Some( CmdERROR("Malformed AST: Could not convert ConnectStmt: RefVSelect on non-vec type", cmd.note) ))
+        }).getOrElse(Some( CmdERROR(s"Malformed AST: During $name, could not convert ConnectStmt: RefVSelect on non-vec type", cmd.note) ))
 
         case None => Some( cmd ) // Sink had no RefVSelect in it so just return current command
       }
@@ -56,8 +57,8 @@ object ExpandVSelectSink extends GamaPass {
       override def multiTransform(cmd: CmdHW) = cmd match {
         case c @ ConnectStmt(_,_,_,_)   => expandConnect(c)
 
-        case BiConnectStmt(_,_,_,note) => Some( CmdERROR("BiConnect found during ExpandVSelectSink", note) )
-        case AliasDecl(_,_,note) => Some( CmdERROR("AliasDecl found during ExpandVSelectSink", note) )
+        case BiConnectStmt(_,_,_,note) => Some( CmdERROR(s"BiConnect found during $name", note) )
+        case AliasDecl(_,_,note) => Some( CmdERROR(s"AliasDecl found during $name", note) )
         case _ => super.multiTransform(cmd)
       }
     }
@@ -67,6 +68,7 @@ object ExpandVSelectSink extends GamaPass {
 }
 
 object ExpandVSelectSource extends GamaPass {
+  val name = "ExpandVSelectSource"
   // This pass converts all instances of having a RefVSelect as a source into
   //   a set if muxes with RefVIndex as the sources
   // TODO: Requires RemoveAliases and ExplodeConnects to have been run
@@ -81,18 +83,18 @@ object ExpandVSelectSource extends GamaPass {
           def refvibuild(idx: Int) = RefVIndex(newsrc, idx, oldrefvs.note)
           if(depth > 0) {
             (1 until depth).foldLeft(refvibuild(0): ExprHW)((fc, idx) => {
-              val cond = ExprBinary(OpEqual, oldrefvs.selector, ExprLitU(idx), PrimitiveNode(UBits(Some(1))), GamaNote())
+              val cond = ExprBinary(OpEqual,oldrefvs.selector,ExprLitU(idx), PrimitiveNode(UBits(Some(1))),passNote)
               ExprMux(cond, refvibuild(idx), fc, oldrefvs.rType, oldrefvs.note)
             })
-          } else RefExprERROR("Bad VecSelect or 0-element Vec when running ExpandVSelectSource")
+          } else RefExprERROR(s"Bad VecSelect or 0-element Vec when running $name")
         }
         case _ => super.transform(expr)
       }
       override def transform(cmd: CmdHW) = cmd match {
         case ConnectStmt(sink, source, details, note) => ConnectStmt(sink, transform(source), details, note)
           // Don't transform sink!!! ExpandVSelectSink does this
-        case BiConnectStmt(_,_,_,note) => CmdERROR("BiConnect found during ExpandVSelectSource", note)
-        case AliasDecl(_,_,note) => CmdERROR("AliasDecl found during ExpandVSelectSource", note)
+        case BiConnectStmt(_,_,_,note) => CmdERROR(s"BiConnect found during $name", note)
+        case AliasDecl(_,_,note) => CmdERROR(s"AliasDecl found during $name", note)
         case _ => super.transform(cmd)
       }
     }

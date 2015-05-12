@@ -5,6 +5,7 @@ package passes
 import scala.collection.mutable.{HashMap=>HMap, HashSet=>HSet, ListBuffer=>ListB}
 
 object SymbolDeclAggregateExplode extends GamaPass {
+  val name = "SymbolDeclAggregateExplode"
   // WILL NOT ADJUST ANY RefIO OR RefMSelect, this must be done separately!
   // TODO: Assumes ExpandVSelect, AggregateConnectExplode already run
   // TODO: Uses DistributeRef
@@ -43,7 +44,7 @@ object SymbolDeclAggregateExplode extends GamaPass {
           deadReferences += target.symbol // old target being exploded to invalidate its symbol
           fields.toSeq.sortBy(_._1).flatMap({case (field, eType) => {
             // First, build the new command
-            val exprbuilder: ExprHW=>RefHW = expr => RefTLookup(expr, field, GamaNote())
+            val exprbuilder: ExprHW=>RefHW = expr => RefTLookup(expr, field, passNote)
             val newsymident = target.symbol.identifier.getOrElse("") + "$" + field
             val newcmdbuilder: Int=>CreatesRefSymbol = sid => {
               val newsym = RefSymbol(sid, Some(newsymident), eType, target.symbol.note)
@@ -64,7 +65,7 @@ object SymbolDeclAggregateExplode extends GamaPass {
           deadReferences += target.symbol // old target being exploded to invalidate its symbol
           (0 until depth).flatMap(idx => {
             // First, build the new command
-            val exprbuilder: ExprHW=>RefHW = expr => RefVIndex(expr, idx, GamaNote())
+            val exprbuilder: ExprHW=>RefHW = expr => RefVIndex(expr, idx, passNote)
             val newsymident = target.symbol.identifier.getOrElse("") + "$" + idx
             val newcmdbuilder: Int=>CreatesRefSymbol = sid => {
               val newsym = RefSymbol(sid, Some(newsymident), eType, target.symbol.note)
@@ -82,7 +83,7 @@ object SymbolDeclAggregateExplode extends GamaPass {
           })
         }
         case TypeHWUNKNOWN =>
-          Some( CmdERROR("Unknown Type encountered during SymbolDeclAggregateExplode", target.note ) )
+          Some( CmdERROR(s"Unknown Type encountered during $name", target.note ) )
       }
     object DeclExplodeTransformer extends CmdMultiTransformTree {
       override def multiTransform(cmd: CmdHW): Iterable[CmdHW] = cmd match {
@@ -115,7 +116,7 @@ object SymbolDeclAggregateExplode extends GamaPass {
     object DeadCheckTransformer extends ExprTransformTreeFullSegregation {
       override def transform(ref: RefHW): RefHW  = ref match {
         case symbol @ RefSymbol(_,_,_,_) =>
-          if(deadReferences(symbol)) RefExprERROR("Dead Reference not replaced during SymbolDeclAggregateExplode") 
+          if(deadReferences(symbol)) RefExprERROR(s"Dead Reference not replaced during $name") 
           else symbol
         case _  => super.transform(ref)
       }

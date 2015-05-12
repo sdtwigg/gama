@@ -5,6 +5,8 @@ package passes
 import scala.collection.mutable.{HashMap=>HMap, HashSet=>HSet, ListBuffer=>ListB}
 
 object MemDeclAggregateExplode extends GamaPass {
+  val name = "MemDeclAggregateExplode"
+
   sealed trait MemPathTrace
   case class MPTStart(origin: MemDesc) extends MemPathTrace
   case class MPTField(previous: MemPathTrace, field: String) extends MemPathTrace
@@ -55,7 +57,7 @@ object MemDeclAggregateExplode extends GamaPass {
         })
       }
       case TypeHWUNKNOWN =>
-        Some( CmdERROR("Unknown Type encountered during MemDeclAggregateExplode", oldcmd.note ) )
+        Some( CmdERROR(s"Unknown Type encountered during $name", oldcmd.note ) )
     }
     object DeclExplodeTransformer extends CmdMultiTransformTree {
       override def multiTransform(cmd: CmdHW): Iterable[CmdHW] = cmd match {
@@ -98,7 +100,7 @@ object MemDeclAggregateExplode extends GamaPass {
     object DeadCheckTransformer extends ExprTransformTreeFullSegregation {
       override def transform(ref: RefHW): RefHW  = ref match {
         case rootMS @ RefMSelect(memDesc,_,_) =>
-          if(deadReferences(memDesc)) RefExprERROR("Dead Reference not replaced during MemDeclAggregateExplode") 
+          if(deadReferences(memDesc)) RefExprERROR(s"Dead Reference not replaced during $name") 
           else rootMS
         case _  => super.transform(ref)
       }

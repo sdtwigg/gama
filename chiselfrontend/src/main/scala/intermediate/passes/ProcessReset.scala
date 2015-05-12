@@ -3,6 +3,7 @@ package intermediate
 package passes
 
 object ProcessReset extends GamaPass {
+  val name = "ProcessReset"
   // Turn all RegDecl with some reset logic into those without but with a reset connection
   //   at the end of the declared scope for the reset (thus, at this point guaranteed to be
   //   the last reset)
@@ -15,14 +16,14 @@ object ProcessReset extends GamaPass {
           val (newcmds: List[CmdHW], append: List[Option[CmdHW]]) = cmds.map(_ match {
             case RegDecl(symbol, Some((ren, rval)), note) =>
               ( RegDecl(symbol, None, note),
-                Some( WhenHW(ren, ConnectStmt(symbol, rval, ConnectAll, note), NOPHW, GamaNote()) ) )
+                Some( WhenHW(ren, ConnectStmt(symbol, rval, ConnectAll, note), NOPHW, passNote) ) )
             case cmd => (super.transform(cmd), None)
           }).unzip
           Some( BlockHW((newcmds ++ append.flatten), note) )
         }
         case RegDecl(symbol, Some((ren, rval)), note) => Seq(
           RegDecl(symbol, None, note),
-          WhenHW(ren, ConnectStmt(symbol, rval, ConnectAll, note), NOPHW, GamaNote())
+          WhenHW(ren, ConnectStmt(symbol, rval, ConnectAll, note), NOPHW, passNote)
         ) // Second, catch RegDecl that are not enclosed by a BlockHW (e.g. in a strangely written WhenHW)
           // Since they are alone (and thus are never assigned to), can just emit the reset logic immediately
         case _ => super.multiTransform(cmd)

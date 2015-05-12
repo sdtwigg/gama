@@ -3,6 +3,7 @@ package intermediate
 package passes
 
 object DistributeRef extends GamaPass {
+  val name = "DistributeRef"
   // In ExprHW context: this pass moves all RefVIndex, RefVSelect, RefTLookup
   //   as close to the 'roots' as possible (i.e. ExprLit, RefSymbol, RefIO, RefMSelect)
   // DOES NOT MOVE RefExtract (because it could change type)
