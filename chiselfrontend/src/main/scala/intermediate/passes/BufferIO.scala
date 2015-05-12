@@ -53,7 +53,7 @@ object BufferIO extends GamaPass {
         case _ => super.multiTransform(cmd)
       }
     }
-    val submodBuffered = ownBuffered.copy(body = CreateBufferTransformer.transform(ownBuffered.body))
+    val submodBuffered = CreateBufferTransformer.transform(ownBuffered)
 
     // STEP 3: Replace all references with RefIO into reference to the buffer wire
     object RefIOReplaceTransformer extends ExprTransformTreeFullSegregation {
@@ -62,7 +62,7 @@ object BufferIO extends GamaPass {
         case _ => super.transform(ref)
       }
     }
-    val refReplaced = submodBuffered.copy(body = RefIOReplaceTransformer.transform(submodBuffered.body))
+    val refReplaced = RefIOReplaceTransformer.transform(submodBuffered)
 
     // STEP 4: Add a BiConnectStmt between the IO and buffer wire
     def buildDetails(port: TypeHW, isSubMod: Boolean): BiConnectDetails = port match {
@@ -102,6 +102,6 @@ object BufferIO extends GamaPass {
       }
     }
 
-    refReplaced.copy(body = BufferWireIOConnect.transform(refReplaced.body))
+    BufferWireIOConnect.transform(refReplaced)
   }
 }

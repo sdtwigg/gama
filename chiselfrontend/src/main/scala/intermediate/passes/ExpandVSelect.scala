@@ -63,7 +63,7 @@ object ExpandVSelectSink extends GamaPass {
       }
     }
 
-    target.copy(body = Transformer.transform(target.body))
+    Transformer.transform(target)
   }
 }
 
@@ -99,7 +99,7 @@ object ExpandVSelectSource extends GamaPass {
       }
     }
 
-    target.copy(body = Transformer.transform(target.body))
+    Transformer.transform(target)
   }
 }
 

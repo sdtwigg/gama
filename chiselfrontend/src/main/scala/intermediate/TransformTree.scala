@@ -1,7 +1,13 @@
 package gama
 package intermediate
 
-class CmdMultiTransformTree {
+trait ModuleTransformer {
+  final def transform(target: ElaboratedModule): ElaboratedModule = 
+    target.copy(body = transform(target.body))
+  def transform(cmd: CmdHW): CmdHW
+}
+
+class CmdMultiTransformTree extends ModuleTransformer {
   // USE WHEN: Want to transform one command into multiple commands
   //   No inherent expression-level transform
   final def asOne(cmds: Iterable[CmdHW]): CmdHW =
@@ -18,7 +24,7 @@ class CmdMultiTransformTree {
   final def transform(cmd: CmdHW) = asOne(multiTransform(cmd))
 }
 
-class ExprTransformTreeFullSegregation {
+class ExprTransformTreeFullSegregation extends ModuleTransformer {
   // USE WHEN: Want to transform ExprHW, RefHW, and RefSymbol in all contexts
   //   Note, 4 separate transform functions (for CmdHW, RegSymbol, RefHW, and ExprHW contexts)
   //   Will see most commands.
@@ -61,7 +67,7 @@ class ExprTransformTreeFullSegregation {
   }
 }
 
-class ExprOnlyTransformTree {
+class ExprOnlyTransformTree extends ModuleTransformer {
   // USE WHEN: Only want to transform ExprHW (and RefHW, RefSymbol in ExprHW context)
   //   Will not see any commands without ExprHW context (like WireDecl, BiConnectStmt)
   def transform(cmd: CmdHW): CmdHW = cmd match {

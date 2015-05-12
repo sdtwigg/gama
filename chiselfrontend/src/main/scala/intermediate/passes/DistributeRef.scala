@@ -53,7 +53,5 @@ object DistributeRef extends GamaPass {
     }
   }
 
-  def transform(target: ElaboratedModule): ElaboratedModule = {
-    target.copy(body = Transformer.transform(target.body))
-  }
+  def transform(target: ElaboratedModule): ElaboratedModule = Transformer.transform(target)
 }

@@ -35,7 +35,7 @@ object ConnectAggregateExplode extends GamaPass {
       }
     }
 
-    target.copy(body = Transformer.transform(target.body))
+    Transformer.transform(target)
   }
 }
 

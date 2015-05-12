@@ -91,7 +91,7 @@ object SymbolDeclAggregateExplode extends GamaPass {
         case _ => super.multiTransform(cmd)
       }
     }
-    val explodedDecl = target.copy(body = DeclExplodeTransformer.transform(target.body))
+    val explodedDecl = DeclExplodeTransformer.transform(target)
 
     // STEP 2: Ensure all aggregate sub-references distributed up as much as possible
     val smashedTarget = DistributeRef.transform(explodedDecl)
@@ -110,7 +110,7 @@ object SymbolDeclAggregateExplode extends GamaPass {
         case _  => super.transform(ref)
       }
     }
-    val consistent = smashedTarget.copy(body = RefReplaceTransformer.transform(smashedTarget.body))
+    val consistent = RefReplaceTransformer.transform(smashedTarget)
 
     // STEP 4: Make sure no references to dead symbols persist in the tree
     object DeadCheckTransformer extends ExprTransformTreeFullSegregation {
@@ -122,6 +122,6 @@ object SymbolDeclAggregateExplode extends GamaPass {
       }
     }
 
-    consistent.copy(body = DeadCheckTransformer.transform(consistent.body))
+    DeadCheckTransformer.transform(consistent)
   }
 }

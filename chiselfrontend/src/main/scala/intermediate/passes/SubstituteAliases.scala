@@ -28,6 +28,6 @@ object SubstituteAliases extends GamaPass {
         case _ => super.multiTransform(cmd)
       }
     }
-    target.copy(body = Transformer.transform(target.body))
+    Transformer.transform(target)
   }
 }
