@@ -57,7 +57,7 @@ case class ExprLit(litvalue: LitTree, rType: TypeHW, note: GamaNote) extends Exp
 sealed trait RefHW extends ExprHW
 case class RefSymbol(symbol: Int, identifier: Option[String], rType: TypeHW, note: GamaNote) extends RefHW with ExprLeaf
 case class RefIO(mod: ModuleRef, note: GamaNote) extends RefHW with ExprLeaf {def rType = mod.ioType}
-case class RefMSelect(mem: MemDesc, selector: ExprHW, note: GamaNote) extends RefHW with ExprLeaf {def rType = mem.sourceType}
+case class RefMSelect(mem: MemDesc, selector: ExprHW, note: GamaNote) extends RefHW with ExprLeaf {def rType = mem.mType}
 case class RefVIndex(source: ExprHW, index: Int, note: GamaNote) extends RefHW {val rType = getVecEType(source.rType)}
 case class RefVSelect(source: ExprHW, selector: ExprHW, note: GamaNote) extends RefHW {val rType = getVecEType(source.rType)}
 case class RefTLookup(source: ExprHW, field: String, note: GamaNote) extends RefHW {val rType = getTupleFType(source.rType, field)}
@@ -84,7 +84,7 @@ sealed trait ModuleRef extends TreeHW {def ioType: TypeHW}
 case class ModuleThis(ioType: TypeHW) extends ModuleRef
 case class ModuleSub(modid: Int, identifier: Option[String], ioType: TypeHW) extends ModuleRef
 
-case class MemDesc(memid: Int, identifier: Option[String], depth: Int, sourceType: TypeHW) extends TreeHW
+case class MemDesc(memid: Int, identifier: Option[String], depth: Int, mType: TypeHW) extends TreeHW
 
 // NOT A TreeHW
 case class ElaboratedModule(selftype: String, io: TypeHW, body: CmdHW)

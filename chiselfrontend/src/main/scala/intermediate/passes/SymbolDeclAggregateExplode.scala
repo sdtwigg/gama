@@ -11,10 +11,9 @@ object SymbolDeclAggregateExplode extends GamaPass {
   def transform(target: ElaboratedModule): ElaboratedModule = {
     // Need these in order to properly split up aggregate Memories
     val symbolGen = new AppendableRefSymbolTable(target)
-    val memDescGen = new AppendableRefSymbolTable(target)
 
-    val path2sym_refTable = HMap.empty[PathTrace, RefSymbol]
-    val sym2path_refTable = HMap.empty[RefSymbol, PathTrace]
+    val path2sym = HMap.empty[PathTrace, RefSymbol]
+    val sym2path = HMap.empty[RefSymbol, PathTrace]
       // PathTrace required so notes ignored upon lookup in the table
       // First one is used for actual replacement pass
       // Second one is for building a full replacement list
@@ -52,11 +51,11 @@ object SymbolDeclAggregateExplode extends GamaPass {
             }  
             val newcmd = symbolGen.grantNewSymbol(newcmdbuilder)
             // Now, build reference replacement table entries for it
-            val oldPath: PathTrace = sym2path_refTable.getOrElse(target.symbol, PTStart(target.symbol))
+            val oldPath: PathTrace = sym2path.getOrElse(target.symbol, PTStart(target.symbol))
             val newPath = PTField(oldPath, field)
             val newSym = newcmd.symbol
-            path2sym_refTable += newPath -> newSym
-            sym2path_refTable += newSym -> newPath
+            path2sym += newPath -> newSym
+            sym2path += newSym -> newPath
             // Finally, act recursively
             explodeCreatesRefSymbol(newcmd)
           }})
@@ -73,11 +72,11 @@ object SymbolDeclAggregateExplode extends GamaPass {
             }  
             val newcmd = symbolGen.grantNewSymbol(newcmdbuilder)
             // Now, build reference replacement table entries for it
-            val oldPath: PathTrace = sym2path_refTable.getOrElse(target.symbol, PTStart(target.symbol))
+            val oldPath: PathTrace = sym2path.getOrElse(target.symbol, PTStart(target.symbol))
             val newPath = PTSelectOne(oldPath, idx)
             val newSym = newcmd.symbol
-            path2sym_refTable += newPath -> newSym
-            sym2path_refTable += newSym -> newPath
+            path2sym += newPath -> newSym
+            sym2path += newSym -> newPath
             // Finally, act recursively
             explodeCreatesRefSymbol(newcmd)
           })
@@ -88,7 +87,6 @@ object SymbolDeclAggregateExplode extends GamaPass {
     object DeclExplodeTransformer extends CmdMultiTransformTree {
       override def multiTransform(cmd: CmdHW): Iterable[CmdHW] = cmd match {
         case creator: CreatesRefSymbol => (explodeCreatesRefSymbol(creator))
-        //case MemDecl(desc, note)
         case _ => super.multiTransform(cmd)
       }
     }
@@ -97,7 +95,7 @@ object SymbolDeclAggregateExplode extends GamaPass {
     // STEP 2: Ensure all aggregate sub-references distributed up as much as possible
     val smashedTarget = DistributeRef.transform(explodedDecl)
 
-    // STEP 3: re
+    // STEP 3: Replace references to Aggregate Symbols using refines with references to Primitive Symbols
     object RefReplaceTransformer extends ExprTransformTreeFullSegregation {
       def makePath(expr: ExprHW): PathTrace = expr match {
         case RefVIndex(source, index, _)  => PTSelectOne(makePath(source), index)
@@ -107,7 +105,7 @@ object SymbolDeclAggregateExplode extends GamaPass {
         case _ => PTStart(expr)
       }
       override def transform(ref: RefHW): RefHW  = ref match {
-        case RefVIndex(_,_,_) | RefTLookup(_,_,_) => path2sym_refTable.get(makePath(ref)).getOrElse(ref)
+        case RefVIndex(_,_,_) | RefTLookup(_,_,_) => path2sym.get(makePath(ref)).getOrElse(ref)
         case _  => super.transform(ref)
       }
     }
@@ -117,7 +115,7 @@ object SymbolDeclAggregateExplode extends GamaPass {
     object DeadCheckTransformer extends ExprTransformTreeFullSegregation {
       override def transform(ref: RefHW): RefHW  = ref match {
         case symbol @ RefSymbol(_,_,_,_) =>
-          if(deadReferences(symbol)) RefExprERROR("Dead Reference not replaced during DeclAggregateExplode") 
+          if(deadReferences(symbol)) RefExprERROR("Dead Reference not replaced during SymbolDeclAggregateExplode") 
           else symbol
         case _  => super.transform(ref)
       }

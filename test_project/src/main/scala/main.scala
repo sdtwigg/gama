@@ -11,14 +11,14 @@ object testmain {
     
     object MergedPasses extends PassMerger(Seq(
       ExplodeConnect, SubstituteAliases, ExpandVSelect, ProcessReset, 
-      ConnectAggregateExplode, DistributeRef, SymbolDeclAggregateExplode
+      ConnectAggregateExplode, SymbolDeclAggregateExplode, MemDeclAggregateExplode
     ))
     
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
     val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
     //val myTopModule = ExampleModule()
-    val myTopModule = Module(new InferModule)
+    val myTopModule = Module(new MemModule)
     
     //println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     // WARNING: If uncommented, will give names to everything
@@ -160,6 +160,7 @@ trait Nested2 extends Nested {
   val myreg = Reg(new MyChildBundle)
 
   val myMem = Mem(new MyBundle, 16)
+  val myComplexMem = Mem(new Vec(2, Vec(2, new MyChildBundle)), 16)
   myMem(uint) := myMem(uint + 1.U)
   
   when(True) {
@@ -171,6 +172,8 @@ trait Nested2 extends Nested {
 
   myMem(myMem(uint).a).b := uint * 2.U
   myMem.write(False, myreg)
+
+  myComplexMem.write(uint, myComplexMem(0.U))
 }
 
 @module class ConnectModule extends Module(new DecoupledExample) {

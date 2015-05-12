@@ -33,7 +33,7 @@ abstract class IRReader(options: IRReaderOptions) {
 
     case MemDecl(desc, note) => {
       val name = desc.identifier.getOrElse("")
-      s"${HL.CYAN}mem${HL.RESET} ${emitMemName(desc)} = MEM(${desc.depth}, ${HL.GREEN}${parseType(desc.sourceType)}${HL.RESET})  ${emitGamaNote(note)}"
+      s"${HL.CYAN}mem${HL.RESET} ${emitMemName(desc)} = ${HL.CYAN}MEM${HL.RESET}(${desc.depth}, ${HL.GREEN}${parseType(desc.mType)}${HL.RESET})  ${emitGamaNote(note)}"
     }
 
     case ConnectStmt(sink, source, details, note) =>
