@@ -11,7 +11,7 @@ object testmain {
     
     object MergedPasses extends PassMerger(Seq(
       ExplodeConnect, SubstituteAliases, ExpandVSelect, ProcessReset, 
-      ConnectAggregateExplode, SymbolDeclAggregateExplode, MemDeclAggregateExplode
+      InternalAggregateExplode
     ))
     
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
