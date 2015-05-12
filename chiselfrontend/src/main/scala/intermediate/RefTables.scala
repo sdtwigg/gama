@@ -29,7 +29,7 @@ class AppendableRefSymbolTable(prescan: ElaboratedModule) {
   }.scan(prescan.body)
 
   // Expected client: Just supply CreatesRefSymbol (CmdHW) tree with hole where symbol id needed
-  def grantNewSymbol(builder: Int=>CreatesRefSymbol): CreatesRefSymbol = {
+  def grantNewSymbol[CRS<:CreatesRefSymbol](builder: Int=>CRS): CRS = {
     val newCmd = builder(highestSymbolId+1)
     addSymbol(newCmd)
     newCmd

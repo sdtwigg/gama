@@ -10,7 +10,7 @@ object testmain {
     import gama.intermediate.passes._
     
     object MergedPasses extends PassMerger(Seq(
-      ExplodeConnect, SubstituteAliases, ExpandVSelect, ProcessReset, 
+      BufferIO, ExplodeConnect, SubstituteAliases, ExpandVSelect, ProcessReset, 
       InternalAggregateExplode
     ))
     
