@@ -3,12 +3,20 @@ package intermediate
 
 sealed trait Trace extends CacheHashCode
 
+// Used by ModuleTypeChecker, SymbolDeclAggregateExplode
 sealed trait PathTrace extends Trace
 case class PTStart(origin: ExprHW) extends PathTrace
 case class PTField(previous: PathTrace, field: String) extends PathTrace
 case class PTSelectOne(previous: PathTrace, index: Int) extends PathTrace
 case class PTSelectALL(previous: PathTrace) extends PathTrace
 
+// Used by FlattenIO, CollapseConnectsAndScopes
+sealed trait IOPathTrace extends Trace
+case class IPTStart(modref: ModuleRef) extends IOPathTrace
+case class IPTField(previous: IOPathTrace, field: String) extends IOPathTrace
+case class IPTSelectOne(previous: IOPathTrace, index: Int) extends IOPathTrace
+
+// Used by the Typers
 sealed trait TypeTrace extends Trace {def toList: List[TypeTrace]}
 case class TTStart(origin: ExprHW) extends TypeTrace {def toList = this :: Nil}
 case class TTField(previous: TypeTrace, field: String) extends TypeTrace {def toList = this :: previous.toList}

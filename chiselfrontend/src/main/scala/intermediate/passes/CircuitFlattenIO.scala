@@ -11,11 +11,6 @@ object CircuitFlattenIO {
   val name = "CircuitFlattenIO"
   val passNote = GamaNote(GTSourcePass(name))
   
-  sealed trait IOPathTrace
-  case class IPTStart(modref: ModuleRef) extends IOPathTrace
-  case class IPTField(previous: IOPathTrace, field: String) extends IOPathTrace
-  case class IPTSelectOne(previous: IOPathTrace, index: Int) extends IOPathTrace
-  
   def transform(target: ElaboratedCircuit): ElaboratedCircuit = {
     // STEP 1: for each module, decompose IO into primitives
     
