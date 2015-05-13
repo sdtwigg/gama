@@ -164,9 +164,8 @@ object DeclAggregateExplode extends GamaPass {
       }
 
       flattenMemType(oldcmd.desc.mType, MPTStart(oldcmd.desc)).map({case (_, oldPath, newBuilder) => {
-        path2mem.get(oldPath).map(newMem =>
-          MemWrite(newMem, oldcmd.selector, newBuilder(oldcmd.source), oldcmd.mask, oldcmd.note)
-        ).getOrElse(CmdERROR(s"Lost memory reference during $name", passNote))
+        val newMem = path2mem.get(oldPath).getOrElse(oldcmd.desc)
+        MemWrite(newMem, oldcmd.selector, newBuilder(oldcmd.source), oldcmd.mask, oldcmd.note)
       }})
     }
     object DeclExplodeTransformer extends CmdMultiTransformTree {

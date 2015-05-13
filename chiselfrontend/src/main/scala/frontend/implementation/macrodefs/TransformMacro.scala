@@ -70,6 +70,8 @@ protected[gama] object TransformMacro {
     import c.universe._
     def twoarg(addr: c.Tree, source: c.Tree): c.Tree =
       q"$myThis.doMemWrite($addr, $source, $constructInfo)"
+    def threearg(addr: c.Tree, source: c.Tree, mask: c.Tree): c.Tree =
+      q"$myThis.doMemWrite($addr, $source, $mask, $constructInfo)"
   }
   
   class doConstant(val c: Context) extends CoreTransform {

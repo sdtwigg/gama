@@ -51,7 +51,7 @@ abstract class IRReader(options: IRReaderOptions) {
       val submoduletype = circuitLUT.map(lut => if(smptr>=0 && smptr < lut.modules.size) s"${lut.modules(smptr).selftype} " else "").getOrElse("")
       s"${HL.CYAN}inst${HL.RESET} ${emitModName(details)}: ${HL.GREEN}${submoduletype}($smptr)${HL.RESET}, ${HL.CYAN}IO${HL.RESET}: ${HL.GREEN}${parseType(details.ioType)}${HL.RESET}  ${emitGamaNote(note)}"
     }
-    case CmdERROR(message, note) => "${HL.RED}!!ERROR!!${HL.RESET}: $message ${emitGamaNote(note)}"
+    case CmdERROR(message, note) => s"${HL.RED}!!ERROR!!${HL.RESET}: $message ${emitGamaNote(note)}"
   }
   def emitGamaNote(note: GamaNote): String = note match {
     case GamaNote(GTSourceUserspace(UserspaceInfo(file, line))) if options.emitNotes =>

@@ -172,6 +172,8 @@ trait Nested2 extends Nested {
   val uint = Reg(UInt(2))
   val myreg = Reg(new MyChildBundle)
 
+  val myUIntMem = Mem(UInt(32), 16)
+  myUIntMem.write(uint, 0.U, ~uint)
   val myMem = Mem(new MyBundle, 16)
   val myComplexMem = Mem(new Vec(2, Vec(2, new MyChildBundle)), 16)
   myMem(uint) := myMem(uint + 1.U)

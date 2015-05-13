@@ -19,23 +19,34 @@ object Mem {
 
     newmemory
   }
-} // TODO: MEMORY WRITE MASKS?
+}
+
+@annotation.implicitNotFound("Masked memory writes cannot be done on data of type ${D}, can only be done on subtypes of Digital.")
+sealed trait MemMaskable[-D<:Data]
+object MemMaskable {
+  implicit object DigitalMaskable extends MemMaskable[Digital]
+}
 
 final class Mem[D<:Data] private (protected[gama] val elemType: D, val depth: Int, storer: Storable[D], protected[gama] val info: EnclosureInfo) extends MemAccessible[D] with Nameable {
   def collection = this
   
   // External API
   def write(addr: UIntLike, source: Data): Unit = macro XFORM.doMemWrite.twoarg
+  def write(addr: UIntLike, source: Data, mask: Digital): Unit = macro XFORM.doMemWrite.threearg
   // TODO: CONSIDER: Note how doMemWrite will introduce an implicit
   //   is this OK?
   
   // external->internal API
-  def doMemWrite[From<:Data](addr: UIntLike, source: From, acc_info: EnclosureInfo)(implicit writer: ConnectTo[D, From]): Unit = {
+  def doMemWrite(addr: UIntLike, source: D, acc_info: EnclosureInfo): Unit = {
     if(acc_info.em != info.em) { throw CrossedMemoryAccessException(acc_info.em, info.em) }
-    //val accessor = makeAccessor(addr, acc_info)
-    //writer.monoConnect(Sink(accessor), Source(source), acc_info)
     info.em.getActiveJournal.append(
       implementation.journal.JMemWrite(this, addr, source, None, acc_info)
+    )
+  }
+  def doMemWrite(addr: UIntLike, source: D, mask: Digital, acc_info: EnclosureInfo)(implicit canMask: MemMaskable[D]): Unit = {
+    if(acc_info.em != info.em) { throw CrossedMemoryAccessException(acc_info.em, info.em) }
+    info.em.getActiveJournal.append(
+      implementation.journal.JMemWrite(this, addr, source, Some(mask), acc_info)
     )
   }
 

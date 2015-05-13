@@ -32,8 +32,8 @@ case class BiConnectStmt(left: RefHW, right: RefHW, details: BiConnectDetails, n
 case class MemDecl(desc: MemDesc, note: GamaNote) extends CmdHW
 //case class MemRead(symbol: RefSymbol, mem: MemDesc, selector: ExprHW) extends CmdHW with CreatesRefSymbol
 case class MemWrite(desc: MemDesc, selector: ExprHW, source: ExprHW, mask: Option[ExprHW], note: GamaNote) extends CmdHW
-  // TODO: Masked and partial mem writes....
-  // TODO: Add these properly
+  // TODO: Should this instead be a more general MaskedConnectStmt?
+  // Also, what about a MemReadWrite? ... might be able to infer those though
 // Other
 case class SubModuleDecl(details: ModuleSub, circuitptr: Int, note: GamaNote) extends CmdHW
   // circuitptr is the index in the ElaboratedCircuit, -1 is error value
