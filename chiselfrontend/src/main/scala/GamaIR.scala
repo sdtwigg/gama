@@ -3,12 +3,7 @@ package gama
 import GamaIRUtil._
 // TODO: WRITE TYPE CHECKER
 // TODO: ADD TRANSLATED DEBUGGING INFO
-sealed trait TreeHW extends Product {
-  override lazy val hashCode: Int = scala.runtime.ScalaRunTime._hashCode(this)
-  //TODO: Uncommenting this line will ensure hashCode is cached
-  //  but also requires all Tree types are truly immutable, which is currently true
-  //also, mixin the class name to the hashcode?
-}
+sealed trait TreeHW extends CacheHashCode
 // Also, since all of these things are case classes, CSE is VERY straightforward to do
 sealed trait FIRERROR extends TreeHW
 ///////////////////

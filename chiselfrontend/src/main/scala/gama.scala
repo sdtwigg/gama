@@ -1,4 +1,9 @@
 package object gama {
+  trait CacheHashCode extends Product {
+    override lazy val hashCode: Int = scala.runtime.ScalaRunTime._hashCode(this)
+    //also, mixin the class name to the hashcode?
+  }
+
   case class UserspaceInfo(file: String, line: String)
   
   sealed trait GamaTreeSource

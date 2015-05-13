@@ -1,13 +1,15 @@
 package gama
 package intermediate
 
-sealed trait PathTrace
+sealed trait Trace extends CacheHashCode
+
+sealed trait PathTrace extends Trace
 case class PTStart(origin: ExprHW) extends PathTrace
 case class PTField(previous: PathTrace, field: String) extends PathTrace
 case class PTSelectOne(previous: PathTrace, index: Int) extends PathTrace
 case class PTSelectALL(previous: PathTrace) extends PathTrace
 
-sealed trait TypeTrace {def toList: List[TypeTrace]}
+sealed trait TypeTrace extends Trace {def toList: List[TypeTrace]}
 case class TTStart(origin: ExprHW) extends TypeTrace {def toList = this :: Nil}
 case class TTField(previous: TypeTrace, field: String) extends TypeTrace {def toList = this :: previous.toList}
 case class TTIndexALL(previous: TypeTrace) extends TypeTrace {def toList = this :: previous.toList}

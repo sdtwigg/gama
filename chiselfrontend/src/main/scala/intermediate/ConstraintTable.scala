@@ -3,7 +3,7 @@ package intermediate
 
 import scala.collection.mutable.{HashMap=>HMap, HashSet=>HSet}
 
-sealed trait WidthConstraint
+sealed trait WidthConstraint extends CacheHashCode
 case class WidthLit(lit: Int) extends WidthConstraint
 case class WidthRef(ref: TypeTrace) extends WidthConstraint
 case class WidthAdd(terms: Vector[WidthConstraint]) extends WidthConstraint // l + r
