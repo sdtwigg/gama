@@ -29,7 +29,7 @@ object CircuitFlattenIO {
       } yield (eType, Some(newName), eBuilder)
 
       case TupleHW(fields) => for {
-        (field, elemType) <- fields
+        (field, elemType) <- fields.toSeq.sortBy(_._1)
         aggBuilder = (ref: ModuleRef) => IPTField(oldBuilder(ref), field)
         // Now, handle inner eType
         (eType: PrimitivePort, eoName, eBuilder) <- flattenIO(elemType, aggBuilder)

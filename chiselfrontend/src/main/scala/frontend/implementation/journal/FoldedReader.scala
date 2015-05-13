@@ -41,6 +41,7 @@ sealed abstract class FoldedReader extends BaseReader {
       case CreateExtract(extdesc)  => None // fold later
       case CreateMem(mem)          => makeTemp(mem, "mem")
       case CreateModule(module)    => makeTemp(module, "M")
+      case JMemWrite(_,_,_,_,_) => None
       case AddBlock(_)    => None
       case Conditionally(_,_,_) => None // recall: will recursively see
       case ConnectData(_,_,_,_) => None

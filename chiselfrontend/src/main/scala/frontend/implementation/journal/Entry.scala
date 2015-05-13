@@ -14,6 +14,7 @@ case class CreateAccessor(accdesc: AccessorDesc[_<:Data]) extends Entry // into 
 case class CreateExtract(extdesc: ExtractDesc) extends Entry // could be turned into generic CreateRef
 case class CreateMem(mem: Mem[_<:Data]) extends Entry
 case class CreateModule(module: Module[_<:Data]) extends Entry
+case class JMemWrite(mem: Mem[_<:Data], selector: UIntLike, source: Data, mask: Option[UIntLike], info: EnclosureInfo) extends Entry
 case class AddBlock(code: Journal) extends Entry
 case class Conditionally(cond: Bool, tc: Journal, fc: Journal) extends Entry {NodeCheck.assertSynthesizable(cond)}
 case class ConnectData(sink: Sink[Data], source: Source[Data], details: ConnectDetails, info: EnclosureInfo) extends Entry {

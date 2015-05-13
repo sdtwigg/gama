@@ -18,7 +18,7 @@ object testmain {
     val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
     //val myTopModule = ExampleModule()
-    val myTopModule = Module(new BiModule)
+    val myTopModule = Module(new MemModule)
     
     //println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     // WARNING: If uncommented, will give names to everything
@@ -184,7 +184,7 @@ trait Nested2 extends Nested {
   }
 
   myMem(myMem(uint).a).b := uint * 2.U
-  myMem.write(False, myreg)
+  myMem.write(1.U + 2.U, Mux(True, myreg, myreg))
 
   myComplexMem.write(uint, myComplexMem(0.U))
 }

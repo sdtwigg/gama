@@ -31,15 +31,21 @@ abstract class IRReader(options: IRReaderOptions) {
     case WhenHW(cond, tc, fc, note) =>
       s"${HL.CYAN}when${HL.RESET}(${parseExpr(cond)}) ${parseCmdHW(tc)} ${HL.CYAN}else${HL.RESET} ${parseCmdHW(fc)}  ${emitGamaNote(note)}"
 
-    case MemDecl(desc, note) => {
-      val name = desc.identifier.getOrElse("")
-      s"${HL.CYAN}mem${HL.RESET} ${emitMemName(desc)} = ${HL.CYAN}MEM${HL.RESET}(${desc.depth}, ${HL.GREEN}${parseType(desc.mType)}${HL.RESET})  ${emitGamaNote(note)}"
-    }
-
     case ConnectStmt(sink, source, details, note) =>
       s"${parseExpr(sink)} := ${parseExpr(source)} ${HL.YELLOW}${parseConnectDetails(details)}${HL.RESET}  ${emitGamaNote(note)}"
     case BiConnectStmt(left, right, details, note) =>
       s"${parseExpr(left)} <-> ${parseExpr(right)} ${HL.YELLOW}${parseBiConnectDetails(details)}${HL.RESET}  ${emitGamaNote(note)}"
+    
+    case MemDecl(desc, note) => {
+      s"${HL.CYAN}mem${HL.RESET} ${emitMemName(desc)} = ${HL.CYAN}MEM${HL.RESET}(${desc.depth}, ${HL.GREEN}${parseType(desc.mType)}${HL.RESET})  ${emitGamaNote(note)}"
+    }
+    case MemWrite(desc, selector, source, mask, note) => {
+      val minfo: String = mask match {
+        case Some(mask) => s"${HL.CYAN}with mask${HL.RESET} = ${parseExpr(mask)}"
+        case None => ""
+      }
+      s"${HL.CYAN}mem write${HL.RESET} ${emitMemName(desc)}(${parseExpr(selector)}) = ${parseExpr(source)} ${minfo} ${emitGamaNote(note)}"
+    }
 
     case SubModuleDecl(details, smptr, note) => {
       val submoduletype = circuitLUT.map(lut => if(smptr>=0 && smptr < lut.modules.size) s"${lut.modules(smptr).selftype} " else "").getOrElse("")

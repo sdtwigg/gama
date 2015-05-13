@@ -73,6 +73,13 @@ abstract class BaseReader extends Reader {
         s"${HL.CYAN}mem${HL.RESET}   ${emitMemDetails(mem)}  ${emitEncInfo(mem.info)}"
       case CreateModule(module) =>
         s"${HL.CYAN}inst${HL.RESET}  ${emitModuleInst(module)}"
+      case JMemWrite(mem, selector, source, mask, info) => {
+        val minfo: String = mask match {
+          case Some(mask) => "with mask = ${emitRef(mask)}"
+          case None => ""
+        }
+        s"${HL.CYAN}mem write${HL.RESET} ${emitName(mem)}(${emitRef(selector)}) = ${emitRef(source)} $minfo ${emitEncInfo(info)}"
+      }
       case AddBlock(journal) =>
         s"${parseJournal(journal)}"
       case Conditionally(cond, tc, fc) =>

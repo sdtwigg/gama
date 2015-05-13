@@ -31,6 +31,7 @@ sealed abstract class AllReader extends BaseReader {
       case CreateExtract(extdesc)  => makeTemp(extdesc.retVal,"E")
       case CreateMem(mem)          => makeTemp(mem, "mem")
       case CreateModule(module)    => None // handled above
+      case JMemWrite(_,_,_,_,_) => None
       case AddBlock(_)    => None
       case Conditionally(_,_,_) => None // recall: will recursively see
       case ConnectData(_,_,_,_) => None

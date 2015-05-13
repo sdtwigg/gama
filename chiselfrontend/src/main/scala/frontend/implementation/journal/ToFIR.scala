@@ -102,6 +102,14 @@ object ToFIR {
           Some(SubModuleDecl(modref, submodulePtr, ConvNote)) // TODO: Add note
         }
         case CreateMem(mem) => Some(MemDecl(memtable.addNewMem(mem), buildNote(mem.info.debug)))
+
+        case JMemWrite(mem, selector, source, mask, info) => {
+          val note = buildNote(info.debug)
+          val gmask = mask.map(exprLookup(_)._1)
+          memtable.get(mem).map(memdesc => 
+            MemWrite(memdesc, exprLookup(selector)._1, exprLookup(source)._1, gmask, note)
+          ).orElse(Some(CmdERROR("MemLookup failed when converting JMemWrite", note)))
+        }
         // Control Flow
         case Conditionally(cond, tc, fc) =>
           Some(WhenHW(exprLookup(cond)._1,

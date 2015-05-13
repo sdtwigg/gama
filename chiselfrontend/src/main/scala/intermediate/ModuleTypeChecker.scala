@@ -55,6 +55,8 @@ class ModuleTypeChecker(warnWidthUnknown: Boolean)(target: ElaboratedModule) {
     case BiConnectStmt(left, right, details, note) => 
     
     case MemDecl(desc, note) => 
+    case MemWrite(mem, selector, source, mask, note) => 
+
     case SubModuleDecl(details, ph, note) => 
     case CmdERROR(message, note) =>
   }

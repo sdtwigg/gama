@@ -32,8 +32,11 @@ final class Mem[D<:Data] private (protected[gama] val elemType: D, val depth: In
   // external->internal API
   def doMemWrite[From<:Data](addr: UIntLike, source: From, acc_info: EnclosureInfo)(implicit writer: ConnectTo[D, From]): Unit = {
     if(acc_info.em != info.em) { throw CrossedMemoryAccessException(acc_info.em, info.em) }
-    val accessor = makeAccessor(addr, acc_info)
-    writer.monoConnect(Sink(accessor), Source(source), acc_info)
+    //val accessor = makeAccessor(addr, acc_info)
+    //writer.monoConnect(Sink(accessor), Source(source), acc_info)
+    info.em.getActiveJournal.append(
+      implementation.journal.JMemWrite(this, addr, source, None, acc_info)
+    )
   }
 
   protected[gama] def lookupIsConnectable(selector: UIntLike): Boolean = true

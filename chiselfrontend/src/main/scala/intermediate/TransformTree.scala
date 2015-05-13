@@ -19,7 +19,7 @@ class CmdMultiTransformTree extends ModuleTransformer {
     }
     case WireDecl(_,_) | RegDecl(_,_,_) | ConstDecl(_,_,_) | AliasDecl(_,_,_) |
          ConnectStmt(_,_,_,_) | BiConnectStmt(_,_,_,_) |
-         MemDecl(_,_) | SubModuleDecl(_,_,_) | CmdERROR(_,_) => Some(cmd)
+         MemDecl(_,_) | MemWrite(_,_,_,_,_) | SubModuleDecl(_,_,_) | CmdERROR(_,_) => Some(cmd)
   }
   final def transform(cmd: CmdHW) = asOne(multiTransform(cmd))
 }
@@ -37,6 +37,9 @@ class ExprTransformTreeFullSegregation extends ModuleTransformer {
     case AliasDecl(symbol, ref, note)  => AliasDecl(transform(symbol), transform(ref), note )
     case BlockHW(stmts, note) => BlockHW(stmts.map(transform(_)), note)
     case WhenHW(cond, tc, fc, note) => WhenHW(transform(cond), transform(tc), transform(fc), note)
+    
+    case MemWrite(mem, selector, source, mask, note) =>
+      MemWrite(mem, transform(selector), transform(source), mask.map(transform(_)), note)
 
     case ConnectStmt(sink, source, details, note)  => ConnectStmt(transform(sink), transform(source), details, note)
     case BiConnectStmt(left, right, details, note) => BiConnectStmt(transform(left), transform(right), details, note)
@@ -77,6 +80,9 @@ class ExprOnlyTransformTree extends ModuleTransformer {
     case ConstDecl(symbol, expr, note) => ConstDecl(symbol, transform(expr), note)
     case BlockHW(stmts, note) => BlockHW(stmts.map(transform(_)), note)
     case WhenHW(cond, tc, fc, note) => WhenHW(transform(cond), transform(tc), transform(fc), note)
+    
+    case MemWrite(mem, selector, source, mask, note) =>
+      MemWrite(mem, transform(selector), transform(source), mask.map(transform(_)), note)
 
     case ConnectStmt(sink, source, details, note)  => ConnectStmt(sink, transform(source), details, note)
     

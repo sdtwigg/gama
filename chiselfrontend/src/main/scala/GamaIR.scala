@@ -31,7 +31,7 @@ case class BiConnectStmt(left: RefHW, right: RefHW, details: BiConnectDetails, n
 // Memory related
 case class MemDecl(desc: MemDesc, note: GamaNote) extends CmdHW
 //case class MemRead(symbol: RefSymbol, mem: MemDesc, selector: ExprHW) extends CmdHW with CreatesRefSymbol
-//case class MemWrite(mem: MemDesc, selector: ExprHW, source: ExprHW) extends CmdHW
+case class MemWrite(desc: MemDesc, selector: ExprHW, source: ExprHW, mask: Option[ExprHW], note: GamaNote) extends CmdHW
   // TODO: Masked and partial mem writes....
   // TODO: Add these properly
 // Other
