@@ -18,13 +18,13 @@ object testmain {
     val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
     //val myTopModule = ExampleModule()
-    val myTopModule = Module(new InferModule)
+    val myTopModule = Module(new BiModule)
     
     //println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     // WARNING: If uncommented, will give names to everything
     
     val circuitDesc = gama.frontend.implementation.journal.Converter(myTopModule)
-    circuitDesc.modules.zipWithIndex.foreach({case (module, ptr) => {
+    val elabMods = circuitDesc.modules.zipWithIndex.map({case (module, ptr) => {
       println(s"${Console.CYAN}Analyzing position ${ptr}${Console.RESET}: ${Console.GREEN}${module.selftype}${Console.RESET}")
       val typechecker = new ModuleTypeChecker(true)(module)
       println(s"# Type Checker ${Console.RED}Errors${Console.RESET}: ${typechecker.errors.length}")
@@ -38,6 +38,19 @@ object testmain {
       println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Unknown Type Parts (Solved/Total) = ${solution.solvedParts}/${solution.unknownParts}")
       println(myIRReader.parseElaboratedModule(solution.inferredModule, Some(circuitDesc)))
       println(myIRReader.parseElaboratedModule(transformed, Some(circuitDesc)))
+      println("")
+
+      transformed
+    }})
+    val elabCircuit = gama.ElaboratedCircuit(elabMods)
+    val circuitSimpleIO = CircuitFlattenIO.transform(elabCircuit)
+    circuitSimpleIO.modules.zipWithIndex.map({case (module, ptr) => {
+      println(s"${Console.CYAN}Analyzing position ${ptr}${Console.RESET}: ${Console.GREEN}${module.selftype}${Console.RESET}")
+      val typechecker = new ModuleTypeChecker(true)(module)
+      println(s"# Type Checker ${Console.RED}Errors${Console.RESET}: ${typechecker.errors.length}")
+      println(s"# Type Checker ${Console.YELLOW}Warnings${Console.RESET}: ${typechecker.errors.length}")
+      
+      println(myIRReader.parseElaboratedModule(module, Some(circuitSimpleIO)))
       println("")
     }})
   }
@@ -59,8 +72,8 @@ object testmain {
 }
 
 @bundle class MyBundle extends Bundle {
-  val a = UInt(width=8)
-  val b = UInt(width=8)
+  val a = UInt(width=4)
+  val b = UInt(width=16)
 }
 
 @bundle class DecoupledExample extends Bundle {
