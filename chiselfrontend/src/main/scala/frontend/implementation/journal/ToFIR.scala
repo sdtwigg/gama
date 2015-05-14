@@ -91,7 +91,7 @@ object ToFIR {
         case CreateExtract(extdesc) => {
           val note = buildNote(extdesc.info.debug)
           val (srcexpr, connectable) = exprLookup(extdesc.base)
-          val newref = RefExtract(srcexpr, extdesc.left_pos, extdesc.right_pos, constructType(extdesc.retVal), note)
+          val newref = RefExtract(srcexpr, extdesc.left_pos, extdesc.right_pos, note)
           handleAliasCandidate(extdesc.retVal, newref, connectable, note)
         }
 

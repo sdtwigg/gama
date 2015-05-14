@@ -10,7 +10,9 @@ import implementation.macrodefs.{TransformMacro => XFORM}
 object UInt {
   def apply(): UInt           = apply(None)
   def apply(width: Int): UInt = apply(Some(width))
-  def apply(width: Option[Int]) = new UInt(new SPEC(UBits(width), None))
+  def apply(width: Option[Int]) = build(width, None)
+  def build(width: Option[Int], optDirection: Option[DirectionIO]) =
+    new UInt(new SPEC(UBits(width), optDirection))
   
   implicit object basicfunctionality
     extends Muxable[UInt]

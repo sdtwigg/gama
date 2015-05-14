@@ -31,7 +31,7 @@ class ExprScanTree {
     case RefVIndex(source, _,_) => scan(source)
     case RefVSelect(source, selector, _) => {scan(source); scan(selector)}
     case RefTLookup(source, _,_) => scan(source)
-    case RefExtract(source, _,_,_,_) => {scan(source)}
+    case RefExtract(source, _,_,_) => {scan(source)}
 
     case ExprLit(_,_,_) | RefSymbol(_,_,_,_) | RefIO(_,_) | RefExprERROR(_) => 
   }
@@ -54,6 +54,7 @@ object LinkedTypeScanTree {
       val res = bypassCompRef(source)
       (in.rType, TTField(res._2, field))
     }
+    // case RefExtract(...) is skipped because type always known (unless tree is malformed)
     case _ => (in.rType, TTStart(in))
   }
 }

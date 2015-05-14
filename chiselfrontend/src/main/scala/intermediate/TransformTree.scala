@@ -58,7 +58,7 @@ class ExprTransformTreeFullSegregation extends ModuleTransformer {
     case RefVIndex(source, index, note)      => RefVIndex(transform(source), index, note)
     case RefVSelect(source, selector, note)  => RefVSelect(transform(source), transform(selector), note)
     case RefTLookup(source, field, note)     => RefTLookup(transform(source), field, note)
-    case RefExtract(source, lp, rp, rType, note) => RefExtract(transform(source), lp, rp, rType, note)
+    case RefExtract(source, lp, rp, note)    => RefExtract(transform(source), lp, rp, note)
 
     case RefIO(_,_) | RefExprERROR(_)  => ref
   }
@@ -108,7 +108,7 @@ class ExprOnlyTransformTree extends ModuleTransformer {
     case RefVIndex(source, index, note)      => RefVIndex(transform(source), index, note)
     case RefVSelect(source, selector, note)  => RefVSelect(transform(source), transform(selector), note)
     case RefTLookup(source, field, note)     => RefTLookup(transform(source), field, note)
-    case RefExtract(source, lp, rp, rType, note) => RefExtract(transform(source), lp, rp, rType, note)
+    case RefExtract(source, lp, rp, note)    => RefExtract(transform(source), lp, rp, note)
 
     case RefSymbol(_,_,_,_) | RefIO(_,_) | RefExprERROR(_) => expr
   }

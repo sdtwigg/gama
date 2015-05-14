@@ -59,7 +59,7 @@ case class RefMSelect(mem: MemDesc, selector: ExprHW, note: GamaNote) extends Re
 case class RefVIndex(source: ExprHW, index: Int, note: GamaNote) extends RefHW {val rType = getVecEType(source.rType)}
 case class RefVSelect(source: ExprHW, selector: ExprHW, note: GamaNote) extends RefHW {val rType = getVecEType(source.rType)}
 case class RefTLookup(source: ExprHW, field: String, note: GamaNote) extends RefHW {val rType = getTupleFType(source.rType, field)}
-case class RefExtract(source: ExprHW, left_pos: Int, right_pos: Int, rType: TypeHW, note: GamaNote) extends RefHW
+case class RefExtract(source: ExprHW, left_pos: Int, right_pos: Int, note: GamaNote) extends RefHW { val rType = calcRefExtractType(source.rType, math.abs(left_pos-right_pos)+1) }
 case class RefExprERROR(cause: String) extends RefHW with FIRERROR {def rType = TypeHWUNKNOWN; def note = GamaNote.unknown}
 
 sealed trait TypeHW extends TreeHW 

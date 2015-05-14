@@ -23,6 +23,11 @@ trait GamaIRUtilImpl {
     case p @ PrimitivePort(_,_) => Some(p)
     case _ => None
   }
+  def calcRefExtractType(in: TypeHW, length: Int): TypeHW = asPrimitiveTypeHW(in).flatMap({
+    case PrimitiveNode(_)      => Some( PrimitiveNode(UBits(Some(length))) )
+    case PrimitivePort(_, dir) => Some( PrimitivePort(UBits(Some(length)), dir) )
+    case _ => None
+  }).getOrElse(TypeHWUNKNOWN)
 
   def asVecHW(in: TypeHW): Option[VecHW] = in match {
     case v @ VecHW(_,_) => Some(v)

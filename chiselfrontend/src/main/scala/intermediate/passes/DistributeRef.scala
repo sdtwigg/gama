@@ -52,7 +52,7 @@ object DistributeRef extends GamaPass {
         case RefSymbol(_,_,_,_) | RefIO(_,_) | RefMSelect(_,_,_) | RefVIndex(_,_,_) |
              RefVSelect(_,_,_) | RefTLookup(_,_,_) => outerext
 
-        case RefExtract(innerinnersrc, innerLP, innerRP, innerType, _) => {
+        case RefExtract(innerinnersrc, innerLP, innerRP, _) => {
           // can assume innerinnersrc already transformed and not a RefExtract since inside-out transforms
           // TODO: Handle weird cases where extracting in opposite direction (although this may be an error)
           //   or innerinnersrc is too small (although, perhaps this should infer a fill operation earlier...)
@@ -60,12 +60,7 @@ object DistributeRef extends GamaPass {
           val newLength = math.min(outerext.left_pos - outerext.right_pos + 1, innerLP - innerRP + 1)
           val newRP = innerRP + outerext.right_pos
           val newLP = newRP + newLength - 1
-          val newType = outerext.rType match {
-            case PrimitivePort(UBits(_), direction) => PrimitivePort(UBits(Some(newLength)), direction)
-            case PrimitiveNode(UBits(_)) => PrimitiveNode(UBits(Some(newLength)))
-            case _ => TypeHWUNKNOWN // Error case
-          } // TODO: Avoidable once other TODO handled, probably, as length only now changes when iisrc too small
-          RefExtract(innerinnersrc, newLP, newRP, newType, outerext.note)
+          RefExtract(innerinnersrc, newLP, newRP, outerext.note)
         }
 
         case ExprUnary(_,_,_,_) | ExprBinary(_,_,_,_,_) | ExprMux(_,_,_,_,_) | ExprLit(_,_,_) =>
@@ -85,12 +80,12 @@ object DistributeRef extends GamaPass {
     */
 
     override def transform(ref: RefHW) = ref match {
-      case ext @ RefExtract(source,_,_,_,_) => attemptExtrAsRef(ext, transform(source))
+      case ext @ RefExtract(source,_,_,_) => attemptExtrAsRef(ext, transform(source))
       case _ => super.transform(ref)
     }
     /*
     override def transform(expr: ExprHW) = expr match {
-      case ext @ RefExtract(source,_,_,_,_) => attemptExtrAsExpr(ext, transform(source))
+      case ext @ RefExtract(source,_,_,_) => attemptExtrAsExpr(ext, transform(source))
       case _ => super.transform(expr)
     }
     */

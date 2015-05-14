@@ -55,17 +55,17 @@ case class PortSpell(em: EnclosingModule) extends NodeSpell[PortNode] {
 }
 
 case class ConnectableAccessorSpell(em: EnclosingModule) extends NodeSpell[ConnectableAccessorNode] {
-  def apply(in: SPEC) = ConnectableAccessorNode(in.storage, em)
+  def apply(in: SPEC) = ConnectableAccessorNode(in.storage, in.resolveDirection, em)
 }
 case class NonConnectableAccessorSpell(em: EnclosingModule) extends NodeSpell[NonConnectableAccessorNode] {
-  def apply(in: SPEC) = NonConnectableAccessorNode(in.storage, em)
+  def apply(in: SPEC) = NonConnectableAccessorNode(in.storage, in.resolveDirection, em)
 }
 
 case class ConnectableExtractedSpell(em: EnclosingModule) extends NodeSpell[ConnectableExtractedNode] {
-  def apply(in: SPEC) = ConnectableExtractedNode(in.storage, em)
+  def apply(in: SPEC) = ConnectableExtractedNode(in.storage, in.resolveDirection, em)
 }
 case class NonConnectableExtractedSpell(em: EnclosingModule) extends NodeSpell[NonConnectableExtractedNode] {
-  def apply(in: SPEC) = NonConnectableExtractedNode(in.storage, em)
+  def apply(in: SPEC) = NonConnectableExtractedNode(in.storage, in.resolveDirection, em)
 }
 
 case class OpSpell(em: EnclosingModule) extends NodeSpell[OpNode] {

@@ -15,7 +15,7 @@ class Dealiaser {
     case RefVIndex(source, index, note)       => RefVIndex(dealias(source), index, note)
     case RefVSelect(source, selector, note)   => RefVSelect(dealias(source), dealias(selector), note)
     case RefTLookup(source, field, note)      => RefTLookup(dealias(source), field, note)
-    case RefExtract(source, lp, rp, rt, note) => RefExtract(dealias(source), lp, rp, rt, note)
+    case RefExtract(source, lp, rp, note)     => RefExtract(dealias(source), lp, rp, note)
     case RefIO(_,_) | RefMSelect(_,_,_) | RefExprERROR(_) => expr
   }
   def dealias(expr: ExprHW): ExprHW = expr match {

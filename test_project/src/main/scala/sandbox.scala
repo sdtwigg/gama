@@ -6,9 +6,9 @@ import gama.library._
 @module class SandboxModule extends Module(new Bundle with Anon {
   val in_uint  = Input(UInt(4))
   val in_bool  = Input(Bool())
+  val out_vuint = Output(Vec(2,UInt(8)))
   val out_uint = Output(UInt(4))
 }) {
-
   val myVVB1 = Reg(Vec(2, Vec(2, new MyBundle())))
   val myVVB2 = Reg(Vec(2, Vec(2, new MyBundle())))
   val myVVB3 = Reg(Vec(2, Vec(2, new MyBundle())))
@@ -22,6 +22,7 @@ import gama.library._
   io.out_uint := Cat(io.in_uint, io.in_bool)
   io.out_uint := Fill(4, io.in_uint)
   
-  io.out_uint(3,0)(2,1) := io.in_uint(4,3)(1,1)(0)
+  io.out_vuint(io.in_uint) <> io.in_uint
+  io.out_uint(3,0)(2,1) <> io.in_uint(4,3)(1,1)(0,0)
 }
 

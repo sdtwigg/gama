@@ -135,7 +135,7 @@ abstract class IRReader(options: IRReaderOptions) {
       case RefVIndex(parent, index, note)     => s"${parseExpr(parent)}($index)"
       case RefVSelect(parent, selector, note) => s"${parseExpr(parent)}(${parseExpr(selector)})"
       case RefTLookup(source, field, note)    => s"${parseExpr(source)}.$field"
-      case RefExtract(source, left_pos, right_pos, _, note) => s"${parseExpr(source)}($left_pos,$right_pos)"
+      case RefExtract(source, left_pos, right_pos, note) => s"${parseExpr(source)}($left_pos,$right_pos)"
 
       case RefExprERROR(cause) => "$$$$RefExprERROR: " + cause + " $$$$"
     }

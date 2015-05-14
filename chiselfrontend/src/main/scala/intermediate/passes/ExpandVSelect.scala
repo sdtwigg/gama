@@ -30,8 +30,8 @@ object ExpandVSelectSink extends GamaPass {
         case RefTLookup(source, field, note) => searchSink(source).map({
           case (nsrc, refvs) => (i => RefTLookup(nsrc(i), field, note), refvs)
         })
-        case RefExtract(source, lp, rp, rType, note) => searchSink(source).map({
-          case (nsrc, refvs) => (i => RefExtract(nsrc(i), lp, rp, rType, note), refvs)
+        case RefExtract(source, lp, rp, note) => searchSink(source).map({
+          case (nsrc, refvs) => (i => RefExtract(nsrc(i), lp, rp, note), refvs)
         })
         // The desired root case:
         case refvs @ RefVSelect(source, selector, note) =>

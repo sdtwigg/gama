@@ -22,7 +22,7 @@ object TyperWidthInferer extends GamaPass{
     RefVIndex  -> ignored since type computed on source, BYPASSING REQUIRED*
     RefVSelect -> ignored since type computed on source, BYPASSING REQUIRED*
     RefTLookup -> ignored since type computed on source, BYPASSING REQUIRED*
-    RefExtract -> INFERRED, trivially by forcing based on lp and rp
+    RefExtract -> ignroed since type computed based on lp and rp, no bypassing needed
 
     RefExprERROR -> Ignored, trivially
 
@@ -71,8 +71,7 @@ object TyperWidthInferer extends GamaPass{
       }
       override def scan(expr: ExprHW): Unit = {
         expr match {
-          case ExprUnary(_,_,_,_) | ExprBinary(_,_,_,_,_) | ExprMux(_,_,_,_,_) |
-               RefSymbol(_,_,_,_) | RefExtract(_,_,_,_,_)
+          case ExprUnary(_,_,_,_) | ExprBinary(_,_,_,_,_) | ExprMux(_,_,_,_,_) | RefSymbol(_,_,_,_)
                 => findUnknowns(expr.rType, TTStart(expr), expr)
           case _ =>
         }
@@ -139,7 +138,6 @@ object TyperWidthInferer extends GamaPass{
           ForceWidth(1).start(expr, None)
       } 
       case ExprMux(_, tc, fc, _,_) => ConstrainFrom.start(expr, Seq(tc, fc))
-      case RefExtract(source, lp, rp, _,_) => ForceWidth(lp-rp+1).start(expr, None)
 
       case RefSymbol(_,_,_,_) => // RefSymbols must be constrained by commands
       case _ => ??? // No other expressions are directly inferred
@@ -177,17 +175,11 @@ object TyperWidthInferer extends GamaPass{
     }})
 
     // STEP 5: WALK THE TREE REPLACING TYPES FROM THE TABLE
-//          case ExprUnary(_,_,_,_) | ExprBinary(_,_,_,_,_) | ExprMux(_,_,_,_,_) |
- //              RefSymbol(_,_,_,_) | RefExtract(_,_,_,_,_)
+    //    ExprUnary(_,_,_,_) | ExprBinary(_,_,_,_,_) | ExprMux(_,_,_,_,_) | RefSymbol(_,_,_,_) 
     object Transformer extends ExprTransformTreeFullSegregation {
       def getNewType(in: ExprHW): TypeHW = typeReplaceTable.get(in).getOrElse(in.rType)
 
       override def transform(symbol: RefSymbol): RefSymbol = symbol.copy(rType=getNewType(symbol))
-      override def transform(ref: RefHW): RefHW  = ref match {
-        case RefExtract(source, lp, rp, rType, note) =>
-             RefExtract(transform(source), lp, rp, getNewType(ref), note)
-        case _ => super.transform(ref)
-      }
       override def transform(expr: ExprHW): ExprHW = expr match {
         case ExprUnary(op, target, rType, note) =>
              ExprUnary(op, transform(target), getNewType(expr), note)

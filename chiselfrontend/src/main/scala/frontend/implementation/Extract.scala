@@ -7,9 +7,11 @@ trait ExtractableImpl {
   // TODO: Very similar to AccessibleImpl... somewhat to consolidate something?
   // external -> internal API
   def doExtract(position: Int, info: EnclosureInfo): Bool =
-    makeExtract(Bool(), position, position, info)
-  def doExtract(left_pos: Int, right_pos: Int, info: EnclosureInfo): UInt =
-    makeExtract(UInt(math.abs(left_pos-right_pos)+1), left_pos, right_pos, info)
+    makeExtract(Bool.build(node.resolveDirection), position, position, info)
+  def doExtract(left_pos: Int, right_pos: Int, info: EnclosureInfo): UInt = {
+    val length = math.abs(left_pos-right_pos)+1
+    makeExtract(UInt.build(Some(length), node.resolveDirection), left_pos, right_pos, info)
+  }
 
   protected[gama] def makeExtract[E<:Element](retval: E, left_pos: Int, right_pos: Int, info: EnclosureInfo): E = {
     val spell: NodeSpell[ExtractedNode] = node match {

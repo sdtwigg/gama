@@ -8,7 +8,9 @@ import scala.language.experimental.macros
 import implementation.macrodefs.{TransformMacro => XFORM}
 
 object Bool {
-  def apply() = new Bool(SPEC(UBits(Some(1)), None))
+  def apply(): Bool = build(None)
+  def build(optDirection: Option[DirectionIO]): Bool =
+    new Bool(SPEC(UBits(Some(1)), optDirection))
   
   implicit object basicfunctionality
     extends Muxable[Bool]
