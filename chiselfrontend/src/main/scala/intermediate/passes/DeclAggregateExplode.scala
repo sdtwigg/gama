@@ -13,6 +13,26 @@ object DeclAggregateExplode extends GamaPass {
   case class MPTStart(origin: MemDesc) extends MemPathTrace
   case class MPTField(previous: MemPathTrace, field: String) extends MemPathTrace
   case class MPTSelectOne(previous: MemPathTrace, index: Int) extends MemPathTrace
+  
+  sealed trait FoundPath
+  case class FoundRefSymbol(path: PathTrace) extends FoundPath
+  case class FoundMemSelect(path: MemPathTrace, root: RefMSelect) extends FoundPath
+
+  def makePath(expr: ExprHW): Option[FoundPath] = expr match {
+    case rootMS @ RefMSelect(mem,_,_) => Some(FoundMemSelect(MPTStart(mem), rootMS))
+    case symbol @ RefSymbol(_,_,_,_)  => Some(FoundRefSymbol(PTStart(symbol)))
+
+    case RefVIndex(source, index, _) => makePath(source).map{
+      case FoundRefSymbol(path)       => FoundRefSymbol( PTSelectOne(path, index))
+      case FoundMemSelect(path, root) => FoundMemSelect(MPTSelectOne(path, index), root) 
+    }
+    case RefTLookup(source, field, _) => makePath(source).map{
+      case FoundRefSymbol(path)       => FoundRefSymbol( PTField(path, field))
+      case FoundMemSelect(path, root) => FoundMemSelect(MPTField(path, field), root) 
+    }
+
+    case _ => None
+  }
 
   def transform(target: ElaboratedModule): ElaboratedModule = {
     // Need these in order to properly split up aggregaes
@@ -40,7 +60,17 @@ object DeclAggregateExplode extends GamaPass {
       case ConstDecl(_, expr, note) => 
         explodeSymbol(creator, (nsym, ewrap) => ConstDecl(nsym, ewrap(expr), note))
       case AliasDecl(_, ref, note) =>
-        explodeSymbol(creator, (nsym, ewrap) => ConstDecl(nsym, ewrap(ref), note))
+        explodeSymbol(creator, (nsym, ewrap) => AliasDecl(nsym, ewrap(ref), note)) // TODO: to alias or to const?
+      case MemRead(_, mem, address, en, note) => {
+        val cmdbuilder = (nsym: RefSymbol, ewrap: ExprHW=>RefHW) => {
+          val newMem = makePath(ewrap(RefMSelect(mem, address, passNote))).flatMap({
+            case FoundMemSelect(path, _) => path2mem.get(path)
+            case _ => None // This should seriously never happen since the RefMSelect is pre-planted
+          }).getOrElse(mem)
+          MemRead(nsym, newMem, address, en, note)
+        }
+        explodeSymbol(creator, cmdbuilder)
+      }
     }
     def explodeSymbol(target: CreatesRefSymbol,
                       cmdbuilder: (RefSymbol,ExprHW=>RefHW)=>CreatesRefSymbol): Iterable[CmdHW] =
@@ -165,7 +195,7 @@ object DeclAggregateExplode extends GamaPass {
 
       flattenMemType(oldcmd.desc.mType, MPTStart(oldcmd.desc)).map({case (_, oldPath, newBuilder) => {
         val newMem = path2mem.get(oldPath).getOrElse(oldcmd.desc)
-        MemWrite(newMem, oldcmd.selector, newBuilder(oldcmd.source), oldcmd.mask, oldcmd.note)
+        MemWrite(newMem, oldcmd.address, newBuilder(oldcmd.source), oldcmd.mask, oldcmd.note)
       }})
     }
     object DeclExplodeTransformer extends CmdMultiTransformTree {
@@ -220,6 +250,13 @@ object DeclAggregateExplode extends GamaPass {
       override def transform(cmd: CmdHW): CmdHW = cmd match {
         case MemWrite(desc,_,_,_,_) =>
           if(deadMems(desc)) CmdERROR(s"Dead memory write not replaced during $name", passNote)
+          else super.transform(cmd)
+        case MemRead(symbol,mem,_,_,_) =>
+          if(deadMems(mem)) CmdERROR(s"Dead memory read not replaced during $name", passNote)
+          else if(deadSymbols(symbol)) CmdERROR(s"Dead symbol not replaced during $name", passNote)
+          else super.transform(cmd)
+        case creator: CreatesRefSymbol => 
+          if(deadSymbols(creator.symbol)) CmdERROR(s"Dead symbol not replaced during $name", passNote)
           else super.transform(cmd)
         case _ => super.transform(cmd)
       }

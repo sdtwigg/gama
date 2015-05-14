@@ -12,9 +12,8 @@ class ExprScanTree {
     case BlockHW(stmts, _) => stmts.foreach(scan(_))
     case WhenHW(cond, tc, fc, _) => {scan(cond); scan(tc); scan(fc)}
     
-    case MemWrite(_, selector, source, mask, _) => {
-      scan(selector); scan(source); mask.foreach(scan(_))
-    }
+    case MemRead(symbol, _, address, en, _) => {scan(symbol); scan(address); scan(en)}
+    case MemWrite(_, selector, source, mask, _) => {scan(selector); scan(source); mask.foreach(scan(_))}
 
     case ConnectStmt(sink, source, _,_)  => {scan(sink); scan(source)}
     case BiConnectStmt(left, right, _,_) => {scan(left); scan(right)}

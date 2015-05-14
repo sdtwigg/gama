@@ -30,8 +30,11 @@ case class ConnectStmt(sink: RefHW, source: ExprHW, details: ConnectDetails, not
 case class BiConnectStmt(left: RefHW, right: RefHW, details: BiConnectDetails, note: GamaNote) extends CmdHW
 // Memory related
 case class MemDecl(desc: MemDesc, note: GamaNote) extends CmdHW
-//case class MemRead(symbol: RefSymbol, mem: MemDesc, selector: ExprHW) extends CmdHW with CreatesRefSymbol
-case class MemWrite(desc: MemDesc, selector: ExprHW, source: ExprHW, mask: Option[ExprHW], note: GamaNote) extends CmdHW
+// MemRead and MemWrite are to replace RefMSelect via passes
+case class MemRead(symbol: RefSymbol, desc: MemDesc, address: ExprHW, en: ExprHW, note: GamaNote) extends CmdHW with CreatesRefSymbol
+  // If en wasn't here, this would essentially be a ConstDecl with RefMSelect
+  //    but the en allows for better memory emission
+case class MemWrite(desc: MemDesc, address: ExprHW, source: ExprHW, mask: Option[ExprHW], note: GamaNote) extends CmdHW
   // TODO: Should this instead be a more general MaskedConnectStmt?
   // Also, what about a MemReadWrite? ... might be able to infer those though
 // Other

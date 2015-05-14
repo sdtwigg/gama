@@ -39,12 +39,14 @@ abstract class IRReader(options: IRReaderOptions) {
     case MemDecl(desc, note) => {
       s"${HL.CYAN}mem${HL.RESET} ${emitMemName(desc)} = ${HL.CYAN}MEM${HL.RESET}(${desc.depth}, ${HL.GREEN}${parseType(desc.mType)}${HL.RESET})  ${emitGamaNote(note)}"
     }
-    case MemWrite(desc, selector, source, mask, note) => {
+    case MemRead(symbol, mem, address, en, note) =>
+      s"${HL.CYAN}mem read${HL.RESET} ${emitFullSymbol(symbol)} = ${emitMemName(mem)}(${parseExpr(address)}) ${HL.CYAN}with en${HL.RESET} = ${parseExpr(en)}  ${emitGamaNote(note)}"
+    case MemWrite(desc, address, source, mask, note) => {
       val minfo: String = mask match {
         case Some(mask) => s"${HL.CYAN}with mask${HL.RESET} = ${parseExpr(mask)}"
         case None => ""
       }
-      s"${HL.CYAN}mem write${HL.RESET} ${emitMemName(desc)}(${parseExpr(selector)}) = ${parseExpr(source)} ${minfo} ${emitGamaNote(note)}"
+      s"${HL.CYAN}mem write${HL.RESET} ${emitMemName(desc)}(${parseExpr(address)}) = ${parseExpr(source)} ${minfo} ${emitGamaNote(note)}"
     }
 
     case SubModuleDecl(details, smptr, note) => {
