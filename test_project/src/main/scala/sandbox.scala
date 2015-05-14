@@ -21,5 +21,7 @@ import gama.library._
   val myOp = Mux(io.in_bool, myVVB2, myVVB3)
   io.out_uint := Cat(io.in_uint, io.in_bool)
   io.out_uint := Fill(4, io.in_uint)
+  
+  io.out_uint(3,0)(2,1) := io.in_uint(4,3)(1,1)(0)
 }
 
