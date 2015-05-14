@@ -9,7 +9,7 @@ trait ExtractableImpl {
   def doExtract(position: Int, info: EnclosureInfo): Bool =
     makeExtract(Bool(), position, position, info)
   def doExtract(left_pos: Int, right_pos: Int, info: EnclosureInfo): UInt =
-    makeExtract(UInt(math.abs(left_pos-right_pos)), left_pos, right_pos, info)
+    makeExtract(UInt(math.abs(left_pos-right_pos)+1), left_pos, right_pos, info)
 
   protected[gama] def makeExtract[E<:Element](retval: E, left_pos: Int, right_pos: Int, info: EnclosureInfo): E = {
     val spell: NodeSpell[ExtractedNode] = node match {
