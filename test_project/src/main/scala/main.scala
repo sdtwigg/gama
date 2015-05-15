@@ -15,10 +15,10 @@ object testmain {
     ))
     
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
-    val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=true))
+    val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
     //val myTopModule = ExampleModule()
-    val myTopModule = Module(new SandboxModule)
+    val myTopModule = Module(new MemModule)
     
     //println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     // WARNING: If uncommented, will give names to everything
@@ -185,7 +185,8 @@ trait Nested2 extends Nested {
     myMem.write(True, memread)
   }
 
-  myMem(myMem(uint).a).b := uint * 2.U
+  myMem(myMem(uint).a).b      := uint * 2.U
+  myMem(myMem(uint).a).b(2,1) := uint
   myMem.write(1.U + 2.U, Mux(True, myreg, myreg))
 
   myComplexMem.write(uint, myComplexMem(0.U))

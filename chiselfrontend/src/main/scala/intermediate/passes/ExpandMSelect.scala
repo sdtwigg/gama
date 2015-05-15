@@ -13,7 +13,15 @@ object ExpandMSelectSink extends GamaPass {
   def transform(target: ElaboratedModule): ElaboratedModule = {
     object Transformer extends CmdMultiTransformTree {
       override def multiTransform(cmd: CmdHW) = cmd match {
-        //case c @ ConnectStmt(_,_,_,_)   => expandConnect(c)
+        case c @ ConnectStmt(sink, source, _, cnote) => sink match {
+          case RefMSelect(mem, address, mnote) => Some( MemWrite(mem, address, source, None, mnote) )
+          case RefExtract(RefMSelect(mem, address, mnote), lp, rp, _) => {
+            val mask = ExprLitU( (BigInt(2) << lp) - (BigInt(1) << rp) )
+            Some( MemWrite(mem, address, source, Some(mask), mnote) )
+          }
+          // TODO: Are these 2 cases sufficient?
+          case _ => Some(c) 
+        }
 
         case BiConnectStmt(_,_,_,note) => Some( CmdERROR(s"BiConnect found during $name", note) )
         case AliasDecl(_,_,note) => Some( CmdERROR(s"AliasDecl found during $name", note) )

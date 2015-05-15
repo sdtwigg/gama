@@ -24,5 +24,8 @@ import gama.library._
   
   io.out_vuint(io.in_uint) <> io.in_uint
   io.out_uint(3,0)(2,1) <> io.in_uint(4,3)(1,1)(0,0)
+
+  io.out_vuint(io.out_vuint(io.in_uint)) := 0.U
+  io.out_uint := io.out_vuint(io.out_vuint(io.in_uint))
 }
 
