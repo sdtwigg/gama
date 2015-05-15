@@ -237,7 +237,8 @@ object DeclAggregateExplode extends GamaPass {
       override def transform(ref: RefHW): RefHW  = ref match {
         case RefVIndex(_,_,_) | RefTLookup(_,_,_) => makePath(ref).flatMap({
           case FoundRefSymbol(path)       => path2sym.get(path)
-          case FoundMemSelect(path, root) => path2mem.get(path).map(RefMSelect(_, root.selector, root.note))
+          case FoundMemSelect(path, root) =>
+            path2mem.get(path).map(RefMSelect(_, transform(root.selector), root.note))
         }).getOrElse(ref)
 
         case _  => super.transform(ref)
@@ -263,10 +264,11 @@ object DeclAggregateExplode extends GamaPass {
       override def transform(ref: RefHW): RefHW = ref match {
         case symbol @ RefSymbol(_,_,_,_) =>
           if(deadSymbols(symbol)) RefExprERROR(s"Dead symbol not replaced during $name") 
-          else symbol
-        case rootMS @ RefMSelect(memDesc,_,_) =>
+          else super.transform(ref)
+        case RefMSelect(memDesc,_,_) => {
           if(deadMems(memDesc)) RefExprERROR(s"Dead memory read not replaced during $name") 
-          else rootMS
+          else super.transform(ref)
+        }
         case _  => super.transform(ref)
       }
     }

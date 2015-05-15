@@ -83,7 +83,8 @@ object ExpandVSelectSource extends GamaPass {
           def refvibuild(idx: Int) = RefVIndex(newsrc, idx, oldrefvs.note)
           if(depth > 0) {
             (1 until depth).foldLeft(refvibuild(0): ExprHW)((fc, idx) => {
-              val cond = ExprBinary(OpEqual,oldrefvs.selector,ExprLitU(idx), PrimitiveNode(UBits(Some(1))),passNote)
+              val cond = ExprBinary(OpEqual, newsel, ExprLitU(idx),
+                                    PrimitiveNode(UBits(Some(1))), passNote)
               ExprMux(cond, refvibuild(idx), fc, oldrefvs.rType, oldrefvs.note)
             })
           } else RefExprERROR(s"Bad VecSelect or 0-element Vec when running $name")
