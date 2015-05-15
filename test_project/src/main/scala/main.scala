@@ -189,7 +189,7 @@ trait Nested2 extends Nested {
   myMem(myMem(uint).a).b(2,1) := uint
   myMem.write(1.U + 2.U, Mux(True, myreg, myreg))
 
-  myComplexMem.write(uint, myComplexMem(0.U))
+  myComplexMem.write(uint, myComplexMem(myUIntMem(uint)))
 }
 
 @module class ConnectModule extends Module(new DecoupledExample) {

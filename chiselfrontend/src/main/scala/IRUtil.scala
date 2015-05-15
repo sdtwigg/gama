@@ -13,6 +13,7 @@ trait GamaIRUtilImpl {
     val width = litval.bitLength + 1
     ExprLit(LitRawBits(litval, width, false), PrimitiveNode(UBits(Some(width))), GamaNote.unknown)
   }
+  def ExprLitB(litval: Boolean) = if(litval) ExprLitU(1) else ExprLitU(0)
 
   def getWidth(in: PrimitiveTypeHW): Option[Option[Int]] = in.storage match {
     case rb: RawBits => (Some(rb.width))
