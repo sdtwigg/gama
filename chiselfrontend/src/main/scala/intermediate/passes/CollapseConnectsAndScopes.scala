@@ -111,7 +111,7 @@ object CollapseConnectsAndScopes extends GamaPass {
           val tcScope = new ScopeContainer(Some(this), condtc)
           val condfc = OpenElse(condtc)
           val fcScope = new ScopeContainer(Some(this), condfc)
-          tcScope.process(Some(tc)) ++ tcScope.process(Some(fc))
+          tcScope.process(Some(tc)) ++ fcScope.process(Some(fc))
         }
         
         case ConstDecl(_,_,_) | CmdERROR(_,_) => Some(cmd)
@@ -125,22 +125,50 @@ object CollapseConnectsAndScopes extends GamaPass {
   }
 
   sealed abstract class ConnectJournal(scope: ScopeContainer) {
-    def process(cmd: CmdHW, scope: ScopeContainer): Iterable[CmdHW]
+    def process(cmd: CmdHW, cmdScope: ScopeContainer): Iterable[CmdHW]
     def resolve: Iterable[CmdHW]
   }
   case class WireJournal(target: CollapseTarget, scope: ScopeContainer) extends ConnectJournal(scope) {
     // translate when into muxes, needs defaults
-    def process(cmd: CmdHW, scope: ScopeContainer): Iterable[CmdHW] = None // TODO
+    def process(cmd: CmdHW, cmdScope: ScopeContainer): Iterable[CmdHW] = None // TODO
     def resolve: Iterable[CmdHW] = None // TODO
   }
   case class RegJournal(target: CTSymbol, scope: ScopeContainer) extends ConnectJournal(scope) {
     // track the whens and just emit that when tree
-    def process(cmd: CmdHW, scope: ScopeContainer): Iterable[CmdHW] = None // TODO
+    // Should sort-of track MemWrite emission
+    def process(cmd: CmdHW, cmdScope: ScopeContainer): Iterable[CmdHW] = None // TODO
     def resolve: Iterable[CmdHW] = None // TODO
   }
   case class MemJournal(target: CTMem, scope: ScopeContainer) extends ConnectJournal(scope) {
     // just tracks scope, when memread/memwrite encountered, immediately emit to scope
-    def process(cmd: CmdHW, scope: ScopeContainer): Iterable[CmdHW] = None // TODO
+    def calcDiff(checkCond: OpenCondition): List[ExprHW] =
+      // TODO: Can have this return a 'reduced' OpenCondition?
+      if(checkCond == scope.condStack) Nil
+      else checkCond match {
+        case OpenWhen(cond, parent) => cond :: calcDiff(parent)
+        case OpenElse(parent) => {
+          val (head :: tail) = calcDiff(parent)
+          ExprUnary(OpNot, head, PrimitiveNode(UBits(Some(1))), passNote) :: tail
+        }
+        case NoCond => Nil // should never occur
+      }
+    def process(cmd: CmdHW, cmdScope: ScopeContainer): Iterable[CmdHW] = cmd match {
+      case MemRead(symbol, desc, address, en, note) => {
+        val enConds = (en :: calcDiff(cmdScope.condStack)).filter(_ != ExprLitU(1))
+        val newEn = if(enConds.isEmpty) ExprLitU(1)
+          else enConds.reduceLeft(ExprBinary(OpAnd, _, _, PrimitiveNode(UBits(Some(1))), passNote))
+        Some( MemRead(symbol, desc, address, newEn, note) )
+      }
+      case MemWrite(desc, address, source, mask, note) => {
+        val enConds = calcDiff(cmdScope.condStack)
+        val newCmd = enConds.foldLeft(cmd)((acmd, cond) => WhenHW(cond, acmd, NOPHW, passNote))
+          // TODO: Handle else without a not?
+          // Also, could defer emission and attempt emit at end after smashing together ones
+          //   with equivalent addresses
+        Some( newCmd )
+      } // TODO
+      case _ => Some( CmdERROR(s"Unexpected Command for MemJournal: $cmd", cmd.note) )
+    }
     def resolve: Iterable[CmdHW] = None
   }
 }

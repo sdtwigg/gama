@@ -192,11 +192,24 @@ trait Nested2 extends Nested {
   val myComplexMem = Mem(new Vec(2, Vec(2, new MyChildBundle)), 16)
   myMem(uint) := myMem(uint + 1.U)
   
-  when(True) {
+  when(uint !== 0.U) {
     val memread = myMem(0.U)
     val memwrite = myMem(2.U)
     memwrite := memread
-    myMem.write(True, memread)
+    myMem.write(1.U, memread)
+    val inmem = Mem(UInt(1), 2)
+    when(uint !== 1.U) {
+      inmem(0.U) := inmem(1.U)
+    }
+  }.otherwise {
+    val memread2 = myMem(0.U)
+  }
+  when(uint > 2.U) {
+    when(uint < 5.U) {
+      myUIntMem(0.U) := 0.U
+    }.otherwise{
+      myUIntMem(1.U) := 1.U
+    }
   }
 
   myMem(myMem(uint).a).b      := uint * 2.U
