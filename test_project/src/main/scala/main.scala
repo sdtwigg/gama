@@ -9,9 +9,12 @@ object testmain {
       IRReader, IRReaderOptions, ModuleTypeChecker, PassMerger}
     import gama.intermediate.passes._
     
-    object MergedPasses extends PassMerger(Seq(
+    object PrePasses extends PassMerger(Seq(
       BufferIO, ExplodeConnect, SubstituteAliases, ExpandVSelect, ProcessReset, 
       InternalAggregateExplode, ExpandMSelect
+    ))
+    object PostPasses extends PassMerger(Seq(
+      CollapseConnectsAndScopes
     ))
     
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
@@ -26,12 +29,12 @@ object testmain {
     val circuitDesc = gama.frontend.implementation.journal.Converter(myTopModule)
     val elabMods = circuitDesc.modules.zipWithIndex.map({case (module, ptr) => {
       println(s"${Console.CYAN}Analyzing position ${ptr}${Console.RESET}: ${Console.GREEN}${module.selftype}${Console.RESET}")
-      val typechecker = new ModuleTypeChecker(true)(module)
+      val typechecker = new ModuleTypeChecker(false)(module)
       println(s"# Type Checker ${Console.RED}Errors${Console.RESET}: ${typechecker.errors.length}")
       println(s"# Type Checker ${Console.YELLOW}Warnings${Console.RESET}: ${typechecker.errors.length}")
       
       val solution = TyperWidthInferer.infer(module)
-      val transformed = MergedPasses.transform(solution.inferredModule)
+      val transformed = PrePasses.transform(solution.inferredModule)
 
       println(myIRReader.parseElaboratedModule(module, Some(circuitDesc)))
       println(s"${Console.GREEN}Width Inferer:${Console.RESET} # Expressions Considered = ${solution.unknownsFound}")
@@ -52,6 +55,17 @@ object testmain {
       
       println(myIRReader.parseElaboratedModule(module, Some(circuitSimpleIO)))
       println("")
+    }})
+    val collapsedMods = circuitSimpleIO.modules.zipWithIndex.map({case (module, ptr) => {
+      println(s"${Console.CYAN}Analyzing position ${ptr}${Console.RESET}: ${Console.GREEN}${module.selftype}${Console.RESET}")
+      val typechecker = new ModuleTypeChecker(true)(module)
+      println(s"# Type Checker ${Console.RED}Errors${Console.RESET}: ${typechecker.errors.length}")
+      println(s"# Type Checker ${Console.YELLOW}Warnings${Console.RESET}: ${typechecker.errors.length}")
+      val transformed = PostPasses.transform(module)
+      println(myIRReader.parseElaboratedModule(transformed, Some(circuitDesc)))
+      println("")
+
+      transformed
     }})
   }
 }
