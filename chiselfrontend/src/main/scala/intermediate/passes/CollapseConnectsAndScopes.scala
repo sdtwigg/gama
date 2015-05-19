@@ -127,6 +127,19 @@ object CollapseConnectsAndScopes extends GamaPass {
   sealed abstract class ConnectJournal(scope: ScopeContainer) {
     def process(cmd: CmdHW, cmdScope: ScopeContainer): Iterable[CmdHW]
     def resolve: Iterable[CmdHW]
+
+    def calcDiff(checkCond: OpenCondition): OpenCondition =
+      // Returns an OpenCondition that is the 'difference' between scope.condStack and checkCond
+      // Somewhat assumes scope.condStack is an ancestor of checkCond (otherwise, checkCond is emitted)
+      // TODO: Can have this return a 'reduced' OpenCondition?
+      if(checkCond == scope.condStack) NoCond
+      else checkCond match {
+        case OpenWhen(cond, parent) => OpenWhen(cond, calcDiff(parent))
+        case OpenElse(OpenWhen(cond, parent)) => OpenElse(OpenWhen(cond, calcDiff(parent)))
+          // Note, invariants violated if condStack == that inner when so not checking for it
+        case NoCond => NoCond
+          // should never occur
+      }
   }
   case class WireJournal(target: CollapseTarget, scope: ScopeContainer) extends ConnectJournal(scope) {
     // translate when into muxes, needs defaults
@@ -141,32 +154,36 @@ object CollapseConnectsAndScopes extends GamaPass {
   }
   case class MemJournal(target: CTMem, scope: ScopeContainer) extends ConnectJournal(scope) {
     // just tracks scope, when memread/memwrite encountered, immediately emit to scope
-    def calcDiff(checkCond: OpenCondition): List[ExprHW] =
-      // TODO: Can have this return a 'reduced' OpenCondition?
-      if(checkCond == scope.condStack) Nil
-      else checkCond match {
-        case OpenWhen(cond, parent) => cond :: calcDiff(parent)
-        case OpenElse(parent) => {
-          val (head :: tail) = calcDiff(parent)
-          ExprUnary(OpNot, head, PrimitiveNode(UBits(Some(1))), passNote) :: tail
-        }
-        case NoCond => Nil // should never occur
-      }
     def process(cmd: CmdHW, cmdScope: ScopeContainer): Iterable[CmdHW] = cmd match {
       case MemRead(symbol, desc, address, en, note) => {
-        val enConds = (en :: calcDiff(cmdScope.condStack)).filter(_ != ExprLitU(1))
-        val newEn = if(enConds.isEmpty) ExprLitU(1)
-          else enConds.reduceLeft(ExprBinary(OpAnd, _, _, PrimitiveNode(UBits(Some(1))), passNote))
+        val fullEnStack = calcDiff(if(en != ExprLitU(1)) OpenWhen(en, cmdScope.condStack) else cmdScope.condStack)
+          // Only pop en into the condition if it is non-trivial
+        def notExpr(target: ExprHW): ExprHW = ExprUnary(OpNot, target, PrimitiveNode(UBits(Some(1))), passNote)
+        def andExpr(left: ExprHW, right: ExprHW): ExprHW = ExprBinary(OpAnd, left, right, PrimitiveNode(UBits(Some(1))), passNote)
+        def condToExpr(target: OpenCondition): ExprHW = target match {
+          case NoCond => ExprLitU(1)
+          case OpenWhen(cond, NoCond) => cond
+          case OpenElse(OpenWhen(cond, NoCond)) => notExpr(cond)
+          // These 2 with nested NoCond are to avoid extraneous ExprLitU(1) in the full condition
+
+          case OpenWhen(cond, parent) => andExpr(cond, condToExpr(parent))
+          case OpenElse(OpenWhen(cond, parent)) => andExpr(notExpr(cond), condToExpr(parent))
+        }
+        val newEn = condToExpr(fullEnStack)
         Some( MemRead(symbol, desc, address, newEn, note) )
       }
       case MemWrite(desc, address, source, mask, note) => {
-        val enConds = calcDiff(cmdScope.condStack)
-        val newCmd = enConds.foldLeft(cmd)((acmd, cond) => WhenHW(cond, acmd, NOPHW, passNote))
-          // TODO: Handle else without a not?
-          // Also, could defer emission and attempt emit at end after smashing together ones
+        val enStack = calcDiff(cmdScope.condStack)
+        def wrapCmd(cmd: CmdHW, enclosing: OpenCondition): CmdHW = enclosing match {
+          case NoCond => cmd
+          case OpenWhen(cond, parent)           => wrapCmd(WhenHW(cond, cmd, NOPHW, passNote), parent)
+          case OpenElse(OpenWhen(cond, parent)) => wrapCmd(WhenHW(cond, NOPHW, cmd, passNote), parent)
+        }
+        val newCmd = wrapCmd(cmd, enStack)
+          // TODO could defer emission and attempt emit at end after smashing together ones
           //   with equivalent addresses
         Some( newCmd )
-      } // TODO
+      } 
       case _ => Some( CmdERROR(s"Unexpected Command for MemJournal: $cmd", cmd.note) )
     }
     def resolve: Iterable[CmdHW] = None
