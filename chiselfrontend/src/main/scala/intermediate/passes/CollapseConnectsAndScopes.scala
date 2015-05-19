@@ -30,7 +30,7 @@ object CollapseConnectsAndScopes extends GamaPass {
   }
 
   final class ScopeContainer(parent: Option[ScopeContainer], val condStack: OpenCondition) {
-    private[this] val scopedJournals = LHMap.empty[CollapseTarget, ConnectJournal]
+    private[this] val scopedJournals = LHMap.empty[CollapseTarget, CmdJournal]
     def injectTopIO(io: TypeHW): Unit = io match {
       case TupleHW(fields) => for( (field, elemType) <- fields.toSeq.sortBy(_._1)) {
         // Create WireJournals for each input
@@ -46,7 +46,7 @@ object CollapseConnectsAndScopes extends GamaPass {
       case _ => throw new Exception(s"During $name, Module found with non-TupleHW ioType")
     }
 
-    protected def lookup(key: CollapseTarget): Option[ConnectJournal] =
+    protected def lookup(key: CollapseTarget): Option[CmdJournal] =
       scopedJournals.get(key) orElse parent.flatMap(_.lookup(key)) 
     protected def constructCT(ref: ExprHW): Option[CollapseTarget] = ref match {
       case symbol @ RefSymbol(_,_,_,_) => Some( CTSymbol(symbol) )
@@ -124,7 +124,7 @@ object CollapseConnectsAndScopes extends GamaPass {
     }
   }
 
-  sealed abstract class ConnectJournal(scope: ScopeContainer) {
+  sealed abstract class CmdJournal(scope: ScopeContainer) {
     def process(cmd: CmdHW, cmdScope: ScopeContainer): Iterable[CmdHW]
     def resolve: Iterable[CmdHW]
 
@@ -140,19 +140,108 @@ object CollapseConnectsAndScopes extends GamaPass {
         case NoCond => NoCond
           // should never occur
       }
+
   }
-  case class WireJournal(target: CollapseTarget, scope: ScopeContainer) extends ConnectJournal(scope) {
+  sealed trait ConnectProcess {
+    self: CmdJournal =>
+    sealed trait JEntry
+    case class JConnect(cmd: ConnectStmt) extends JEntry
+    case class JWhen(cond: ExprHW, tc: ListB[JEntry], fc: ListB[JEntry], encCond: OpenCondition) extends JEntry {
+      def tcCond = OpenWhen(cond, encCond)
+      def fcCond = OpenElse(tcCond)
+        // These are used for fast comparisons with a new commands scope
+    }
+    protected[this] val commands = ListB.empty[JEntry]
+    private[this] def getBuffer(targetCond: OpenCondition): ListB[JEntry] = targetCond match {
+      // Makes the buffer if needed!
+      case NoCond => commands
+      case OpenWhen(cond, parentCond) => {
+        val parentBuffer = getBuffer(parentCond)
+        parentBuffer.lastOption match {
+          case Some( when @ JWhen(_, tc, _, _) ) if when.tcCond == targetCond => tc
+          case _ => {
+            val newWhen = JWhen(cond, ListB.empty, ListB.empty, parentCond)
+            parentBuffer += newWhen
+            newWhen.tc
+          }
+        }
+      }
+      case OpenElse(OpenWhen(cond, parentCond)) => {
+        val parentBuffer = getBuffer(parentCond)
+        parentBuffer.lastOption match {
+          case Some( when @ JWhen(_, _, fc, _) ) if when.fcCond == targetCond => fc
+          case _ => {
+            val newWhen = JWhen(cond, ListB.empty, ListB.empty, parentCond)
+            parentBuffer += newWhen
+            newWhen.fc
+          }
+        }
+      }
+    }
+
+    def process(cmd: CmdHW, cmdScope: ScopeContainer): Iterable[CmdHW] = cmd match {
+      case cstmt @ ConnectStmt(sink, source, details, note) => {
+        val trueCond = calcDiff(cmdScope.condStack)
+        val targetBuffer = getBuffer(trueCond)
+        targetBuffer += JConnect(cstmt)
+
+        None
+      }
+      case _ => Some( CmdERROR(s"Unexpected Command for WireJournal: $cmd", cmd.note) )
+    }
+    /*
+    def print_debug(target: CollapseTarget) = {
+      val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
+      def printJE(in: JEntry): String = in match {
+        case JCmd(cmd) => myIRReader.parseCmdHW(cmd)(None)
+        case JWhen(cond, tc, fc, _) => s"when(${myIRReader.parseExpr(cond)}) ${printLB(tc)} else ${printLB(fc)}"
+      }
+      def printLB(in: ListB[JEntry]): String = 
+        (in flatMap(entry => printJE(entry).split("\n")) map("  " + _) mkString("{\n","\n","\n}"))
+      println(s"Journal FOR $target")
+      println(printLB(commands))
+    }
+    */
+  }
+
+  case class WireJournal(target: CollapseTarget, scope: ScopeContainer) extends CmdJournal(scope) with ConnectProcess {
     // translate when into muxes, needs defaults
-    def process(cmd: CmdHW, cmdScope: ScopeContainer): Iterable[CmdHW] = None // TODO
-    def resolve: Iterable[CmdHW] = None // TODO
+    def resolve: Iterable[CmdHW] = {
+      def scopeResolve(commands: Iterable[JEntry], oldDefault: Option[ExprHW]): Option[ExprHW] = {
+        commands.foldLeft(oldDefault)((current, entry) => entry match {
+          case JConnect(ConnectStmt(_, source, _, _)) => Some(source)
+            // TODO: Handle Subword Updates
+          case JWhen(cond, tc, fc, _) => {
+            val tcResult = scopeResolve(tc, current).getOrElse(RefExprERROR("Unknown Value for tc"))
+            val fcResult = scopeResolve(fc, current).getOrElse(RefExprERROR("Unknown Value for fc"))
+            Some(ExprMux(cond, tcResult, fcResult, TypeHWUNKNOWN, passNote))
+            // TODO Fix typing
+          }
+        })
+      }
+      val newSource = scopeResolve(commands, None).getOrElse(RefExprERROR("Unknown Value"))
+      val sink: RefHW = target match {
+        case CTSymbol(symbol) => symbol
+        case CTIO(module, field) => RefTLookup(RefIO(module, passNote), field, passNote)
+        case _ => RefExprERROR(s"Improper target for WireJournal: $target")
+      }
+      Some(ConnectStmt(sink, newSource, ConnectAll, passNote))
+    }
   }
-  case class RegJournal(target: CTSymbol, scope: ScopeContainer) extends ConnectJournal(scope) {
-    // track the whens and just emit that when tree
-    // Should sort-of track MemWrite emission
-    def process(cmd: CmdHW, cmdScope: ScopeContainer): Iterable[CmdHW] = None // TODO
-    def resolve: Iterable[CmdHW] = None // TODO
+  case class RegJournal(target: CTSymbol, scope: ScopeContainer) extends CmdJournal(scope) with ConnectProcess {
+    def resolve: Iterable[CmdHW] = {
+      def scopeResolve(commands: Iterable[JEntry]): BlockHW =
+        BlockHW(commands.map({
+          case JConnect(cmd) => cmd
+          case JWhen(cond, tc, fc, _) => {
+            WhenHW(cond, scopeResolve(tc), scopeResolve(fc), passNote)
+          }
+        }).toList, passNote)
+      Some(scopeResolve(commands))
+      // TODO: Have this simplify when possible (but need to be careful of nested holes and subword updates
+    }
   }
-  case class MemJournal(target: CTMem, scope: ScopeContainer) extends ConnectJournal(scope) {
+  case class MemJournal(target: CTMem, scope: ScopeContainer) extends CmdJournal(scope) {
     // just tracks scope, when memread/memwrite encountered, immediately emit to scope
     def process(cmd: CmdHW, cmdScope: ScopeContainer): Iterable[CmdHW] = cmd match {
       case MemRead(symbol, desc, address, en, note) => {
