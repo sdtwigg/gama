@@ -11,14 +11,14 @@ object testmain {
     
     object PrePasses extends PassMerger(Seq(
       BufferIO, ExplodeConnect, SubstituteAliases, ExpandVSelect, ProcessReset, 
-      InternalAggregateExplode, ExpandMSelect
+      InternalAggregateExplode, ExpandMSelect, TightenConnect
     ))
     object PostPasses extends PassMerger(Seq(
       CollapseConnectsAndScopes
     ))
     
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
-    val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=true))
+    val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
     //val myTopModule = ExampleModule()
     val myTopModule = Module(new Sandbox2Module)
