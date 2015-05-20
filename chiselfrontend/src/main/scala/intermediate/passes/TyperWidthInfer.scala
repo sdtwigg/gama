@@ -90,11 +90,11 @@ object TyperWidthInferer extends GamaPass{
           yield if(sourcens.isInstanceOf[UBits]) WidthAdd(Vector(term, WidthLit(1))) else term
       else terms // Just build a >= constraint from each term, unless signed to unsigned then make >= signedw + 1
     }
-    object ConstrainFrom extends ConstraintBuilder(constraints) {
+    object ConstrainEq extends ConstraintBuilder(constraints) {
       def buildConstraints(terms: Iterable[WidthConstraint], selfns: NodeStore, widthns: Iterable[NodeStore]): Iterable[WidthConstraint] =
         terms // Just build a >= constraint from each term
     }
-    object ConstrainAdd2 extends ConstraintBuilder(constraints) {
+    object ConstrainAdd extends ConstraintBuilder(constraints) {
       def buildConstraints(terms: Iterable[WidthConstraint], selfns: NodeStore, widthns: Iterable[NodeStore]): Iterable[WidthConstraint] = {
         require(terms.size==2, "Internal Error from malformed AST: Type Linked Scan failure")
         Seq(WidthAdd(terms.toVector))
@@ -119,24 +119,24 @@ object TyperWidthInferer extends GamaPass{
         // TODO: Actually look at op...
       case ExprUnary(op, target, _,_) => op match {
         case OpIDENT | OpAsUInt | OpAsSInt | OpNot =>
-          ConstrainFrom.start(expr, Seq(target))
+          ConstrainEq.start(expr, Seq(target))
         case OpXorRed => ForceWidth(1).start(expr, None)
       }
       case ExprBinary(op, left, right, _,_) => op match {
         case OpPlus | OpSubt | OpAnd | OpOr | OpXor | OpPadTo => // max(l, r)
-          ConstrainFrom.start(expr, Seq(left, right))
+          ConstrainEq.start(expr, Seq(left, right))
         case OpMult | OpCat   => // l + r
-          ConstrainAdd2.start(expr, Seq(left, right))
+          ConstrainAdd.start(expr, Seq(left, right))
         case OpDiv  | OpRShft => // l // TODO: Div should grow width when signed: INTMIN/-1
-          ConstrainFrom.start(expr, Seq(left))
+          ConstrainEq.start(expr, Seq(left))
         case OpMod   => // r?
-          ConstrainFrom.start(expr, Seq(right))
+          ConstrainEq.start(expr, Seq(right))
         case OpLShft => // l + max(r) = l + (2^r-1) (could be huge)
           ConstrainLShft.start(expr, Seq(left, right))
         case OpEqual | OpNotEq | OpLess | OpLeEq | OpGrt | OpGrEq =>
           ForceWidth(1).start(expr, None)
       } 
-      case ExprMux(_, tc, fc, _,_) => ConstrainFrom.start(expr, Seq(tc, fc))
+      case ExprMux(_, tc, fc, _,_) => ConstrainEq.start(expr, Seq(tc, fc))
 
       case RefSymbol(_,_,_,_) => // RefSymbols must be constrained by commands
       case _ => ??? // No other expressions are directly inferred
@@ -144,10 +144,10 @@ object TyperWidthInferer extends GamaPass{
     // Look at all constraining commands
     // TODO: quickly skip ones that are irrelevant
     constrainingCmds.foreach(cmd => cmd match {
-      case RegDecl(symbol, Some((_,rval)), _) => ConstrainFrom.start(symbol, Seq(rval))
+      case RegDecl(symbol, Some((_,rval)), _) => ConstrainEq.start(symbol, Seq(rval))
       case RegDecl(symbol, None, _) => 
-      case ConstDecl(symbol, expr, _) => ConstrainFrom.start(symbol, Seq(expr))
-      case AliasDecl(symbol, ref, _)  => ConstrainFrom.start(symbol, Seq(ref)) // treat like ConstDecl
+      case ConstDecl(symbol, expr, _) => ConstrainEq.start(symbol, Seq(expr))
+      case AliasDecl(symbol, ref, _)  => ConstrainEq.start(symbol, Seq(ref)) // treat like ConstDecl
       case ConnectStmt(sink, source, details, _) =>
         ConstrainConnect.startguided(details, dealiaser.dealias(sink), Seq(source))
       case BiConnectStmt(left, right, details, _) => 
