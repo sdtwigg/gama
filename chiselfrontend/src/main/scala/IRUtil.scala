@@ -70,4 +70,38 @@ trait GamaIRUtilImpl {
     case PrimitiveNode(_) => in
     case TypeHWUNKNOWN => TypeHWUNKNOWN
   }
+
+  def tightenToTarget(source: ExprHW, targetSign: Boolean, targetWidth: Int, addNote: GamaNote): Option[ExprHW] = for{
+    (sourceSign, Some(sourceWidth)) <- asPrimitiveTypeHW(source.rType).flatMap(getRawBitsInfo(_))
+  } yield {
+    if(targetWidth == sourceWidth) {
+      if(targetSign == sourceSign) source
+      else
+        if(targetSign)
+          ExprUnary(OpAsSInt, source, PrimitiveNode(SBits(Some(targetWidth))), addNote)
+        else
+          ExprUnary(OpAsUInt, source, PrimitiveNode(UBits(Some(targetWidth))), addNote)
+    }
+    else if(targetWidth < sourceWidth) {
+      val extract = RefExtract(source, targetWidth-1, 0, addNote)
+      if(targetSign)
+        ExprUnary(OpAsSInt, extract, PrimitiveNode(SBits(Some(targetWidth))), addNote)
+      else extract
+    }
+    else { // targetWidth > sourceWidth
+      val wdiff = targetWidth - sourceWidth
+      val allzeros = ExprLitU(0, wdiff)
+
+      val extension = if(sourceSign) {
+        val allones = ExprLitU((BigInt(1) << wdiff)-1, wdiff)
+        val sourceMSB = RefExtract(source, sourceWidth-1, sourceWidth-1, addNote)
+        ExprMux(sourceMSB, allones, allzeros, allzeros.rType, addNote)
+      } else allzeros
+
+      val padded = ExprBinary(OpCat, extension, source, PrimitiveNode(UBits(Some(targetWidth))), addNote)
+      if(targetSign)
+        ExprUnary(OpAsSInt, padded, PrimitiveNode(SBits(Some(targetWidth))), addNote)
+      else padded
+    }
+  }
 }
