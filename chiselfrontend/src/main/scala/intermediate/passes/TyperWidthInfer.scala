@@ -118,9 +118,8 @@ object TyperWidthInferer extends GamaPass{
     unknownTable.keys.foreach(expr => expr match {
         // TODO: Actually look at op...
       case ExprUnary(op, target, _,_) => op match {
-        case OpIDENT | OpToUInt | OpAsUInt | OpAsSInt | OpNot =>
+        case OpIDENT | OpAsUInt | OpAsSInt | OpNot =>
           ConstrainFrom.start(expr, Seq(target))
-        case OpToSInt => ConstrainIncr.start(expr, Seq(target)) // add 1 bit
         case OpXorRed => ForceWidth(1).start(expr, None)
       }
       case ExprBinary(op, left, right, _,_) => op match {

@@ -50,14 +50,14 @@ abstract class UIntLike(initialNode: Node) extends Digital(initialNode) {
   def do_neg(info: EnclosureInfo): MultiSelf = BinaryOp.UInt(OpSubt, (api.U(0),this), info) 
   
   def do_toUInt(info: EnclosureInfo): UInt = UnaryOp.UInt(OpIDENT,  this, None, info)
-  def do_toSInt(info: EnclosureInfo): SInt = UnaryOp.SInt(OpToSInt, this, None, info)
+  def do_toSInt(info: EnclosureInfo): SInt = (LiteralUInt(0, width=1).do_cat(this, info)).do_asSInt(info)
   def do_asUInt(info: EnclosureInfo): UInt = UnaryOp.UInt(OpIDENT,  this, getWidth, info)
   def do_asSInt(info: EnclosureInfo): SInt = UnaryOp.SInt(OpAsSInt, this, getWidth, info)
   
   // BINARY OPERATIONS
   def do_lshft(that: UInt, info: EnclosureInfo): MultiSelf =
     that.getLiteralValue.map(this.do_lshft(_, info)).getOrElse(BinaryOp.UInt(OpLShft, (this, that), info))
-  def do_lshft(that: Int,  info: EnclosureInfo): MultiSelf = this.do_cat(LiteralUInt(0, that), info)
+  def do_lshft(that: Int,  info: EnclosureInfo): MultiSelf = this.do_cat(LiteralUInt(0, width=that), info)
   def do_rshft(that: UInt, info: EnclosureInfo): MultiSelf = BinaryOp.UInt(OpRShft, (this, that), info)
   
   def do_add(that: UIntLike, info: EnclosureInfo): MultiSelf = BinaryOp.UInt(OpPlus, (this, that), info)

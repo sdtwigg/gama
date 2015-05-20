@@ -83,7 +83,7 @@ final class SInt(initialNode: Node) extends Digital(initialNode) {
   def do_andR(info: EnclosureInfo): Bool = this.do_eq( LiteralSInt(-1), info)
   def do_orR (info: EnclosureInfo): Bool = this.do_neq(LiteralSInt(0), info)
   
-  def do_toUInt(info: EnclosureInfo): UInt = UnaryOp.UInt(OpToUInt, this, None, info)
+  def do_toUInt(info: EnclosureInfo): UInt = this.do_asUInt(info)
   def do_toSInt(info: EnclosureInfo): SInt = UnaryOp.SInt(OpIDENT,  this, None, info)
   def do_asUInt(info: EnclosureInfo): UInt = UnaryOp.UInt(OpAsUInt, this, getWidth, info)
   def do_asSInt(info: EnclosureInfo): SInt = UnaryOp.SInt(OpIDENT, this, getWidth, info)

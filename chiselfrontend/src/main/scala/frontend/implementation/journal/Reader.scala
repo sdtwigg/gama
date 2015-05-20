@@ -145,8 +145,6 @@ abstract class BaseReader extends Reader {
     val opname = opid match {
       case OpIDENT  => ""
       
-      case OpToUInt => "toUInt"
-      case OpToSInt => "toSInt"
       case OpAsUInt => "asUInt"
       case OpAsSInt => "asSInt"
       
