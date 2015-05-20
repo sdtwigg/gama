@@ -18,7 +18,7 @@ object testmain {
     ))
     
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
-    val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
+    val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=true))
 
     //val myTopModule = ExampleModule()
     val myTopModule = Module(new Sandbox2Module)

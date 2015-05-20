@@ -12,15 +12,6 @@ object BufferIO extends GamaPass {
     val ref2sym  = HMap.empty[ModuleRef, RefSymbol]
     val sym2ref  = HMap.empty[RefSymbol, ModuleRef]
 
-    def typePort2Node(in: TypeHW): TypeHW = in match {
-      case PrimitivePort(storage, _) => PrimitiveNode(storage)
-      case VecHW(depth, eType) => VecHW(depth, typePort2Node(eType))
-      case TupleHW(fields) => TupleHW(fields.map({ case (field, eType) =>(field, typePort2Node(eType)) }))
-
-      case PrimitiveNode(_) => in
-      case TypeHWUNKNOWN => TypeHWUNKNOWN
-    }
-
     // STEP 1: Create buffer wire for own IOs
     val selfBuff: WireDecl = {
       val buffident = Some("$$this$IO")

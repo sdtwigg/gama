@@ -13,6 +13,13 @@ object CollapseConnectsAndScopes extends GamaPass {
     // Don't bother with IOPathTrace since this pass assumes flat IO
   case class CTMem(mem: MemDesc) extends CollapseTarget
 
+  protected def constructCT(ref: ExprHW): Option[CollapseTarget] = ref match {
+    case symbol @ RefSymbol(_,_,_,_) => Some( CTSymbol(symbol) )
+    case RefTLookup(RefIO(mod,_),field,_) => Some( CTIO(mod, field) )
+    case RefExtract(source,_,_,_) => constructCT(source)
+    case _ => None
+  }
+
   sealed trait OpenCondition
   case object NoCond extends OpenCondition
   case class OpenWhen(cond: ExprHW, parent: OpenCondition) extends OpenCondition
@@ -23,6 +30,7 @@ object CollapseConnectsAndScopes extends GamaPass {
   def transform(target: ElaboratedModule): ElaboratedModule = {
     // TODO: Assumes InternalAggregateExplode, CircuitFlattenIO run (thus very minimal presence of aggregates)
     //       Assumes ExpandM/VSelect run (no RefVSelect or RefMSelect exist in the tree)
+    //       Assumes TightenConnect run (so muxes can safely be created between similar connect statements)
     val masterScope = new ScopeContainer(None, NoCond)
     masterScope.injectTopIO(target.io)
     val newbody = BlockHW(masterScope.process(Some(target.body)).toList, passNote)
@@ -48,12 +56,6 @@ object CollapseConnectsAndScopes extends GamaPass {
 
     protected def lookup(key: CollapseTarget): Option[CmdJournal] =
       scopedJournals.get(key) orElse parent.flatMap(_.lookup(key)) 
-    protected def constructCT(ref: ExprHW): Option[CollapseTarget] = ref match {
-      case symbol @ RefSymbol(_,_,_,_) => Some( CTSymbol(symbol) )
-      case RefTLookup(RefIO(mod,_),field,_) => Some( CTIO(mod, field) )
-      case RefExtract(source,_,_,_) => constructCT(source)
-      case _ => None
-    }
 
     private[this] def journalProcess(target: CollapseTarget, cmd: CmdHW): Iterable[CmdHW] =
       lookup(target) match {
@@ -207,24 +209,57 @@ object CollapseConnectsAndScopes extends GamaPass {
   case class WireJournal(target: CollapseTarget, scope: ScopeContainer) extends CmdJournal(scope) with ConnectProcess {
     // translate when into muxes, needs defaults
     def resolve: Iterable[CmdHW] = {
-      def scopeResolve(commands: Iterable[JEntry], oldDefault: Option[ExprHW]): Option[ExprHW] = {
-        commands.foldLeft(oldDefault)((current, entry) => entry match {
-          case JConnect(ConnectStmt(_, source, _, _)) => Some(source)
-            // TODO: Handle Subword Updates
-          case JWhen(cond, tc, fc, _) => {
-            val tcResult = scopeResolve(tc, current).getOrElse(RefExprERROR("Unknown Value for tc"))
-            val fcResult = scopeResolve(fc, current).getOrElse(RefExprERROR("Unknown Value for fc"))
-            Some(ExprMux(cond, tcResult, fcResult, TypeHWUNKNOWN, passNote))
-            // TODO Fix typing
-          }
-        })
-      }
-      val newSource = scopeResolve(commands, None).getOrElse(RefExprERROR("Unknown Value"))
       val sink: RefHW = target match {
         case CTSymbol(symbol) => symbol
         case CTIO(module, field) => RefTLookup(RefIO(module, passNote), field, passNote)
         case _ => RefExprERROR(s"Improper target for WireJournal: $target")
       }
+
+      lazy val muxType = typePort2Node(sink.rType)
+      def scopeResolve(commands: Iterable[JEntry], oldDefault: Option[ExprHW]): Option[ExprHW] = {
+        commands.foldLeft(oldDefault)((current, entry) => entry match {
+          case JConnect(ConnectStmt(RefExtract(csink, lp, rp, _), source, _, _))
+            if constructCT(csink).map(_==target).getOrElse(false) => 
+              asPrimitiveTypeHW(sink.rType).flatMap(getRawBitsInfo(_)) match {
+                case None => throw new Exception(s"Internal Error: Wire with non-bit or non-primitive type (${sink.rType}) was extracted (and this has not been detected until far too late).")
+                case Some((_ , None)) => Some(RefExprERROR("Failure to resolve because widths partially unknown"))
+                case Some((sinkSigned, Some(sinkLength))) => {
+                  // TODO: check source rType is sane? also, ideally would have a type inferer do the typing...
+                  val  mask = ExprLitU( (BigInt(2) << lp) - (BigInt(1) << rp), sinkLength )
+                  val rType = mask.rType
+                  val update = ExprBinary(OpAnd, source, mask, rType, passNote)
+
+                  val nmask = ExprUnary(OpNot, mask, rType, passNote)
+                  val getCurrent = current.map(default => 
+                    if(sinkSigned) ExprUnary(OpAsUInt, default, PrimitiveNode(UBits(Some(sinkLength))), passNote)
+                    else default
+                  ).getOrElse(RefExprERROR("Unknown Value: Extract requires default"))
+
+                  val retain = ExprBinary(OpAnd, getCurrent, nmask, rType, passNote)
+
+                  val merged = ExprBinary(OpOr, update, retain, rType, passNote)
+
+                  val converted =
+                    if(sinkSigned) ExprUnary(OpAsSInt, merged, PrimitiveNode(SBits(Some(sinkLength))), passNote)
+                    else merged
+                  Some( converted )
+                }
+              }
+          case JConnect(ConnectStmt(csink, source, _, _))
+            if constructCT(csink).map(_==target).getOrElse(false) =>
+              Some(source)
+          case JConnect(_) => throw new Exception(s"Internal Error: Bad connect $entry added to journal for $target")
+          case JWhen(cond, tc, fc, _) => {
+            val tcResult = scopeResolve(tc, current).getOrElse(RefExprERROR("Unknown Value for tc"))
+            val fcResult = scopeResolve(fc, current).getOrElse(RefExprERROR("Unknown Value for fc"))
+            Some(ExprMux(cond, tcResult, fcResult, muxType, passNote))
+          }
+        })
+      }
+      val newSource = scopeResolve(commands, None).getOrElse(RefExprERROR("Unknown Value"))
+      // TODO: Could introduce a RandomBits LitTree and use that instead of RefExprERROR
+      //       according to a CL option
+      
       Some(ConnectStmt(sink, newSource, ConnectAll, passNote))
     }
   }

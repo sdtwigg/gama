@@ -57,5 +57,13 @@ import gama.library._
       myUInt := 8.U
     }
   }
+
+  val extrTest = Wire(SInt(8))
+  extrTest := 1.S
+  when(io.in_uint(0)) {
+    extrTest(2,0) := 0.U
+  }.otherwise {
+    extrTest(5,3) := 0.U
+  }
 }
 
