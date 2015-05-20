@@ -163,10 +163,11 @@ abstract class IRReader(options: IRReaderOptions) {
     case TypeHWUNKNOWN => "$$$$UNKNOWNTYPE$$$$"
   }
   def parseNodeStore(store: NodeStore): String = store match {
-    case rb: RawBits => {
+    case rb: RawDigital => {
       val simpleWidth = rb.width.map(_.toString).getOrElse("?")
       s"${rb.getClass.getSimpleName}(${simpleWidth})"
     }
+    case ClockNS => "ClockNS"
   }
   def parseDirectionIO(dir: DirectionIO): String = dir match {
     case DirectionIO.Input => "input"

@@ -35,7 +35,7 @@ abstract class ElementImpl(initialNode: Node) { // MUTABLE STATE: node
   def propogateDescRef(newdesc: Desc): Unit = {NodeCheck.assertSynthesizable(this)}
   
   def getWidth: Option[Int] = this.node.storage match {
-    case b: RawBits => (b.width)
+    case b: RawDigital => (b.width)
     case _ => throw new ChiselException("Error: getWidth called on Element bound to non-RawBits NodeStorage") {}
   }
 }

@@ -33,28 +33,28 @@ import gama.library._
 @module class Sandbox2Module extends Module(new Bundle with Anon {
   val in_uint  = Input(UInt(4))
 }) {
-  val myUInt = Reg(UInt(4))
+  val mySInt = Reg(SInt(4))
   
-  myUInt := 0.U
+  mySInt := 0.U
   when(io.in_uint(0)) {
-    myUInt := 1.U
+    mySInt := 1.U
     val myInner = Wire(UInt(2))
     when(io.in_uint(1)) {
-      myUInt := 2.U
-      myUInt := 3.U
+      mySInt := 2.U
+      mySInt := 3.U
       myInner := 10.U
     }.otherwise {
-      myUInt := 4.U
+      mySInt := 4.U
       myInner := 11.U
     }
-    myUInt := 99.U
+    mySInt := 99.U
   }.otherwise {
-    //myUInt := 5.U
+    //mySInt := 5.U
     when(io.in_uint(1)) {
-      myUInt := 6.U
+      mySInt := 6.U
     }.otherwise {
-      myUInt := 7.U
-      myUInt := 8.U
+      mySInt := 7.U
+      mySInt := 8.U
     }
   }
 

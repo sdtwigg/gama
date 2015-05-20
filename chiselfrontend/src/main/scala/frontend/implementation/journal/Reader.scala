@@ -128,10 +128,11 @@ abstract class BaseReader extends Reader {
     case _ => ""
   }
   def emitNodeStore(store: NodeStore): String = store match {
-    case rb: RawBits => {
+    case rb: RawDigital => {
       val simpleWidth = rb.width.map(_.toString).getOrElse("?")
       s"${rb.getClass.getSimpleName}(${simpleWidth})"
     }
+    case ClockNS => "ClockNS"
   }
   def emitRefType(data: Data): String = s"${emitRef(data)}: ${HL.GREEN}${emitType(data)}${HL.RESET}"
 

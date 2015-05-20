@@ -63,9 +63,10 @@ class ModuleTypeChecker(warnWidthUnknown: Boolean)(target: ElaboratedModule) {
   }
   
   def checkNodeStore(check: NodeStore, path: PathTrace): Unit = check match {
-    case rb: RawBits => (if(warnWidthUnknown && rb.width.isEmpty) {
+    case rb: RawDigital => (if(warnWidthUnknown && rb.width.isEmpty) {
       warnings += Problem(path, "Width Unknown")
     })
+    case ra: RawAnalog =>
   }
   def checkPort(check: TypeHW, path: PathTrace): Unit = check match {
     case PrimitivePort(storage,_) => checkNodeStore(storage, path)

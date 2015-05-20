@@ -53,7 +53,8 @@ object TyperWidthInferer extends GamaPass{
       case TypeHWUNKNOWN => ??? // This shouldn't show up
     }
     def checkUnknownStatus(searching: NodeStore, path: TypeTrace, root: ExprHW): Unit = searching match {
-      case rb: RawBits => {if(rb.width.isEmpty) addUnknown(root, path)}
+      case rb: RawDigital => {if(rb.width.isEmpty) addUnknown(root, path)}
+      case ra: RawAnalog => // Don't do any inference involving analog wires
     }
     val prescanner = new ExprScanTree {
       override def scan(cmd: CmdHW): Unit = {
