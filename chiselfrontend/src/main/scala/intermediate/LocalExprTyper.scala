@@ -4,6 +4,35 @@ package intermediate
 object LocalExprTyper extends GamaPass {
   val name = "LocalExprTyper"
   object Transformer extends ExprOnlyTransformTree {
+    // Helper classes
+    case class NSMaker(buildNS: ((Boolean,Boolean), Option[Int]) => Option[NodeStore]) {
+      // The booleans are whether the left and right types are signed, Option[Int] is new width
+      def apply(leftNS: NodeStore, rightNS: NodeStore, func: (Int,Int)=>Int): Option[NodeStore] = {
+        // func from known left and right width to new known width
+        for{
+          (leftSign,  leftWopt)  <- getRawBitsInfo(leftNS)
+          (rightSign, rightWopt) <- getRawBitsInfo(rightNS)
+          newW = (for(leftW <- leftWopt; rightW <- rightWopt) yield func(leftW, rightW)): Option[Int]
+          newStorage <- buildNS((leftSign, rightSign), newW)
+        } yield newStorage
+      }
+    }
+    val preferSBits = NSMaker((signs, newW) => (signs._1, signs._2) match {
+      case (true, _) | (_, true) => Some( SBits(newW) )
+      case (false, false)        => Some( UBits(newW) )
+    })
+    val requireSame = NSMaker((signs, newW) => (signs._1, signs._2) match {
+      case (true, true)   => Some( SBits(newW) )
+      case (false, false) => Some( UBits(newW) )
+      case _ => None
+    })
+    val matchLeft = NSMaker((signs, newW) => signs._1 match {
+      case true  => Some( SBits(newW) )
+      case false => Some( UBits(newW) )
+    })
+    val forceUBits = NSMaker((_, newW) => Some( UBits(newW)) )
+
+    // The actual typer
     override def transform(expr: ExprHW): ExprHW = expr match {
       case ExprUnary(op, target, rType, note) if rType == TypeHWUNKNOWN => {
         val newTarget = transform(target)
@@ -21,33 +50,6 @@ object LocalExprTyper extends GamaPass {
       }
 
       case ExprBinary(op, left, right, rType, note) if rType == TypeHWUNKNOWN => {
-        // Helper classes
-        case class NSMaker(buildNS: ((Boolean,Boolean), Option[Int]) => Option[NodeStore]) {
-          // The booleans are whether the left and right types are signed, Option[Int] is new width
-          def apply(leftNS: NodeStore, rightNS: NodeStore, func: (Int,Int)=>Int): Option[NodeStore] = {
-            // func from known left and right width to new known width
-            for{
-              (leftSign,  leftWopt)  <- getRawBitsInfo(leftNS)
-              (rightSign, rightWopt) <- getRawBitsInfo(rightNS)
-              newW = (for(leftW <- leftWopt; rightW <- rightWopt) yield func(leftW, rightW)): Option[Int]
-              newStorage <- buildNS((leftSign, rightSign), newW)
-            } yield newStorage
-          }
-        }
-        val preferSBits = NSMaker((signs, newW) => (signs._1, signs._2) match {
-          case (true, _) | (_, true) => Some( SBits(newW) )
-          case (false, false)        => Some( UBits(newW) )
-        })
-        val requireSame = NSMaker((signs, newW) => (signs._1, signs._2) match {
-          case (true, true)   => Some( SBits(newW) )
-          case (false, false) => Some( UBits(newW) )
-          case _ => None
-        })
-        val matchLeft = NSMaker((signs, newW) => signs._1 match {
-          case true  => Some( SBits(newW) )
-          case false => Some( UBits(newW) )
-        })
-        val forceUBits = NSMaker((_, newW) => Some( UBits(newW)) )
 
         // Actual logic
         val newLeft = transform(left)
@@ -77,11 +79,37 @@ object LocalExprTyper extends GamaPass {
         val newCond = transform(cond)
         val newTC = transform(tc)
         val newFC = transform(fc)
-        val newType = ???
+        def muxRetVal(leftT: TypeHW, rightT: TypeHW): TypeHW = (leftT, rightT) match {
+          case (VecHW(ld, leT), VecHW(rd, reT)) if ld == rd => VecHW(ld, muxRetVal(leT, reT))
+          case (TupleHW(lfields), TupleHW(rfields)) => TupleHW(( for{
+            (field, leT) <- lfields
+            reT <- rfields.get(field)
+          } yield (field, muxRetVal(leT, reT)) ).toMap)
+          case (leT: PrimitiveTypeHW, reT: PrimitiveTypeHW) => (for{
+            newStorage <- requireSame(leT.storage, reT.storage, (l,r) => math.max(l,r))
+          } yield PrimitiveNode(newStorage)).getOrElse(TypeHWUNKNOWN)
+          case _ => TypeHWUNKNOWN
+        }
+        val newType = muxRetVal(newTC.rType, newFC.rType)
         ExprMux(newCond, newFC, newTC, newType, note)
       }
 
-      case ExprLit(litvalue, rType, note) if rType == TypeHWUNKNOWN => ???
+      case ExprLit(litvalue, rType, note) if rType == TypeHWUNKNOWN => {
+        def convertLitTree(in: LitTree): TypeHW = in match {
+          case LitRawBits(_, width, signed) => PrimitiveNode(signed match {
+            case true  => SBits(Some(width))
+            case false => UBits(Some(width))
+          })
+          case LitVec(elements) => VecHW(elements.length,
+            elements.headOption.map(convertLitTree(_)).getOrElse(TypeHWUNKNOWN)
+          )
+          case LitTuple(fields) => TupleHW(
+            fields.map({case (field, eLT) => (field, convertLitTree(eLT))})
+          )
+        }
+        ExprLit(litvalue, convertLitTree(litvalue), note)
+      }
+
       // Note, no Ref* because either already computed or not determinable locally
       case _ => super.transform(expr) // type known so just go deeper
     }
