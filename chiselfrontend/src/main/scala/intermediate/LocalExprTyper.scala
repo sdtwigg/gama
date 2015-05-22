@@ -113,6 +113,7 @@ object LocalExprTyper extends GamaPass {
       // Note, no Ref* because either already computed or not determinable locally
       case _ => super.transform(expr) // type known so just go deeper
     }
+    // TODO: Also handle Cmds?
   }
 
   def transform(target: ElaboratedModule): ElaboratedModule = Transformer.transform(target)

@@ -224,25 +224,24 @@ object CollapseConnectsAndScopes extends GamaPass {
                 case None => throw new Exception(s"Internal Error: Wire with non-bit or non-primitive type (${sink.rType}) was extracted (and this has not been detected until far too late).")
                 case Some((_ , None)) => Some(RefExprERROR("Failure to resolve because widths partially unknown"))
                 case Some((sinkSigned, Some(sinkLength))) => {
-                  // TODO: check source rType is sane? also, ideally would have a type inferer do the typing...
+                  // Using TypeHWUNKNOWN since will have LocalExprTyper clean up types for us
                   val  mask = ExprLitU( (BigInt(2) << lp) - (BigInt(1) << rp), sinkLength )
-                  val rType = mask.rType
-                  val update = ExprBinary(OpAnd, source, mask, rType, passNote)
+                  val update = ExprBinary(OpAnd, source, mask, TypeHWUNKNOWN, passNote)
 
-                  val nmask = ExprUnary(OpNot, mask, rType, passNote)
+                  val nmask = ExprUnary(OpNot, mask, TypeHWUNKNOWN, passNote)
                   val getCurrent = current.map(default => 
-                    if(sinkSigned) ExprUnary(OpAsUInt, default, PrimitiveNode(UBits(Some(sinkLength))), passNote)
+                    if(sinkSigned) ExprUnary(OpAsUInt, default, TypeHWUNKNOWN, passNote)
                     else default
                   ).getOrElse(RefExprERROR("Unknown Value: Extract requires default"))
 
-                  val retain = ExprBinary(OpAnd, getCurrent, nmask, rType, passNote)
+                  val retain = ExprBinary(OpAnd, getCurrent, nmask, TypeHWUNKNOWN, passNote)
 
-                  val merged = ExprBinary(OpOr, update, retain, rType, passNote)
+                  val merged = ExprBinary(OpOr, update, retain, TypeHWUNKNOWN, passNote)
 
                   val converted =
-                    if(sinkSigned) ExprUnary(OpAsSInt, merged, PrimitiveNode(SBits(Some(sinkLength))), passNote)
+                    if(sinkSigned) ExprUnary(OpAsSInt, merged, TypeHWUNKNOWN, passNote)
                     else merged
-                  Some( converted )
+                  Some( LocalExprTyper.transform(converted) )
                 }
               }
           case JConnect(ConnectStmt(csink, source, _, _))
@@ -282,8 +281,8 @@ object CollapseConnectsAndScopes extends GamaPass {
       case MemRead(symbol, desc, address, en, note) => {
         val fullEnStack = calcDiff(if(en != ExprLitU(1)) OpenWhen(en, cmdScope.condStack) else cmdScope.condStack)
           // Only pop en into the condition if it is non-trivial
-        def notExpr(target: ExprHW): ExprHW = ExprUnary(OpNot, target, PrimitiveNode(UBits(Some(1))), passNote)
-        def andExpr(left: ExprHW, right: ExprHW): ExprHW = ExprBinary(OpAnd, left, right, PrimitiveNode(UBits(Some(1))), passNote)
+        def notExpr(target: ExprHW): ExprHW = ExprUnary(OpNot, target, TypeHWUNKNOWN, passNote)
+        def andExpr(left: ExprHW, right: ExprHW): ExprHW = ExprBinary(OpAnd, left, right, TypeHWUNKNOWN, passNote)
         def condToExpr(target: OpenCondition): ExprHW = target match {
           case NoCond => ExprLitU(1)
           case OpenWhen(cond, NoCond) => cond
@@ -293,7 +292,7 @@ object CollapseConnectsAndScopes extends GamaPass {
           case OpenWhen(cond, parent) => andExpr(cond, condToExpr(parent))
           case OpenElse(OpenWhen(cond, parent)) => andExpr(notExpr(cond), condToExpr(parent))
         }
-        val newEn = condToExpr(fullEnStack)
+        val newEn = LocalExprTyper.transform(condToExpr(fullEnStack))
         Some( MemRead(symbol, desc, address, newEn, note) )
       }
       case MemWrite(desc, address, source, mask, note) => {
