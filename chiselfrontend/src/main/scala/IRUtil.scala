@@ -29,12 +29,14 @@ trait GamaIRUtilImpl {
 
   def ExprLitB(litval: Boolean) = if(litval) ExprLitU(1) else ExprLitU(0)
 
-  def getRawBitsInfo(in: PrimitiveTypeHW): Option[Tuple2[Boolean, Option[Int]]] = in.storage match {
+  def getRawBitsInfo(in: PrimitiveTypeHW): Option[Tuple2[Boolean, Option[Int]]] = getRawBitsInfo(in.storage)
+  def getRawBitsInfo(storage: NodeStore): Option[Tuple2[Boolean, Option[Int]]] = storage match {
     case UBits(width) => Some( (false, width) )
     case SBits(width) => Some( (true,  width) )
     case _ => None
   }
-  def getWidth(in: PrimitiveTypeHW): Option[Option[Int]] = getRawBitsInfo(in).map(_._2)
+  def getWidth(in: PrimitiveTypeHW): Option[Option[Int]] = getWidth(in.storage)
+  def getWidth(in: NodeStore): Option[Option[Int]] = getRawBitsInfo(in).map(_._2)
   def asPrimitiveTypeHW(in: TypeHW): Option[PrimitiveTypeHW] = in match {
     case p @ PrimitiveNode(_)   => Some(p)
     case p @ PrimitivePort(_,_) => Some(p)

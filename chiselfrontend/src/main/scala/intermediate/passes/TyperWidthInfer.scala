@@ -117,7 +117,7 @@ object TyperWidthInferer extends GamaPass{
     }
     // Look at all expression definitions where an expression holds an unknown
     unknownTable.keys.foreach(expr => expr match {
-        // TODO: Actually look at op...
+        // Note, related to LocalExprTyper
       case ExprUnary(op, target, _,_) => op match {
         case OpIDENT | OpAsUInt | OpAsSInt | OpNot =>
           ConstrainEq.start(expr, Seq(target))
