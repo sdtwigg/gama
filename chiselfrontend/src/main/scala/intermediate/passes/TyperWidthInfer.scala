@@ -63,7 +63,7 @@ object TyperWidthInferer extends GamaPass{
           case _ =>
         }
         cmd match {
-          case RegDecl(_,_,_) | ConstDecl(_,_,_) | AliasDecl(_,_,_) |
+          case RegDecl(_,_,_,_) | ConstDecl(_,_,_) | AliasDecl(_,_,_) |
                ConnectStmt(_,_,_,_) | BiConnectStmt(_,_,_,_)
             => constrainingCmds += cmd
           case _ =>
@@ -145,8 +145,8 @@ object TyperWidthInferer extends GamaPass{
     // Look at all constraining commands
     // TODO: quickly skip ones that are irrelevant
     constrainingCmds.foreach(cmd => cmd match {
-      case RegDecl(symbol, Some((_,rval)), _) => ConstrainEq.start(symbol, Seq(rval))
-      case RegDecl(symbol, None, _) => 
+      case RegDecl(symbol, _, Some((_,rval)), _) => ConstrainEq.start(symbol, Seq(rval))
+      case RegDecl(symbol, _, None, _) => 
       case ConstDecl(symbol, expr, _) => ConstrainEq.start(symbol, Seq(expr))
       case AliasDecl(symbol, ref, _)  => ConstrainEq.start(symbol, Seq(ref)) // treat like ConstDecl
       case ConnectStmt(sink, source, details, _) =>

@@ -17,9 +17,9 @@ class CmdMultiTransformTree extends ModuleTransformer {
     case WhenHW(cond, tc, fc, note) => {
       Some(WhenHW(cond, asOne(multiTransform(tc)), asOne(multiTransform(fc)), note))
     }
-    case WireDecl(_,_) | RegDecl(_,_,_) | ConstDecl(_,_,_) | AliasDecl(_,_,_) |
+    case WireDecl(_,_) | RegDecl(_,_,_,_) | ConstDecl(_,_,_) | AliasDecl(_,_,_) |
          ConnectStmt(_,_,_,_) | BiConnectStmt(_,_,_,_) |
-         MemDecl(_,_) | MemRead(_,_,_,_,_) | MemWrite(_,_,_,_,_) |
+         MemDecl(_,_,_) | MemRead(_,_,_,_,_) | MemWrite(_,_,_,_,_) |
          SubModuleDecl(_,_,_) | CmdERROR(_,_) => Some(cmd)
   }
   final def transform(cmd: CmdHW) = asOne(multiTransform(cmd))
@@ -30,8 +30,8 @@ class ExprTransformTreeFullSegregation extends ModuleTransformer {
   //   Note, 4 separate transform functions (for CmdHW, RegSymbol, RefHW, and ExprHW contexts)
   //   Will see most commands.
   def transform(cmd: CmdHW): CmdHW = cmd match {
-    case WireDecl(symbol, note)  => WireDecl(transform(symbol), note)
-    case RegDecl(symbol, reset, note)   => RegDecl( transform(symbol), reset.map({
+    case WireDecl(symbol, note) => WireDecl(transform(symbol), note)
+    case RegDecl(symbol, clock, reset, note) => RegDecl( transform(symbol), transform(clock), reset.map({
       case (ren, rval) => (transform(ren), transform(rval))
     }), note)
     case ConstDecl(symbol, expr, note) => ConstDecl(transform(symbol), transform(expr), note)
@@ -46,8 +46,10 @@ class ExprTransformTreeFullSegregation extends ModuleTransformer {
 
     case ConnectStmt(sink, source, details, note)  => ConnectStmt(transform(sink), transform(source), details, note)
     case BiConnectStmt(left, right, details, note) => BiConnectStmt(transform(left), transform(right), details, note)
+    
+    case MemDecl(mem, clock, note) => MemDecl(mem, transform(clock), note)
 
-    case MemDecl(_,_) | SubModuleDecl(_,_,_) | CmdERROR(_,_) => cmd
+    case SubModuleDecl(_,_,_) | CmdERROR(_,_) => cmd
   }
 
   def transform(symbol: RefSymbol): RefSymbol = symbol
@@ -77,7 +79,7 @@ class ExprOnlyTransformTree extends ModuleTransformer {
   // USE WHEN: Only want to transform ExprHW (and RefHW, RefSymbol in ExprHW context)
   //   Will not see any commands without ExprHW context (like WireDecl, BiConnectStmt)
   def transform(cmd: CmdHW): CmdHW = cmd match {
-    case RegDecl(symbol, reset, note)  => RegDecl( symbol, reset.map({
+    case RegDecl(symbol, clock, reset, note)  => RegDecl( symbol, transform(clock), reset.map({
       case (ren, rval) => (transform(ren), transform(rval))
     }), note)
     case ConstDecl(symbol, expr, note) => ConstDecl(symbol, transform(expr), note)
@@ -91,11 +93,13 @@ class ExprOnlyTransformTree extends ModuleTransformer {
 
     case ConnectStmt(sink, source, details, note)  => ConnectStmt(sink, transform(source), details, note)
     
+    case MemDecl(mem, clock, note) => MemDecl(mem, transform(clock), note)
+    
     // No expressions to transform here
     case WireDecl(symbol, note) => cmd 
     case AliasDecl(symbol, ref, note)  => cmd 
     case BiConnectStmt(left, right, details, note) => cmd
-    case MemDecl(_,_) | SubModuleDecl(_,_,_) | CmdERROR(_,_) => cmd
+    case SubModuleDecl(_,_,_) | CmdERROR(_,_) => cmd
   }
 
   def transform(expr: ExprHW): ExprHW = expr match {

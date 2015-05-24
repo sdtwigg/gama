@@ -3,8 +3,8 @@ package frontend
 package implementation
 
 object RegInternals {
-  def apply[D<:Data](model: D, reset: Option[Tuple2[Bool, D]], info: EnclosureInfo): D = {
-    Desc.generate(model.copy.rebind(RegSpell(info.em)))(rv => RegDesc(reset, rv, info))
+  def apply[D<:Data](model: D, clock: Clock, reset: Option[Tuple2[Bool, D]], info: EnclosureInfo): D = {
+    Desc.generate(model.copy.rebind(RegSpell(info.em)))(rv => RegDesc(clock, reset, rv, info))
   }
 }
 

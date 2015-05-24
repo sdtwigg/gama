@@ -21,7 +21,7 @@ object testmain {
     val myIRReader = IRReader.Colorful(IRReaderOptions(emitNotes=true,emitExprTypes=false))
 
     //val myTopModule = ExampleModule()
-    val myTopModule = Module(new Sandbox2Module)
+    val myTopModule = Module(new MemModule)
     
     //println(myJReader.parseCircuit(myTopModule) mkString("\n"))
     // WARNING: If uncommented, will give names to everything
@@ -182,9 +182,10 @@ trait Nested2 extends Nested {
   //io.out := ( Wire(Vec(4,UInt())) ).lookup(uint)
 }
 
-@module class MemModule extends Module(new DecoupledExample) {
+@module class MemModule extends Module(Input(UInt(4))) {
   val uint = Reg(UInt(2))
   val myreg = Reg(new MyChildBundle)
+  uint := io
 
   val myUIntMem = Mem(UInt(32), 16)
   myUIntMem.write(uint, 0.U, ~uint)

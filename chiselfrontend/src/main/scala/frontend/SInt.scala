@@ -7,7 +7,7 @@ import implementation._
 import scala.language.experimental.macros
 import implementation.macrodefs.{TransformMacro => XFORM}
 
-object SInt extends {
+object SInt {
   def apply(): SInt           = apply(None)
   def apply(width: Int): SInt = apply(Some(width))
   def apply(width: Option[Int]) = new SInt(new SPEC(SBits(width), None))

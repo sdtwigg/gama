@@ -12,12 +12,13 @@ abstract class IRReader(options: IRReaderOptions) {
 
   def parseCmdHW(cmd: CmdHW)(implicit circuitLUT: Option[ElaboratedCircuit]): String = cmd match {
     case WireDecl(symbol, note) => s"${HL.CYAN}wire ${HL.RESET} ${emitFullSymbol(symbol)}  ${emitGamaNote(note)}"
-    case RegDecl(symbol, reset, note)  => {
+    case RegDecl(symbol, clock, reset, note)  => {
+      val cinfo: String = s"${HL.CYAN}clock${HL.RESET} = ${parseExpr(clock)}"
       val rinfo: String = reset match {
-        case Some((ren, rval)) => s"${HL.CYAN}with reset${HL.RESET}(en = ${parseExpr(ren)}, rval = ${parseExpr(rval)})"
+        case Some((ren, rval)) => s"${HL.CYAN}and reset${HL.RESET}(en = ${parseExpr(ren)}, rval = ${parseExpr(rval)})"
         case None => ""
       }
-      s"${HL.CYAN}reg  ${HL.RESET} ${emitFullSymbol(symbol)} $rinfo  ${emitGamaNote(note)}"
+      s"${HL.CYAN}reg  ${HL.RESET} ${emitFullSymbol(symbol)} ${HL.CYAN}with${HL.RESET} $cinfo $rinfo  ${emitGamaNote(note)}"
     }
     case ConstDecl(symbol, expr, note) =>
       s"${HL.CYAN}const${HL.RESET} ${emitFullSymbol(symbol)} = ${parseExpr(expr)}  ${emitGamaNote(note)}"
@@ -36,8 +37,9 @@ abstract class IRReader(options: IRReaderOptions) {
     case BiConnectStmt(left, right, details, note) =>
       s"${parseExpr(left)} <-> ${parseExpr(right)} ${HL.YELLOW}${parseBiConnectDetails(details)}${HL.RESET}  ${emitGamaNote(note)}"
     
-    case MemDecl(desc, note) => {
-      s"${HL.CYAN}mem${HL.RESET} ${emitMemName(desc)} = ${HL.CYAN}MEM${HL.RESET}(${desc.depth}, ${HL.GREEN}${parseType(desc.mType)}${HL.RESET})  ${emitGamaNote(note)}"
+    case MemDecl(desc, clock, note) => {
+      val cinfo: String = s"${HL.CYAN}with clock${HL.RESET} = ${parseExpr(clock)}"
+      s"${HL.CYAN}mem${HL.RESET} ${emitMemName(desc)} = ${HL.CYAN}MEM${HL.RESET}(${desc.depth}, ${HL.GREEN}${parseType(desc.mType)}${HL.RESET}) $cinfo  ${emitGamaNote(note)}"
     }
     case MemRead(symbol, mem, address, en, note) =>
       s"${HL.CYAN}mem read${HL.RESET} ${emitFullSymbol(symbol)} = ${emitMemName(mem)}(${parseExpr(address)}) ${HL.CYAN}with en${HL.RESET} = ${parseExpr(en)}  ${emitGamaNote(note)}"

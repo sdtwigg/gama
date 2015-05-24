@@ -14,15 +14,15 @@ object ProcessReset extends GamaPass {
           // First, for RegDecl with resets that are in a BlockHW,
           //   want the reset added to the end of the declaring scope
           val (newcmds: List[CmdHW], append: List[Option[CmdHW]]) = cmds.map(_ match {
-            case RegDecl(symbol, Some((ren, rval)), note) =>
-              ( RegDecl(symbol, None, note),
+            case RegDecl(symbol, clock, Some((ren, rval)), note) =>
+              ( RegDecl(symbol, clock, None, note),
                 Some( WhenHW(ren, ConnectStmt(symbol, rval, ConnectAll, note), NOPHW, passNote) ) )
             case cmd => (super.transform(cmd), None)
           }).unzip
           Some( BlockHW((newcmds ++ append.flatten), note) )
         }
-        case RegDecl(symbol, Some((ren, rval)), note) => Seq(
-          RegDecl(symbol, None, note),
+        case RegDecl(symbol, clock, Some((ren, rval)), note) => Seq(
+          RegDecl(symbol, clock, None, note),
           WhenHW(ren, ConnectStmt(symbol, rval, ConnectAll, note), NOPHW, passNote)
         ) // Second, catch RegDecl that are not enclosed by a BlockHW (e.g. in a strangely written WhenHW)
           // Since they are alone (and thus are never assigned to), can just emit the reset logic immediately

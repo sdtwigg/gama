@@ -69,7 +69,7 @@ object CollapseConnectsAndScopes extends GamaPass {
           scopedJournals += ct -> WireJournal(ct, this)
           Some(cmd)
         }
-        case RegDecl(symbol, None, _) => { 
+        case RegDecl(symbol, _, None, _) => { 
           val ct = CTSymbol(symbol)
           scopedJournals += ct -> RegJournal(ct, this)
           Some(cmd)
@@ -97,7 +97,7 @@ object CollapseConnectsAndScopes extends GamaPass {
           case None => Some(CmdERROR(s"Invalid sink encountered during $name: $sink", cmd.note))
         }
         
-        case MemDecl(memdesc, _) => { // Create MemJournal
+        case MemDecl(memdesc, _, _) => { // Create MemJournal
           val ct = CTMem(memdesc)
           scopedJournals += ct -> MemJournal(ct, this)
           Some(cmd)
@@ -118,7 +118,7 @@ object CollapseConnectsAndScopes extends GamaPass {
         
         case ConstDecl(_,_,_) | CmdERROR(_,_) => Some(cmd)
 
-        case AliasDecl(_,_,_) | BiConnectStmt(_,_,_,_) | RegDecl(_, Some(_), _) =>
+        case AliasDecl(_,_,_) | BiConnectStmt(_,_,_,_) | RegDecl(_, _, Some(_), _) =>
           Some( CmdERROR(s"Disallowed command $cmd encountered during $name", cmd.note) )
       })
       val resolvedJournals = scopedJournals.values.flatMap(_.resolve) 

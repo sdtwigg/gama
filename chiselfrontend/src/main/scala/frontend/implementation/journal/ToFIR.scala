@@ -67,10 +67,11 @@ object ToFIR {
         }
         case CreateReg(regdesc) => {
           val note = buildNote(regdesc.info.debug)
+          val clock = exprLookup(regdesc.clock)._1
           val reset: Option[Tuple2[ExprHW, ExprHW]] = regdesc.reset.map({
             case (ren, rval) => (exprLookup(ren)._1, exprLookup(rval)._1)
           })
-          Some(RegDecl(reftable.addNewSymbol(regdesc.retVal, extractName(regdesc), true, note), reset, note))
+          Some(RegDecl(reftable.addNewSymbol(regdesc.retVal, extractName(regdesc), true, note), clock, reset, note))
         }
 
         case CreateAccessor(accdesc) => {
@@ -101,7 +102,10 @@ object ToFIR {
           val submodulePtr = modulePtrLUT.getOrElse(module, -1)
           Some(SubModuleDecl(modref, submodulePtr, ConvNote)) // TODO: Add note
         }
-        case CreateMem(mem) => Some(MemDecl(memtable.addNewMem(mem), buildNote(mem.info.debug)))
+        case CreateMem(mem) => Some(MemDecl(memtable.addNewMem(mem),
+                                    exprLookup(mem.clock)._1,
+                                    buildNote(mem.info.debug)
+                                   ))
 
         case JMemWrite(mem, selector, source, mask, info) => {
           val note = buildNote(info.debug)

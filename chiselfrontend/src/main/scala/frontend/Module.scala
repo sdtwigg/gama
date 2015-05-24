@@ -86,6 +86,26 @@ abstract class Module[+IOT<:Data](makeIO: IOT, defaultReset: Option[Bool] = None
   }
   def reset: Bool = resetDesc.retVal
 
+  private def requestClockConnect(child: Module[_<:Data], childClock: Clock, parentSrc: Clock): Unit = {
+    ConnectTo[Clock,Clock].preciseMonoConnect(Sink(childClock), Source(parentSrc),
+      EnclosureInfo(__enclosingmodule, None), _children(child))
+  }
+  lazy private[this] val clockDesc: PortDesc[Clock] = {
+    val cdesc = PortDesc(Port(DirectionXFORM.toInput(Clock()), __enclosingmodule),
+                        EnclosureInfo(__enclosingmodule, None))
+    val cpin = cdesc.retVal
+    cpin.setDescRef(cdesc, true)
+    cpin.forceSetName(NameIO(this,"clock"), NameFromIO, true)
+    addIOPin("clock", cpin)
+    for{
+      p <- parent
+      clkSrc = p.clock // TODO: Add override feature
+    } (p.requestClockConnect(this, cpin, clkSrc))
+
+    cdesc
+  }
+  protected[gama] def clock: Clock = clockDesc.retVal // TODO: Expose
+
   def propogateName(newname: NameTree, newsource: NameSource): Unit = {} // do not propogate to IO
 }
 object Module {

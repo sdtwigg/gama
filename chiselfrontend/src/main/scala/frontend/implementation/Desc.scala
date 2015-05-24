@@ -66,6 +66,7 @@ case class AccessorDesc[+T<:Data](
 ) extends Desc with AccessorDescImpl[T] with EnclosedDesc
 
 case class RegDesc[+T<:Data](
+  clock: Clock,
   reset: Option[Tuple2[Bool, T]],
   retVal: T, info: EnclosureInfo
 ) extends Desc with RegDescImpl[T] with EnclosedDesc

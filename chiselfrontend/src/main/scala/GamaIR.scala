@@ -12,7 +12,7 @@ sealed trait CmdHW extends TreeHW { def note: GamaNote }
 sealed trait CreatesRefSymbol extends CmdHW { def symbol: RefSymbol }
 // Symbol creators
 case class WireDecl(symbol: RefSymbol, note: GamaNote) extends CmdHW with CreatesRefSymbol
-case class RegDecl(symbol: RefSymbol, reset: Option[Tuple2[ExprHW, ExprHW]], note: GamaNote) extends CmdHW with CreatesRefSymbol
+case class RegDecl(symbol: RefSymbol, clock: ExprHW, reset: Option[Tuple2[ExprHW, ExprHW]], note: GamaNote) extends CmdHW with CreatesRefSymbol
   // Note, first element is boolean for reset enable, second is reset value... Force to be ExprLit?
 case class ConstDecl(symbol: RefSymbol, expr: ExprHW, note: GamaNote) extends CmdHW with CreatesRefSymbol
 case class AliasDecl(symbol: RefSymbol, ref: RefHW, note: GamaNote) extends CmdHW with CreatesRefSymbol
@@ -29,7 +29,7 @@ case class WhenHW(cond: ExprHW, tc: CmdHW, fc: CmdHW, note: GamaNote) extends Cm
 case class ConnectStmt(sink: RefHW, source: ExprHW, details: ConnectDetails, note: GamaNote) extends CmdHW
 case class BiConnectStmt(left: RefHW, right: RefHW, details: BiConnectDetails, note: GamaNote) extends CmdHW
 // Memory related
-case class MemDecl(desc: MemDesc, note: GamaNote) extends CmdHW
+case class MemDecl(desc: MemDesc, clock: ExprHW, note: GamaNote) extends CmdHW
 // MemRead and MemWrite are to replace RefMSelect via passes
 case class MemRead(symbol: RefSymbol, desc: MemDesc, address: ExprHW, en: ExprHW, note: GamaNote) extends CmdHW with CreatesRefSymbol
   // If en wasn't here, this would essentially be a ConstDecl with RefMSelect

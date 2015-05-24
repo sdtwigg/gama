@@ -4,7 +4,7 @@ package intermediate
 class ExprScanTree {
   def scan(cmd: CmdHW): Unit = cmd match {
     case WireDecl(symbol, _)  => scan(symbol) 
-    case RegDecl(symbol, reset, _)   => {scan(symbol); reset.foreach({
+    case RegDecl(symbol, clock, reset, _)   => {scan(symbol); scan(clock); reset.foreach({
       case (ren, rval) => {scan(ren); scan(rval)}
     })}
     case ConstDecl(symbol, expr, _) => {scan(symbol); scan(expr)}
@@ -12,13 +12,19 @@ class ExprScanTree {
     case BlockHW(stmts, _) => stmts.foreach(scan(_))
     case WhenHW(cond, tc, fc, _) => {scan(cond); scan(tc); scan(fc)}
     
-    case MemRead(symbol, _, address, en, _) => {scan(symbol); scan(address); scan(en)}
-    case MemWrite(_, selector, source, mask, _) => {scan(selector); scan(source); mask.foreach(scan(_))}
+    case MemRead(symbol, _, address, en, _) => {
+      scan(symbol); scan(address); scan(en)
+    }
+    case MemWrite(_, selector, source, mask, _) => {
+      scan(selector); scan(source); mask.foreach(scan(_))
+    }
 
     case ConnectStmt(sink, source, _,_)  => {scan(sink); scan(source)}
     case BiConnectStmt(left, right, _,_) => {scan(left); scan(right)}
 
-    case MemDecl(_,_) | SubModuleDecl(_,_,_) =>
+    case MemDecl(_, clock, _) => {scan(clock)}
+
+    case SubModuleDecl(_,_,_) =>
     case CmdERROR(_,_) => 
   }
 

@@ -59,18 +59,19 @@ abstract class BaseReader extends Reader {
       case CreateWire(wiredesc) =>
         s"${HL.CYAN}wire${HL.RESET}  ${emitRefType(wiredesc.retVal)}  ${emitEncInfo(wiredesc.info)}"
       case CreateReg(regdesc) => {
+        val cinfo: String = s"=> ${HL.CYAN}clock${HL.RESET} = ${emitRef(regdesc.clock)}"
         val rinfo: String = regdesc.reset match {
-          case Some((ren, rval)) => s"=> ${HL.CYAN}reset${HL.RESET} en = ${emitRef(ren)}, rval = ${emitRef(rval)}"
+          case Some((ren, rval)) => s"${HL.CYAN}reset${HL.RESET} en = ${emitRef(ren)}, rval = ${emitRef(rval)}"
           case None => ""
         }
-        s"${HL.CYAN}reg${HL.RESET}   ${emitRefType(regdesc.retVal)} $rinfo ${emitEncInfo(regdesc.info)}"
+        s"${HL.CYAN}reg${HL.RESET}   ${emitRefType(regdesc.retVal)} => $cinfo $rinfo ${emitEncInfo(regdesc.info)}"
       }
       case CreateAccessor(accdesc) =>
         s"${HL.CYAN}acc${HL.RESET}   ${emitRefType(accdesc.retVal)} = ${emitAccDesc(accdesc)}  ${emitEncInfo(accdesc.info)}"
       case CreateExtract(extdesc) =>
         s"${HL.CYAN}extr${HL.RESET}  ${emitRefType(extdesc.retVal)} = ${emitExtDesc(extdesc)}  ${emitEncInfo(extdesc.info)}"
       case CreateMem(mem) =>
-        s"${HL.CYAN}mem${HL.RESET}   ${emitMemDetails(mem)}  ${emitEncInfo(mem.info)}"
+        s"${HL.CYAN}mem${HL.RESET}   ${emitMemDetails(mem)} => ${HL.CYAN}clock${HL.RESET} = ${emitRef(mem.clock)} ${emitEncInfo(mem.info)}"
       case CreateModule(module) =>
         s"${HL.CYAN}inst${HL.RESET}  ${emitModuleInst(module)}"
       case JMemWrite(mem, selector, source, mask, info) => {

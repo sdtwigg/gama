@@ -14,7 +14,7 @@ object Mem {
 
   // external->internal API
   def doMem[D<:Data](model: D, depth: Int, storer: Storable[D], info: EnclosureInfo): Mem[D] = {
-    val newmemory = new Mem(model.copy.rebind(MemSpecSpell(info.em)), depth, storer, info)
+    val newmemory = new Mem(model.copy.rebind(MemSpecSpell(info.em)), info.em.clock, depth, storer, info)
     info.em.getActiveJournal.append(journal.CreateMem(newmemory))
 
     newmemory
@@ -27,7 +27,7 @@ object MemMaskable {
   implicit object DigitalMaskable extends MemMaskable[Digital]
 }
 
-final class Mem[D<:Data] private (protected[gama] val elemType: D, val depth: Int, storer: Storable[D], protected[gama] val info: EnclosureInfo) extends MemAccessible[D] with Nameable {
+final class Mem[D<:Data] private (protected[gama] val elemType: D, protected[gama] val clock: Clock, val depth: Int, storer: Storable[D], protected[gama] val info: EnclosureInfo) extends MemAccessible[D] with Nameable {
   def collection = this
   
   // External API

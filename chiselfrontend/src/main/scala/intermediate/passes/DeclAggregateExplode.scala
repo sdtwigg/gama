@@ -55,8 +55,8 @@ object DeclAggregateExplode extends GamaPass {
     def explodeCreatesRefSymbol(creator: CreatesRefSymbol): Iterable[CmdHW] = creator match {
       case WireDecl(_, note) =>
         explodeSymbol(creator, (nsym, _) => WireDecl(nsym, note))
-      case RegDecl(_, reset, note) =>
-        explodeSymbol(creator, (nsym, ewrap)=>RegDecl(nsym, reset.map({case (ren, rv) => (ren, ewrap(rv))}), note))
+      case RegDecl(_, clock, reset, note) =>
+        explodeSymbol(creator, (nsym, ewrap)=>RegDecl(nsym, clock, reset.map({case (ren, rv) => (ren, ewrap(rv))}), note))
       case ConstDecl(_, expr, note) => 
         explodeSymbol(creator, (nsym, ewrap) => ConstDecl(nsym, ewrap(expr), note))
       case AliasDecl(_, ref, note) =>
@@ -132,7 +132,7 @@ object DeclAggregateExplode extends GamaPass {
         fields.toSeq.sortBy(_._1).flatMap({case (field, eType) => {
           val newident = oldcmd.desc.identifier.getOrElse("") + "$" + field
           val newcmd = memDescGen.grantNewMem(memid =>
-            MemDecl(MemDesc(memid, Some(newident), oldcmd.desc.depth, eType), oldcmd.note)
+            MemDecl(MemDesc(memid, Some(newident), oldcmd.desc.depth, eType), oldcmd.clock, oldcmd.note)
           )
           // Now, build reference replacement table entries for it
           val oldPath: MemPathTrace = mem2path.getOrElse(oldcmd.desc, MPTStart(oldcmd.desc))
@@ -149,7 +149,7 @@ object DeclAggregateExplode extends GamaPass {
         (0 until depth).flatMap(idx => {
           val newident = oldcmd.desc.identifier.getOrElse("") + "$" + idx
           val newcmd = memDescGen.grantNewMem(memid =>
-            MemDecl(MemDesc(memid, Some(newident), oldcmd.desc.depth, eType), oldcmd.note)
+            MemDecl(MemDesc(memid, Some(newident), oldcmd.desc.depth, eType), oldcmd.clock, oldcmd.note)
           )
           // Now, build reference replacement table entries for it
           val oldPath: MemPathTrace = mem2path.getOrElse(oldcmd.desc, MPTStart(oldcmd.desc))
@@ -201,7 +201,7 @@ object DeclAggregateExplode extends GamaPass {
     object DeclExplodeTransformer extends CmdMultiTransformTree {
       override def multiTransform(cmd: CmdHW): Iterable[CmdHW] = cmd match {
         case creator: CreatesRefSymbol => (explodeCreatesRefSymbol(creator))
-        case memD @ MemDecl(_,_) => explodeMemDecl(memD)
+        case memD @ MemDecl(_,_,_) => explodeMemDecl(memD)
         case memW @ MemWrite(_,_,_,_,_) => explodeMemWrite(memW)
         case _ => super.multiTransform(cmd)
       }

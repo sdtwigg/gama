@@ -94,13 +94,13 @@ object ExpandMSelectSource extends GamaPass {
     object Transformer extends CmdMultiTransformTree {
       override def multiTransform(cmd: CmdHW) = cmd match {
         // These have no expressions to transform
-        case WireDecl(_,_) | RegDecl(_, None, _) | BlockHW(_,_) | MemDecl(_,_) |
+        case WireDecl(_,_) | RegDecl(_, _, None, _) | BlockHW(_,_) | MemDecl(_,_,_) |
              SubModuleDecl(_,_,_) | CmdERROR(_,_) => super.multiTransform(cmd)
         // These do
-        case RegDecl(symbol, Some((ren, rval)), note) => {
+        case RegDecl(symbol, clock, Some((ren, rval)), note) => {
           val (newren,  renCmds) = extractMemRead(ren)
           val (newrval, rvalCmds) = extractMemRead(rval)
-          renCmds ++ rvalCmds :+ RegDecl(symbol, Some((newren, newrval)), note)
+          renCmds ++ rvalCmds :+ RegDecl(symbol, clock, Some((newren, newrval)), note)
         }
         case ConstDecl(symbol, expr, note) => {
           val (newexpr, exprCmds) = extractMemRead(expr)

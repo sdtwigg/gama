@@ -56,7 +56,7 @@ class AppendableMemDescTable(prescan: ElaboratedModule) {
 
   new ExprScanTree {
     override def scan(cmd: CmdHW) = cmd match {
-      case creator @ MemDecl(_,_) => (addMem(creator))
+      case creator @ MemDecl(_,_,_) => (addMem(creator))
       case _ => super.scan(cmd) // Don't care that creator scan short-circuited since only looking at cmds
     }
   }.scan(prescan.body)
