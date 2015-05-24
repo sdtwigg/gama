@@ -4,6 +4,9 @@ package intermediate
 object LocalExprTyper extends GamaPass {
   val name = "LocalExprTyper"
   object Transformer extends ExprOnlyTransformTree {
+    // Expressions typed according to root expressions (RefSymbol, ExprLit, RefMSelect, RefIO, ...
+    // Note, local means will not transform those roots (except ExprLit) as no info is available locally to do that.
+
     // Helper classes
     case class NSMaker(buildNS: ((Boolean,Boolean), Option[Int]) => Option[NodeStore]) {
       // The booleans are whether the left and right types are signed, Option[Int] is new width
@@ -113,7 +116,6 @@ object LocalExprTyper extends GamaPass {
       // Note, no Ref* because either already computed or not determinable locally
       case _ => super.transform(expr) // type known so just go deeper
     }
-    // TODO: Also handle Cmds?
   }
 
   def transform(target: ElaboratedModule): ElaboratedModule = Transformer.transform(target)
