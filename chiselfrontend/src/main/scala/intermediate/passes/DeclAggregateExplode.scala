@@ -238,7 +238,7 @@ object DeclAggregateExplode extends GamaPass {
         case RefVIndex(_,_,_) | RefTLookup(_,_,_) => makePath(ref).flatMap({
           case FoundRefSymbol(path)       => path2sym.get(path)
           case FoundMemSelect(path, root) =>
-            path2mem.get(path).map(RefMSelect(_, transform(root.selector), root.note))
+            path2mem.get(path).map(RefMSelect(_, transform(root.address), root.note))
         }).getOrElse(ref)
 
         case _  => super.transform(ref)

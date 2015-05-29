@@ -14,7 +14,7 @@ object testmain {
       InternalAggregateExplode, ExpandMSelect, TightenExpr
     ))
     object PostPasses extends PassMerger(Seq(
-      CollapseConnectsAndScopes, FlattenExprTree
+      CollapseConnectsAndScopes
     ))
     
     val myJReader = gama.frontend.implementation.journal.FoldedReader.Colorful
